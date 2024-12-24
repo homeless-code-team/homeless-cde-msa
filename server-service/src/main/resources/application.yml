@@ -1,0 +1,17 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: server-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/homeless_code?serverTimezone=Asia/Seoul
+    username: root
+    password: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
