@@ -1,0 +1,127 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]": # 모든 경로에 대한 CORS 설정
+            allowed-origins:
+              # - "http://localhost:3000"
+              - "https://traplan.site"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowed-headers:
+              - "Content-Type"
+              - "Authorization"
+              - "X-Requested-With"
+            allow-credentials: true
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: Traplan Cloud Gateway Global Filter
+            preLogger: true
+            postLogger: true
+        - name: DedupeResponseHeader
+          args:
+            name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            strategy: RETAIN_FIRST
+      routes:
+        - id: member-service
+          uri: lb://MEMBER-SERVICE
+          predicates:
+            - Path=/member-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: member-service
+          uri: lb://MEMBER-SERVICE
+          predicates:
+            - Path=/member-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: travelplan-service
+          uri: lb://TRAVELPLAN-SERVICE
+          predicates:
+            - Path=/travelplan-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/travelplan-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: travelplan-service
+          uri: lb://TRAVELPLAN-SERVICE
+          predicates:
+            - Path=/travelplan-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: main-service
+          uri: lb://MAIN-SERVICE
+          predicates:
+            - Path=/main-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/main-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: main-service
+          uri: lb://MAIN-SERVICE
+          predicates:
+            - Path=/main-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: mypage-service
+          uri: lb://MYPAGE-SERVICE
+          predicates:
+            - Path=/mypage-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/mypage-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: mypage-service
+          uri: lb://MYPAGE-SERVICE
+          predicates:
+            - Path=/mypage-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: travelboard-service
+          uri: lb://TRAVELBOARD-SERVICE
+          predicates:
+            - Path=/travelboard-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/travelboard-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: travelboard-service
+          uri: lb://TRAVELBOARD-SERVICE
+          predicates:
+            - Path=/travelboard-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+# log level setting
+logging:
+  level:
+    root: info
+    com:
+      traplaner: info
