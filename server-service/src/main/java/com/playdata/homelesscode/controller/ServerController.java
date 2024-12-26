@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -27,8 +28,8 @@ public class ServerController {
 
     private final ServerService serverService;
 
-    @PutMapping("/server/create")
-    public ResponseEntity<?> createServer(ServerCreateDto dto) {
+    @PostMapping("/servers")
+    public ResponseEntity<?> createServer(ServerCreateDto dto) throws IOException {
 
         Server result = serverService.createServer(dto);
 
@@ -37,7 +38,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/server/get")
+    @GetMapping("/servers")
     public ResponseEntity<?> getServer() {
         String id = "3cc4dc0d-ca72-492f-9971-45e66a08f236";
 
@@ -49,7 +50,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/server/delete")
+    @DeleteMapping("/servers")
     public ResponseEntity<?> deleteServer(@RequestParam("id") String id) {
 
         serverService.deleteServer(id);
@@ -58,7 +59,7 @@ public class ServerController {
     }
 
 
-    @PutMapping("/channel/create")
+    @PostMapping("/channels")
     public ResponseEntity<?> createChannel(ChannelCreateDto dto) {
 
         Channel result = serverService.createChannel(dto);
@@ -68,7 +69,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/channel/get")
+    @GetMapping("/channels")
     public ResponseEntity<?> getChannel(@RequestParam String id) {
 
         List<ChannelResponseDto> result = serverService.getChannel(id);
@@ -78,7 +79,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/channel/delete")
+    @DeleteMapping("/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id) {
 
         serverService.deleteChannel(id);
@@ -86,7 +87,7 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/board/create")
+    @PostMapping("/boards")
     public ResponseEntity<?> createBoard(@RequestBody BoardCreateDto dto){
         Board result = serverService.createBoard(dto);
 
@@ -96,7 +97,7 @@ public class ServerController {
 
     }
 
-    @PutMapping("/board/update")
+    @PutMapping("/boards")
     public ResponseEntity<?> updateBoard(@RequestBody BoardUpdateDto dto){
 
         Board board = serverService.updateBoard(dto);
@@ -106,7 +107,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/board/delete")
+    @DeleteMapping("/boards")
     public ResponseEntity<?> deleteBoard(@RequestParam String id) {
 
         serverService.deleteBoard(id);
@@ -114,7 +115,7 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/board/get")
+    @GetMapping("/boards")
     public ResponseEntity<?> getBoard(@RequestParam String id) {
 
         List<Board> result = serverService.getBoard(id);

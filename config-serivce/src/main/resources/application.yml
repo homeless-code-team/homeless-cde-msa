@@ -9,22 +9,12 @@ spring:
   cloud:
     config:
       server:
-        #        native:   # ?? ?? ??, ????? ?? ???? ???????.
-        #          search-locations: file:///c:/playdata.io_backend6/projects/traplan-config
         git:
           uri: git@github.com:homeless-code-team/homeless-code_config.git
           default-label: main
-          host-key: ""
-          host-key-algorithm: "ssh-rsa"
-          private-key: |
-            ${GIT_PRIVATE_KEY}
+          username: bildno
+          password: ${GIT_PRIVATE_KEY}
 
-# log level setting
-logging:
-  level:
-    root: info
-    org:
-      hibernate.SQL: info
-      springframework.cloud.config: info
-    com:
-      traplaner: info
+
+
+
