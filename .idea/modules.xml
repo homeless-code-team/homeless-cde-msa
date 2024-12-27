@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/chat-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/chat-service.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/gateway-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/gateway-service.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/homeless-code-msa.iml" filepath="$PROJECT_DIR$/.idea/homeless-code-msa.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/homeless-code.main.iml" filepath="$PROJECT_DIR$/.idea/modules/homeless-code.main.iml" />
     </modules>
   </component>
 </project>

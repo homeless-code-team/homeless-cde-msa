@@ -8,7 +8,7 @@ spring:
     import: "optional:configserver:"
 
 server:
-  port: 8181
+  port: 0
 
 #eureka:
 #  client:
