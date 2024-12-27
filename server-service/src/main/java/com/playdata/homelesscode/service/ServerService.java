@@ -1,5 +1,6 @@
 package com.playdata.homelesscode.service;
 
+import com.playdata.homelesscode.common.config.AwsS3Config;
 import com.playdata.homelesscode.dto.board.BoardCreateDto;
 import com.playdata.homelesscode.dto.board.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
@@ -11,7 +12,9 @@ import com.playdata.homelesscode.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,15 +26,26 @@ public class ServerService {
     private final ServerListRepository serverListRepository;
     private final ChannelRepository channelRepository;
     private final BoardRepository boardRepository;
+    private final AwsS3Config awsS3Config;
 
-    public Server createServer(ServerCreateDto dto) {
+    public Server createServer(ServerCreateDto dto) throws IOException {
         String userId = dto.getUserId();
 
         User user = userRepository.findById(userId).orElseThrow();
 
         Server server = dto.toEntity(user);
 
+        String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
+
+        String imageUrl = awsS3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+
+
+        server.setServerImg(imageUrl);
+
         Server result = serverRepository.save(server);
+
+
+
 
         ServerList serverList = ServerList.builder()
                 .server(server)
