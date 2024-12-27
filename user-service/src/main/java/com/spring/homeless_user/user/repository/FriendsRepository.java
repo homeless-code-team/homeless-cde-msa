@@ -10,7 +10,13 @@ import java.util.Optional;
 
 @Repository
 public interface FriendsRepository extends JpaRepository<Friends, Long> {
-    List<Friends> findAllById(Long userId);
 
-    Optional<Friends> findByUserAndFriend(User reqUser, User resUser);
+    // 특정 사용자가 요청한 친구 목록
+    List<Friends> findByUserEmail(String email);
+
+    // 특정 사용자가 요청받은 친구 목록
+    List<Friends> findByFriendEmail(String email);
+
+    // 두 사용자 간의 친구 관계 조회
+    Optional<Friends> findByUserEmailAndFriendEmail(String userEmail, String friendEmail);
 }

@@ -5,10 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "servers", indexes = {
+        @Index(name = "idx_servers_user_id", columnList = "user_id"),
+        @Index(name = "idx_servers_server_id", columnList = "serverId")
+})
 public class Servers {
 
     @Id
