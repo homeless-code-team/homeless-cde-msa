@@ -26,7 +26,12 @@ import java.util.List;
 public class ServerController {
 
 
+
+
+
     private final ServerService serverService;
+
+
 
     @PostMapping("/servers")
     public ResponseEntity<?> createServer(ServerCreateDto dto) throws IOException {
