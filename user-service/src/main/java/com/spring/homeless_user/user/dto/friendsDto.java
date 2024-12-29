@@ -10,10 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class friendsDto {
-    private String ReqEmail;
     private String ResEmail;
-    private AddStatus AddStatus;
-
-    public friendsDto(String mail, String mail1) {
-    }
 }

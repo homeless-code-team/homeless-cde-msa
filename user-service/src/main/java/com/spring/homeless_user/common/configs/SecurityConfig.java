@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // YAML 설정과 통합
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/user/signup", "/user/signin", "user/confirm", "user/duplicate/*").permitAll()
+                    auth.requestMatchers("/api/v1/user/sign-up", "/api/v1/user/sign-in", "/api/v1/user/confirm", "/api/v1/user/duplicate").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

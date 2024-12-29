@@ -7,6 +7,8 @@ import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +16,7 @@ import java.io.IOException;
 
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("api/v1/user")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -23,175 +25,149 @@ public class UserController {
     private final UserService userService;
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
     //회원가입
-    @PostMapping(value = "/signup", consumes = "multipart/form-data")
+    @PostMapping(value = "/sign-up", consumes = "multipart/form-data")
     public CommonResDto userSignUp(
             @RequestPart("img") MultipartFile img,
             @RequestPart("data") String dataJson) throws IOException {
         log.info("singup");
-
+        // form- data를 파싱해서 dto로 전환
         ObjectMapper objectMapper = new ObjectMapper();
         UserSaveReqDto dto = objectMapper.readValue(dataJson, UserSaveReqDto.class);
+
         return userService.userSignUp(dto, img);
     }
 
-    // 이메일 인증번호 확인
+    // 로그인
+    @PostMapping("/sign-in")
+    public CommonResDto userSignIn(@RequestBody UserLoginReqDto dto) {
+        log.info("signin");
+        return userService.userSignIn(dto);
+    }
+
+    // 로그아웃
+    @DeleteMapping("/sign-out")
+    public CommonResDto userSignOut() {
+        log.info("signin");
+        return userService.userSignOut();
+    }
+    
+    // 토큰 갱신
+    @PostMapping("/refresh-token")
+    public CommonResDto reissueAccessToken() {
+        log.info("refresh token");
+        return userService.refreshToken();
+    }
+
+//    @PostMapping("/git")
+//    public CommonResDto gitLogin(@Valid @RequestBody UserLoginReqDto dto) {
+//
+//        return userService.gitLogin(dto);
+//    }
+
+
+    // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
     public CommonResDto confirm(@RequestParam String email, String token) {
     log.info("confirm");
         return userService.confirm(email, token);
     }
 
-    // 로그인
-    @PostMapping("/signin")
-    public CommonResDto userSignIn(@RequestBody UserLoginReqDto dto) {
-        log.info("signin");
-        return userService.userSignIn(dto);
-    }
-
-    @PostMapping("/refreshToken")
-    public CommonResDto reissueAccessToken(@RequestHeader("accessToken") String accessToken) {
-
-        return userService.refreshToken(accessToken);
-    }
-
-//    @PostMapping("/gitlogin")
-//    public CommonResDto gitLogin(@Valid @RequestBody UserLoginReqDto dto) {
-//
-//        return userService.gitLogin(dto);
-//    }
-
-    // 이메일 인증번호 전송
-//    @PostMapping("/sendemail")
-//    public CommonResDto sendEmail(@RequestBody String  email) {
-//
-//        return userService.ema
-//    }
-
-
-
-    // 이메일 중복검사
-    @GetMapping("/duplicate/email")
-    public CommonResDto duplicateEmail(@RequestParam String email) {
+    // 이메일 & 닉네임 중복검사
+    @GetMapping("/duplicate")
+    public CommonResDto duplicateEmail(@RequestParam String email, String nickname) {
     log.info("duplicateEmail");
-        return userService.duplicateEmail(email);
-    }
-
-    //닉네임 중복검사
-    @GetMapping("/duplicate/nickname")
-    public CommonResDto gitLogin(@RequestParam String nickname) {
-    log.info("duplicateNickname");
-    return userService.duplicateNickname(nickname);
-    }
-
-    //
-    @PostMapping("/checkEmail")
-    public CommonResDto checkEmail(@RequestParam EmailCheckDto dto) {
-    log.info("checkEmail");
-        return userService.checkEmail(dto);
-    }
-    
-    // 비밀번호 변경
-    @PostMapping("/pwchange")
-    public CommonResDto pwChange(@RequestBody UserLoginReqDto dto) {
-    log.info("pwChange");
-       return userService.pwChange(dto);
-    }
-
-    // 닉네임 정보수정
-    @PostMapping("/modify")
-    public CommonResDto modify (@RequestParam String nickname){
-    log.info("modify");
-        return userService.modify(nickname);
+        return userService.duplicateCheck(email,nickname);
     }
 
     // 회원탈퇴
-    @DeleteMapping("/quit")
-    public CommonResDto quit (@RequestParam String email) {
-    log.info("quit");
-        return userService.quit(email);
+    @DeleteMapping("")
+    public CommonResDto delete () {
+        log.info("quit");
+        return userService.delete();
     }
 
-    // 프로필 이미지 등록
-    @PostMapping(value = "/profileimage", consumes = "multipart/form-data")
+
+    // 정보수정
+    @PatchMapping(value = "", consumes = "multipart/form-data")
     public CommonResDto profileImageUpdate(  @RequestPart("img") MultipartFile img,
                                              @RequestPart("data") String dataJson) throws IOException {
     log.info("profileImageUpdate");
         ObjectMapper objectMapper = new ObjectMapper();
-        UserLoginReqDto dto = objectMapper.readValue(dataJson, UserLoginReqDto.class); {
-        return userService.profileImageUpdate(dto.getEmail(), img);}
+        ModifyDto dto = objectMapper.readValue(dataJson, ModifyDto.class); {
+        return userService.modify(dto, img);}
     }
 ////////////////////////////////////////////// 친구관리 /////////////////////////////////////////////////////////////////
 
     // 친구 요청
-    @PostMapping("/friends/add/requset")
-    public CommonResDto addFriend(@RequestBody friendsDto dto) {
+    @PostMapping("/friends")
+    public CommonResDto addFriend(@RequestBody String resEmail) {
         log.info("addFriend");
-        return userService.addFriends(dto);
+        return userService.addFriends(resEmail);
     }
 
     //친구목록 조회
-    @GetMapping("/friends/join")
-    public CommonResDto userFriends(@RequestParam String email) {
+    @GetMapping("/friends")
+    public CommonResDto userFriends() {
     log.info("userFriends");
-        return userService.UserFriends(email);
+        return userService.UserFriends();
     }
 
     // 친구삭제
-    @DeleteMapping("/friends/delete")
-    public CommonResDto deleteFriend(@RequestBody friendsDto dto) {
+    @DeleteMapping("/friends")
+    public CommonResDto deleteFriend(@RequestBody String resEmail) {
         log.info("deleteFriend");
-        return userService.deleteFriend(dto);
+        return userService.deleteFriend(resEmail);
     }
         
     //친구 요청응답    
-    @PostMapping("/friends/add/response")
+    @PostMapping("/friends/response")
     public CommonResDto addResFriend(@RequestBody friendsDto dto) {
         log.info("addFriend");
         return userService.addResFriends(dto);
     }
 
     // 친구 요청한 목록 및 친구 요청 받은  목록 조회
-    @GetMapping("/friends/add/join")
-        public CommonResDto addFriendJoin(@RequestParam String email) {
+    @GetMapping("/friends/response")
+        public CommonResDto addFriendJoin() {
         log.info("addFriendJoin");
-            return userService.addFriendsJoin(email);
+            return userService.addFriendsJoin();
     }
 
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
     // 서버 추가요청
-    @PostMapping("/server/add/requset")
-        public CommonResDto addReqServer(@RequestBody ServerDto dto){
+    @PostMapping("/server")
+        public CommonResDto addReqServer(@RequestBody Long serverId){
         log.info("addFriend");
-            return userService.addReqServer(dto);
+            return userService.addReqServer(serverId);
     }
 
     // 속한 서버 조회
-    @GetMapping("/server/join")
-        public CommonResDto userFriendJoin(@RequestParam String email) {
+    @GetMapping("/server")
+        public CommonResDto userFriendJoin() {
         log.info("userFriends");
-            return userService.userServerJoin(email);
+            return userService.userServerJoin();
     }
 
     // 서버 탈퇴
-    @DeleteMapping("/server/delete/server")
-        public CommonResDto deleteFriend(@RequestBody ServerDto dto) {
+    @DeleteMapping("/server")
+        public CommonResDto deleteFriend(@RequestParam long serverId) {
         log.info("deleteFriend");
-            return userService.deleteServer(dto);
+            return userService.deleteServer(serverId);
     }
 
     //서버 요청 응답
-    @PostMapping("/server/add/response")
-        public CommonResDto addResServer(@RequestParam ServerDto dto) {
+    @PostMapping("/server/response")
+        public CommonResDto addResServer(@RequestBody long serverId, String status) {
         log.info("addFriend");
-                return userService.addResServer(dto);
+                return userService.addResServer(serverId, status);
     }
 
     //서버추가 요청 조회
-    @PostMapping("/server/add/join")
-       public CommonResDto addServerJoin(@RequestParam String email) {
+    @GetMapping("/server/response")
+       public CommonResDto addServerJoin() {
         log.info("addFriendJoin");
-                return userService.addServerJoin(email);
+                return userService.addServerJoin();
     }
 
 }
