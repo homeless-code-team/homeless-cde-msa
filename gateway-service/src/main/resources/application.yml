@@ -11,7 +11,7 @@ spring:
           "[/**]": # 모든 경로에 대한 CORS 설정
             allowed-origins:
               # - "http://localhost:3000"
-              - "https://traplan.site"
+              # - 나중에 도메인
             allowed-methods:
               - GET
               - POST
@@ -26,7 +26,7 @@ spring:
       default-filters:
         - name: GlobalFilter
           args:
-            baseMessage: Traplan Cloud Gateway Global Filter
+            baseMessage: homeless-code Cloud Gateway Global Filter
             preLogger: true
             postLogger: true
         - name: DedupeResponseHeader
@@ -34,94 +34,62 @@ spring:
             name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
             strategy: RETAIN_FIRST
       routes:
-        - id: member-service
-          uri: lb://MEMBER-SERVICE
+        - id: user-service
+          uri: lb://USER-SERVICE
           predicates:
-            - Path=/member-service/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
-
-        - id: member-service
-          uri: lb://MEMBER-SERVICE
-          predicates:
-            - Path=/member-service/actuator/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
-
-        - id: travelplan-service
-          uri: lb://TRAVELPLAN-SERVICE
-          predicates:
-            - Path=/travelplan-service/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/travelplan-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
-
-        - id: travelplan-service
-          uri: lb://TRAVELPLAN-SERVICE
-          predicates:
-            - Path=/travelplan-service/actuator/**
+            - Path=/user-service/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-
-        - id: main-service
-          uri: lb://MAIN-SERVICE
-          predicates:
-            - Path=/main-service/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/main-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-        - id: main-service
-          uri: lb://MAIN-SERVICE
+        - id: user-service
+          uri: lb://USER-SERVICE
           predicates:
-            - Path=/main-service/actuator/**
+            - Path=/user-service/actuator/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-
-        - id: mypage-service
-          uri: lb://MYPAGE-SERVICE
-          predicates:
-            - Path=/mypage-service/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/mypage-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-        - id: mypage-service
-          uri: lb://MYPAGE-SERVICE
-          predicates:
-            - Path=/mypage-service/actuator/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
 
-        - id: travelboard-service
-          uri: lb://TRAVELBOARD-SERVICE
+        - id: chat-service
+          uri: lb://CHAT-SERVICE
           predicates:
-            - Path=/travelboard-service/**
+            - Path=/chat-service/**
           filters:
             - RemoveRequestHeader=Cookie
-            - RewritePath=/travelboard-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-        - id: travelboard-service
-          uri: lb://TRAVELBOARD-SERVICE
+        - id: chat-service
+          uri: lb://CHAT-SERVICE
           predicates:
-            - Path=/travelboard-service/actuator/**
+            - Path=/chat-service/actuator/**
           filters:
             - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+
+
+        - id: server-service
+          uri: lb://SERVER-SERVICE
+          predicates:
+            - Path=/server-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+            -
+        - id: server-service
+          uri: lb://SERVER-SERVICE
+          predicates:
+            - Path=/server-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+
 # log level setting
-logging:
-  level:
-    root: info
-    com:
-      traplaner: info
