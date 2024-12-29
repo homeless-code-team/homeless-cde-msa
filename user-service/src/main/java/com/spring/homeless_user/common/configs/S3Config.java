@@ -1,4 +1,4 @@
-//package com.spring.homeless_user.common.configs;
+package com.spring.homeless_user.common.configs;//package com.spring.homeless_user.common.configs;
 //
 //import com.amazonaws.auth.AWSStaticCredentialsProvider;
 //import com.amazonaws.auth.BasicAWSCredentials;

@@ -2,10 +2,11 @@ package com.spring.homeless_user.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -20,6 +21,9 @@ public class UserSaveReqDto {
 
     @NotBlank(message = "Nickname is required")
     private String nickname;
+
+    private String content;
+    private String profileImage;
 
     @JsonCreator
     public UserSaveReqDto(
