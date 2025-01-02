@@ -26,7 +26,7 @@ public class ServerService {
     private final ServerListRepository serverListRepository;
     private final ChannelRepository channelRepository;
     private final BoardRepository boardRepository;
-    private final AwsS3Config awsS3Config;
+//    private final AwsS3Config awsS3Config;
 
     public Server createServer(ServerCreateDto dto) throws IOException {
         String userId = dto.getUserId();
@@ -37,10 +37,10 @@ public class ServerService {
 
         String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
 
-        String imageUrl = awsS3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+//        String imageUrl = awsS3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
 
 
-        server.setServerImg(imageUrl);
+//        server.setServerImg(imageUrl);
 
         Server result = serverRepository.save(server);
 
