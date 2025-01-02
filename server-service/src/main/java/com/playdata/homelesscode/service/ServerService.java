@@ -5,6 +5,7 @@ import com.playdata.homelesscode.dto.board.BoardCreateDto;
 import com.playdata.homelesscode.dto.board.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
+import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
 import com.playdata.homelesscode.entity.*;
@@ -149,6 +150,19 @@ public class ServerService {
         List<Board> board = boardRepository.findByChannelId(id);
 
         return board;
+
+    }
+
+    public Channel updateChannel(ChannelUpdateDto dto) {
+
+        Channel channel = channelRepository.findById(dto.getChannelId()).orElseThrow();
+
+        channel.setName(dto.getName());
+
+
+        Channel save = channelRepository.save(channel);
+
+        return save;
 
     }
 }
