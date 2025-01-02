@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user", indexes = {
+@Table(name = "tbl_user", indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_nickname", columnList = "nickname")
 })
