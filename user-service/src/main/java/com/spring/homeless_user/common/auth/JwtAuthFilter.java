@@ -52,6 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        log.info("start");
         // 토큰 가져오기
         String token = request.getHeader("Authorization");
 
@@ -162,13 +163,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String requestPath = request.getRequestURI();
-        log.info(requestPath);
-        log.info(securityPropertiesUtil.getExcludedPaths().toString());
+        log.info("Request Path: {}", requestPath);
+        log.info("Excluded Paths: {}", securityPropertiesUtil.getExcludedPaths());
+
         boolean flag = securityPropertiesUtil.getExcludedPaths()
                 .stream()
-                .anyMatch(requestPath::equalsIgnoreCase);
-
+                .anyMatch(excludedPath -> {
+                    log.info("Comparing '{}' with '{}'", requestPath, excludedPath);
+                    return requestPath.startsWith(excludedPath);
+                });
         log.info("shouldNotFilter Flag: {}", flag);
         return flag;
     }
+
 }
