@@ -145,35 +145,35 @@ public class UserController {
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
     // 서버 추가요청
-    @PostMapping("/servers")
+    @PostMapping("/server")
         public CommonResDto addReqServer(@RequestBody ServerDto dto){
         log.info("addFriend");
             return userService.addReqServer(dto);
     }
 
     // 속한 서버 조회
-    @GetMapping("/servers")
+    @GetMapping("/server")
         public CommonResDto userFriendJoin() {
         log.info("userFriends");
             return userService.userServerJoin();
     }
 
     // 서버 탈퇴
-    @DeleteMapping("/servers")
+    @DeleteMapping("/server")
         public CommonResDto deleteFriend(@RequestParam long serverId) {
         log.info("deleteFriend");
             return userService.deleteServer(serverId);
     }
 
     //서버 요청 응답
-    @PostMapping("/servers/response")
+    @PostMapping("/server/response")
         public CommonResDto addResServer(@RequestBody ServerDto dto) {
         log.info("addFriend");
                 return userService.addResServer(dto);
     }
 
     //서버추가 요청 조회
-    @GetMapping("/servers/response")
+    @GetMapping("/server/response")
        public CommonResDto addServerJoin() {
         log.info("addFriendJoin");
                 return userService.addServerJoin();
