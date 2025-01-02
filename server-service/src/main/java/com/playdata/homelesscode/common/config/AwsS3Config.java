@@ -16,7 +16,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 
 // AWS에 연결해서 S3에 관련된 서비스를 실행하는 전용 객체
-@Component
+//@Component
 @Slf4j
 public class AwsS3Config {
 
