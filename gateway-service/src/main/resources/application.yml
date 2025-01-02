@@ -81,7 +81,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-#            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter
 
 
 

@@ -5,6 +5,7 @@ import com.playdata.homelesscode.dto.board.BoardCreateDto;
 import com.playdata.homelesscode.dto.board.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
+import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
 import com.playdata.homelesscode.entity.Board;
@@ -53,7 +54,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/servers")
+    @DeleteMapping("/server/servers")
     public ResponseEntity<?> deleteServer(@RequestParam("id") String id) {
 
         serverService.deleteServer(id);
@@ -82,13 +83,25 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/channels")
+    @DeleteMapping("/server/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id) {
 
         serverService.deleteChannel(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    @PutMapping("/server/channels")
+    public ResponseEntity<?> updateChannel(ChannelUpdateDto dto){
+        Channel result = serverService.updateChannel(dto);
+
+        CommonResDto resDto = new CommonResDto(HttpStatus.OK, "수정성공", result);
+
+        return new ResponseEntity<>(resDto, HttpStatus.OK);
+
+    }
+
 
     @PostMapping("/boards")
     public ResponseEntity<?> createBoard(@RequestBody BoardCreateDto dto){

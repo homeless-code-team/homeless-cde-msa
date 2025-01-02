@@ -10,19 +10,6 @@ spring:
       allow-credentials: true
   application:
     name: user-service
-  datasource:
-    url: jdbc:mysql://localhost:3306/homeless-user?serverTimezone=Asia/Seoul
-    username: root
-    password: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    redis:
-      host: localhost  # Redis ?? ??
-      port: 6379       # Redis ?? ??
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
   mail:
     host: smtp.gmail.com
     port: 587
