@@ -1,6 +1,6 @@
 package com.playdata.homelesscode.service;
 
-import com.playdata.homelesscode.common.config.AwsS3Config;
+//import com.playdata.homelesscode.common.config.AwsS3Config;
 import com.playdata.homelesscode.dto.board.BoardCreateDto;
 import com.playdata.homelesscode.dto.board.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
@@ -29,22 +29,24 @@ public class ServerService {
 //    private final AwsS3Config awsS3Config;
 
     public Server createServer(ServerCreateDto dto) throws IOException {
-        String userId = dto.getUserId();
+//        String userId = dto.getUserId();
+        String id = "3cc4dc0d-ca72-492f-9971-45e66a08f236";
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(id).orElseThrow();
 
         Server server = dto.toEntity(user);
+        server.setServerType(1);
 
-        String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
+        if(dto.getServerImg() != null){
+            String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
 
 //        String imageUrl = awsS3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+            server.setServerImg(fileName);
+        }
 
 
-//        server.setServerImg(imageUrl);
 
         Server result = serverRepository.save(server);
-
-
 
 
         ServerList serverList = ServerList.builder()
@@ -64,9 +66,9 @@ public class ServerService {
 
         List<String> collect = byUserId.stream().map(s -> s.getServer().getId()).collect(Collectors.toList());
 
-        List<Server> byIdIn = serverRepository.findByIdIn(collect);
+        List<Server> byIdIn = serverRepository.findByIdInOrServerType(collect, 0);
 
-        List<ServerResponseDto> collect1 = byIdIn.stream().map(e -> new ServerResponseDto(e.getId(), e.getTag(), e.getServerImg())).collect(Collectors.toList());
+        List<ServerResponseDto> collect1 = byIdIn.stream().map(e -> new ServerResponseDto(e.getId(), e.getTag(), e.getTitle(), e.getServerImg())).collect(Collectors.toList());
 
         return collect1;
 
@@ -95,6 +97,7 @@ public class ServerService {
         List<Channel> byServerId = channelRepository.findByServerId(id);
         List<ChannelResponseDto> list = byServerId.stream().map(c ->
                 new ChannelResponseDto(
+                        c.getId(),
                         c.getName(),
                         ChannelResponseDto.makeDateStringFomatter(c.getCreateAt()))
         ).toList();
