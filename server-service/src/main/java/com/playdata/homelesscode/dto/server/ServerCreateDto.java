@@ -25,7 +25,6 @@ public class ServerCreateDto {
         return Server.builder()
                 .title(title)
                 .tag(tag)
-                .serverImg(serverImg.getOriginalFilename())
                 .user(user)
                 .build();
     }
