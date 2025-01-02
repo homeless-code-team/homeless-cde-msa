@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/chats")
 public class ChatController {
 
     private final ChatMessageService chatMessageService;
 
     // WebSocket 메시지 전송 처리
-    @MessageMapping("/{serverId}/{channelId}/send")
+    @MessageMapping("/{serverId}/{channelId}")
     @SendTo("/topic/{serverId}/{channelId}")
     public ChatMessageResponse sendMessageWebSocket(
         @DestinationVariable Long serverId,
@@ -41,7 +41,7 @@ public class ChatController {
     }
 
     // HTTP POST 요청을 통한 메시지 전송 처리
-    @PostMapping("/{serverId}/{channelId}/send")
+    @PostMapping("/{serverId}/{channelId}")
     public ResponseEntity<ChatMessageResponse> sendMessageHttp(
         @PathVariable Long serverId,
         @PathVariable Long channelId,

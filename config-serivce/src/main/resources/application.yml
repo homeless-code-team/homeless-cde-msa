@@ -2,29 +2,20 @@ server:
   port: 8888
 
 spring:
-  #  profiles:         # ?? ?? ??, ????? ?? ???? ???????.
-  #    active: native
   application:
     name: config-service
   cloud:
     config:
       server:
-        #        native:   # ?? ?? ??, ????? ?? ???? ???????.
-        #          search-locations: file:///c:/playdata.io_backend6/projects/traplan-config
+        native:
+          search-locations: file://D:/home/homeless-code-config
         git:
-          uri: git@github.com:homeless-code-team/homeless-code_config.git
-          default-label: main
-          host-key: ""
-          host-key-algorithm: "ssh-rsa"
-          private-key: |
-            ${GIT_PRIVATE_KEY}
+          uri: file://D:/home/homeless-code-config
 
-# log level setting
-logging:
-  level:
-    root: info
-    org:
-      hibernate.SQL: info
-      springframework.cloud.config: info
-    com:
-      traplaner: info
+management:
+  endpoints:
+    web:
+      exposure:
+        include: busrefresh, health, beans
+
+
