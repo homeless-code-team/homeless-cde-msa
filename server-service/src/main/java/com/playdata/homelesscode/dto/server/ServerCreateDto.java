@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class ServerCreateDto {
 
-    private String userId;
+//    private String userId;
     private String title;
     private String tag;
     private MultipartFile serverImg;
