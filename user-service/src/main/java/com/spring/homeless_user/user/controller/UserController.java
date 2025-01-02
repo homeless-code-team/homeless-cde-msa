@@ -3,7 +3,9 @@ package com.spring.homeless_user.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.homeless_user.user.dto.*;
+import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.service.UserService;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +55,9 @@ public class UserController {
     
     // 토큰 갱신
     @PostMapping("/refresh-token")
-    public CommonResDto reissueAccessToken() {
+    public CommonResDto reissueAccessToken(@RequestBody UserLoginReqDto dto) {
         log.info("refresh token");
-        return userService.refreshToken();
+        return userService.refreshToken(dto);
     }
 
 //    @PostMapping("/git")
@@ -63,6 +65,13 @@ public class UserController {
 //
 //        return userService.gitLogin(dto);
 //    }
+
+    // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
+    @PostMapping("/confirm")
+    public CommonResDto sendVerificationEmail(@RequestBody EmailCheckDto dto) {
+        log.info("confirm");
+        return userService.sendVerificationEmail(dto);
+    }
 
 
     // 이메일 인증번호 & 비밀번호 인증 확인
@@ -100,9 +109,9 @@ public class UserController {
 
     // 친구 요청
     @PostMapping("/friends")
-    public CommonResDto addFriend(@RequestBody String resEmail) {
+    public CommonResDto addFriend(@RequestBody friendsDto dto) {
         log.info("addFriend");
-        return userService.addFriends(resEmail);
+        return userService.addFriends(dto);
     }
 
     //친구목록 조회
@@ -114,9 +123,9 @@ public class UserController {
 
     // 친구삭제
     @DeleteMapping("/friends")
-    public CommonResDto deleteFriend(@RequestBody String resEmail) {
+    public CommonResDto deleteFriend(@RequestBody friendsDto dto ) {
         log.info("deleteFriend");
-        return userService.deleteFriend(resEmail);
+        return userService.deleteFriend(dto);
     }
         
     //친구 요청응답    
@@ -137,9 +146,9 @@ public class UserController {
 
     // 서버 추가요청
     @PostMapping("/server")
-        public CommonResDto addReqServer(@RequestBody Long serverId){
+        public CommonResDto addReqServer(@RequestBody ServerDto dto){
         log.info("addFriend");
-            return userService.addReqServer(serverId);
+            return userService.addReqServer(dto);
     }
 
     // 속한 서버 조회
@@ -158,9 +167,9 @@ public class UserController {
 
     //서버 요청 응답
     @PostMapping("/server/response")
-        public CommonResDto addResServer(@RequestBody long serverId, String status) {
+        public CommonResDto addResServer(@RequestBody ServerDto dto) {
         log.info("addFriend");
-                return userService.addResServer(serverId, status);
+                return userService.addResServer(dto);
     }
 
     //서버추가 요청 조회
