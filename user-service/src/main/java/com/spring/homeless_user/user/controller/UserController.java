@@ -16,7 +16,7 @@ import java.io.IOException;
 
 
 @RestController
-@RequestMapping("api/v1/user")
+@RequestMapping("api/v1/users")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -95,8 +95,8 @@ public class UserController {
 
     // 정보수정
     @PatchMapping(value = "", consumes = "multipart/form-data")
-    public CommonResDto profileImageUpdate(  @RequestPart("img") MultipartFile img,
-                                             @RequestPart("data") String dataJson) throws IOException {
+    public CommonResDto modify(  @RequestPart("img") MultipartFile img,
+                                 @RequestPart("data") String dataJson) throws IOException {
     log.info("profileImageUpdate");
         ObjectMapper objectMapper = new ObjectMapper();
         ModifyDto dto = objectMapper.readValue(dataJson, ModifyDto.class); {
