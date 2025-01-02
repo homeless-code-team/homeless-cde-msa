@@ -52,6 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        log.info("start");
         // 토큰 가져오기
         String token = request.getHeader("Authorization");
 
