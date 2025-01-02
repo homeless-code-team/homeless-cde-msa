@@ -7,8 +7,10 @@ spring:
   cloud:
     config:
       server:
+        native:
+          search-locations: file://D:/home/homeless-code-config
         git:
-          uri: file://C:/Users/gingu/Desktop/develop/homeless-code-config
+          uri: file://D:/home/homeless-code-config
 
 management:
   endpoints:
