@@ -30,7 +30,7 @@ public class AuthorizationHeaderFilter
 
     private final List<String> allowUrl = Arrays.asList(
             // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
-            "sign-up","sign-in","confirm","duplicate"
+            "sign-up","sign-in","confirm","duplicate","*","/home"
             
 
     );

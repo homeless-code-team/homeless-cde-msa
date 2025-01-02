@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: server-service
+  config:
+    import: "optional:configserver:"
+
   datasource:
     url: jdbc:mysql://localhost:3306/homeless_code?serverTimezone=Asia/Seoul
     username: root
