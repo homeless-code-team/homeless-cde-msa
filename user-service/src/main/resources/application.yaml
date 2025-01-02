@@ -1,5 +1,5 @@
 server:
-  port: 8181
+  port: 0
 spring:
   web:
     cors:
@@ -9,7 +9,7 @@ spring:
       exposed-headers: "Authorization"
       allow-credentials: true
   application:
-    name: Homeless-USER
+    name: user-service
   datasource:
     url: jdbc:mysql://localhost:3306/homeless-user?serverTimezone=Asia/Seoul
     username: root
@@ -48,31 +48,5 @@ security:
     - /api/v1/user/sign-in
     - /api/v1/user/duplicate
 
-#eureka:
-#client:
-#  enabled: false
-#  register-with-eureka: false
-#  fetch-registry: false
-#  service-url:
-#    defaultZone: http://localhost:8761/eureka/
-
 instance:
   instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-#cloud:
-#  aws:
-#    s3:
-#      bucket: homeless-bucket
-#    credentials:
-#      access-key:
-#      secret-key:
-#    region:
-#      static:
-jwt:
-  exclude-paths:
-    - /user/login
-    - /user/precreate
-    - /user/verify
-  expiration: 3600000
-  secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
-  expirationRt: 1209600000
-  secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==

@@ -64,12 +64,6 @@ public class UserController {
 //        return userService.gitLogin(dto);
 //    }
 
-    // 이메일 인증번호 & 비밀번호 인증 전송
-    @PostMapping("/confirm")
-    public CommonResDto sendEmail(@RequestBody EmailCheckDto dto) {
-
-        return userService.sendVerificationEmail(dto);
-    }
 
     // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
