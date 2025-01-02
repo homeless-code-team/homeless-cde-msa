@@ -94,10 +94,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             jwtUtil.extractAllClaims(token);
             String email = jwtUtil.getEmailFromToken(token);
-            Long userId = jwtUtil.getUserIdFromToken(token);
+            String userId = String.valueOf(jwtUtil.getUserIdFromToken(token));
 
             log.info(email);
-            log.info(String.valueOf(userId));
+            log.info(userId);
             // Redis 토큰 확인
             String redisToken = loginRedis.opsForValue().get(email);
             log.info(redisToken);
