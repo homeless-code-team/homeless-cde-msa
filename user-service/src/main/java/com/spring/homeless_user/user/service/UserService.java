@@ -161,7 +161,7 @@ public class UserService {
             userRepository.save(user);
 
             //redis에 accesstoken 저장
-            String accessToken = jwtTokenProvider.accessToken(user.getEmail(),user.getId());
+            String accessToken = jwtTokenProvider.accessToken(dto.getEmail(), user.getId(),user.getNickname(),user.getProfileImage());
             loginTemplate.opsForValue().set(dto.getEmail(), accessToken);
 
             List<CommonResDto.Link> links = new ArrayList<>();
@@ -214,7 +214,7 @@ public class UserService {
             log.info(refreshToken);
             log.info(String.valueOf(flag));
             if (!flag) {
-                String newAccessToken = jwtTokenProvider.accessToken(dto.getEmail(), userId);
+                String newAccessToken = jwtTokenProvider.accessToken(dto.getEmail(), userId,user.getNickname(),user.getProfileImage());
                 log.info(newAccessToken);
                 loginTemplate.delete(dto.getEmail());
                 loginTemplate.opsForValue().set(dto.getEmail(), newAccessToken);
@@ -361,7 +361,7 @@ public class UserService {
 
         try {
             // 현재 인증된 사용자 가져오기
-            Long userId = SecurityContextUtil.getCurrentUser().getUserId();
+            String userId = SecurityContextUtil.getCurrentUser().getUserId();
             String email = securityContextUtil.getCurrentUser().getEmail();
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
