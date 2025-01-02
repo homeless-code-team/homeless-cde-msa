@@ -27,13 +27,11 @@ public class ServerController {
 
 
 
-
-
     private final ServerService serverService;
 
 
 
-    @PostMapping("/servers")
+    @PostMapping("/server/servers")
     public ResponseEntity<?> createServer(ServerCreateDto dto) throws IOException {
 
         Server result = serverService.createServer(dto);
@@ -43,7 +41,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/servers")
+    @GetMapping("/server/servers")
     public ResponseEntity<?> getServer() {
         String id = "3cc4dc0d-ca72-492f-9971-45e66a08f236";
 
@@ -74,7 +72,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/channels")
+    @GetMapping("/server/channels")
     public ResponseEntity<?> getChannel(@RequestParam String id) {
 
         List<ChannelResponseDto> result = serverService.getChannel(id);

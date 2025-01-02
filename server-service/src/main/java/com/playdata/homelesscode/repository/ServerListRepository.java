@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ServerListRepository extends JpaRepository<ServerList, String> {
     List<ServerList> findByUserId(String id);
+
+
 }
