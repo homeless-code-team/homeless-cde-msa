@@ -32,12 +32,11 @@ public class JwtTokenProvider {
 
 
     // JWT AccessToken 생성
-    public String accessToken(String email, Long id, String nickName, String profileImage) {
+    public String accessToken(String email, Long id, String nickname) {
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(email)
-                .claim("nickName", nickName)
-                .claim("profileImage", profileImage)
+                .claim("nickname", nickname)
                 .claim("user_id",id)
                 .claim("role", Role.USER)
                 .setIssuedAt(new Date())
