@@ -29,7 +29,9 @@ public class AuthorizationHeaderFilter
     private String secretKey;
 
     private final List<String> allowUrl = Arrays.asList(
-            "/sign-up", "/sign-in", "/refresh", "/top3-favorite", "/pw-change","/duplicateTest","/info/**","/list","/email"
+            // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
+            "sign-up","sign-in","confirm","duplicate"
+            
 
     );
 
@@ -45,6 +47,7 @@ public class AuthorizationHeaderFilter
 
             log.info("Request Path: {}", path);
             log.info("Allow URLs: {}", allowUrl);
+            log.info("secrets: {}", secretKey);
             // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
             boolean isAllowed
                     = allowUrl.stream().anyMatch(url -> antPathMatcher.match(url, path));

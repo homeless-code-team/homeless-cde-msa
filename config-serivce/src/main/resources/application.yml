@@ -2,19 +2,18 @@ server:
   port: 8888
 
 spring:
-  #  profiles:         # ?? ?? ??, ????? ?? ???? ???????.
-  #    active: native
   application:
     name: config-service
   cloud:
     config:
       server:
         git:
-          uri: git@github.com:homeless-code-team/homeless-code_config.git
-          default-label: main
-          username: bildno
-          password: ${GIT_PRIVATE_KEY}
+          uri: file://C:/Users/gingu/Desktop/develop/homeless-code-config
 
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: busrefresh, health, beans
 
 
