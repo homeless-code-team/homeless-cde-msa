@@ -104,7 +104,8 @@ public class UserService {
     public CommonResDto userSignUp(@Valid UserSaveReqDto dto, MultipartFile img) throws IOException {
         try{
             if (dto.getEmail()==null || dto.getNickname()==null || dto.getPassword()==null){
-                return new CommonResDto(HttpStatus.BAD_REQUEST,"잘못된요청입니다.",null);
+                CommonResDto.Link loginLink = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잘못된요청입니다.",null,List.of(loginLink));
             }
             User user = new User();
             user.setEmail(dto.getEmail());
@@ -116,10 +117,18 @@ public class UserService {
 
             userRepository.save(user);
 
-            return new CommonResDto(HttpStatus.OK, "회원가입을 환영합니다.", null);
+            List<CommonResDto.Link> links = new ArrayList<>();
+            links.add(new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST"));
+            links.add(new CommonResDto.Link("profileModify", "/api/v1/users", "PATCH"));
+            links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
+            links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
+
+            return new CommonResDto(HttpStatus.OK,201, "회원가입을 환영합니다.", null, links);
         }catch (Exception e){
             e.printStackTrace();
-            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"에러발생"+e.getMessage(),null);
+            List<CommonResDto.Link> links = new ArrayList<>();
+            links.add(new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"));
+            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,401,"에러발생"+e.getMessage(),null,links);
         }
     }
 
@@ -127,20 +136,23 @@ public class UserService {
     public CommonResDto userSignIn(UserLoginReqDto dto) {
 
         if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
-            return new CommonResDto(HttpStatus.BAD_REQUEST,"이미 로그인 중입니다.",null);
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
         }
         if(dto.getEmail()==null||dto.getPassword()==null){
-            return new CommonResDto(HttpStatus.BAD_REQUEST,"잚못된 요청입니다.",null);
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+            return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잚못된 요청입니다.",null,List.of(Link));
         }
         User user =userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + dto.getEmail()));
         log.info(user.toString());
         try{
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
             if (user == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "Invalid email.", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Invalid email.", null,List.of(Link));
             }
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "Invalid password.", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Invalid password.", null,List.of(Link));
             }
             //mysql에 refresh토큰 저장
             String refreshToken = jwtTokenProvider.refreshToken(dto.getEmail(),user.getId());
@@ -152,11 +164,17 @@ public class UserService {
             String accessToken = jwtTokenProvider.accessToken(user.getEmail(),user.getId());
             loginTemplate.opsForValue().set(dto.getEmail(), accessToken);
 
+            List<CommonResDto.Link> links = new ArrayList<>();
+            links.add(new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST"));
+            links.add(new CommonResDto.Link("profileModify", "/api/v1/users", "PATCH"));
+            links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
+            links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
 
-            return new CommonResDto(HttpStatus.OK, "SignUp successfully.", accessToken);
+            return new CommonResDto(HttpStatus.OK,200, "SignIn successfully.", accessToken,links);
         } catch (Exception e){
             e.printStackTrace();
-            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"에러발생"+e.getMessage(),null);
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,402,"에러발생"+e.getMessage(),null,List.of(Link));
         }
     }
 
@@ -173,11 +191,12 @@ public class UserService {
 
             //레디스에서 이메일관련 accessToken제거
             loginTemplate.delete(email);
-
-            return new CommonResDto(HttpStatus.OK, "SignOut successfully.", null);
+            CommonResDto.Link Link = new CommonResDto.Link("logout", "api/v1/users/sign-out","DELETE");
+            return new CommonResDto(HttpStatus.OK,200, "SignOut successfully.", null,List.of(Link));
         }catch (Exception e){
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"로그아웃중 에러 발생",e.getMessage());
+            CommonResDto.Link Link = new CommonResDto.Link("logout", "api/v1/users/sign-out","DELETE");
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400,"로그아웃중 에러 발생",e.getMessage(),List.of(Link));
         }
 
     }
@@ -201,21 +220,27 @@ public class UserService {
                 log.info(newAccessToken);
                 loginTemplate.delete(email);
                 loginTemplate.opsForValue().set(email, newAccessToken);
-                return new CommonResDto(HttpStatus.OK, "Refresh token successfully.", newAccessToken);
+                CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh","POST");
+                return new CommonResDto(HttpStatus.OK,200, "Refresh token successfully.", newAccessToken,List.of(Link));
             }else{
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "Invalid refresh token.", null);
+                CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh","POST");
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400,"Invalid refresh token.", null,List.of(Link));
             }
         }catch(Exception e){
             e.printStackTrace();
-                 return new CommonResDto(HttpStatus.BAD_REQUEST,"이메일 access token error",null);
+            CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh","POST");
+                 return new CommonResDto(HttpStatus.BAD_REQUEST,400,"이메일 access token error",null,List.of(Link));
         }
     }
 
     // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
     public CommonResDto sendVerificationEmail(EmailCheckDto dto) {
-
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("sendEmail", "/api/v1/users/confirm", "POST"));
+        links.add(new CommonResDto.Link("checkEmail", "/api/v1/users/confrim", "GET"));
         if(dto.getEmail()==null){
-            return new CommonResDto(HttpStatus.BAD_REQUEST,"잚못된 요청입니다.",null);
+
+            return new CommonResDto(HttpStatus.BAD_REQUEST,401,"잚못된 요청입니다.",null,links);
         }
 
         String token = jwtTokenProvider.emailToken(dto.getEmail());
@@ -243,19 +268,22 @@ public class UserService {
             checkTemplate.opsForValue().set(token, dto.getEmail(), Duration.ofMinutes(10));
 
 
-            return new CommonResDto(HttpStatus.OK,"이메일 전송 성공!!!", null);
+            return new CommonResDto(HttpStatus.OK,200,"이메일 전송 성공!!!", null,links);
         } catch (Exception e) {
             // 예외 처리
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"이메일 전송 실패",null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,401,"이메일 전송 실패",null,links);
         }
     }
 
     // 이메일 인증, 비밀번호 회원가입시
     public CommonResDto confirm(String email, String token) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("sendEmail", "/api/v1/users/confirm", "POST"));
+        links.add(new CommonResDto.Link("checkEmail", "/api/v1/users/confrim", "GET"));
        try{
            if (email== null && token==null){
-               return new CommonResDto(HttpStatus.BAD_REQUEST,"잘못된 요청입니다.",null);
+               return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잘못된 요청입니다.",null,links);
            }
            String redisEmail = checkTemplate.opsForValue().get(token);
 
@@ -263,66 +291,76 @@ public class UserService {
            if(!redisEmail.isEmpty() && userRepository.findByEmail(email).isPresent()) {
                 if (redisEmail.equals(email)) {
                     checkTemplate.delete(token);
-                    return new CommonResDto(HttpStatus.OK, "token 유효, 비밀번호를 수정해주세요", null);
+                    return new CommonResDto(HttpStatus.OK,200, "token 유효, 비밀번호를 수정해주세요", null,links);
                 }
            //회원가입 미메일 인증     
             }else if(!redisEmail.isEmpty()&&!userRepository.findByEmail(email).isPresent()) {
                if (redisEmail.equals(email)) {
                    checkTemplate.delete(token);
-                   return new CommonResDto(HttpStatus.OK, "token 유효, 회원가입을 계속 진행하세요",null);
+                   return new CommonResDto(HttpStatus.OK,200, "token 유효, 회원가입을 계속 진행하세요",null,links);
                }
-               return new CommonResDto(HttpStatus.BAD_REQUEST, "token 유효하지 않음, 재 인증해주세요", "null");
+               return new CommonResDto(HttpStatus.BAD_REQUEST,400, "token 유효하지 않음, 재 인증해주세요", "null",links);
             }
-           return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"토큰이 저장되지 않았습니다",null);
+           return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400,"토큰이 저장되지 않았습니다",null,links);
         }catch (Exception e){
            e.printStackTrace();
-           return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"에러발생"+e.getMessage(),null);
+           return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400,"에러발생"+e.getMessage(),null,links);
        }
     }
 
     // 이메일 &닉네임 중복검사
     public CommonResDto duplicateCheck(String email, String nickname) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("duplicate", "/api/v1/users/duplicate", "GET"));
+        links.add(new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"));
+        links.add(new CommonResDto.Link("modify","/api/v1/users","PATCH"));
         try {
             // 이메일 중복 체크
             if (email != null) {
                 boolean emailExists = userRepository.findByEmail(email).isPresent();
                 return emailExists
-                        ? new CommonResDto(HttpStatus.OK, "이메일 사용 불가", null)
-                        : new CommonResDto(HttpStatus.OK, "이메일을 사용해도 좋아요.", null);
+                        ? new CommonResDto(HttpStatus.OK,20, "이메일 사용 불가", null,links)
+                        : new CommonResDto(HttpStatus.OK,200, "이메일을 사용해도 좋아요.", null,links);
             }
 
             // 닉네임 중복 체크
             if (nickname != null) {
                 boolean nicknameExists = userRepository.findByNickname(nickname).isPresent();
                 return nicknameExists
-                        ? new CommonResDto(HttpStatus.OK, "닉네임 사용 불가", null)
-                        : new CommonResDto(HttpStatus.OK, "닉네임을 사용해도 좋아요.", null);
+                        ? new CommonResDto(HttpStatus.OK,200, "닉네임 사용 불가", null,links)
+                        : new CommonResDto(HttpStatus.OK,200, "닉네임을 사용해도 좋아요.", null,links);
             }
 
             // 이메일과 닉네임 모두 null인 경우
-            return new CommonResDto(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.", null);
+            return new CommonResDto(HttpStatus.BAD_REQUEST,400, "잘못된 요청입니다.", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러 발생", e.getMessage());
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,401, "에러 발생", e.getMessage(),links );
         }
     }
 
     //회원탈퇴
     public CommonResDto delete() {
+        CommonResDto.Link Link = new CommonResDto.Link("Delete", "api/v1/users","DELETE");
         try{
             String email = securityContextUtil.getCurrentUser().getEmail();
             userRepository.deleteByEmail(email);
             loginTemplate.delete(email);
-            return new CommonResDto(HttpStatus.OK, "삭제완료", null);
+
+            return new CommonResDto(HttpStatus.OK,200, "삭제완료", null,List.of(Link));
         }catch (Exception e){
             e.printStackTrace();
-            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"에러발생"+e.getMessage(),null);
+            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "에러발생"+e.getMessage(),null,List.of(Link));
         }
     }
 
 // 회원정보수정
     public CommonResDto modify(ModifyDto dto, MultipartFile img) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("sign-in", "/api/v1/users/sign-in", "POST"));
+        links.add(new CommonResDto.Link("modify","/api/v1/users","PATCH"));
+
         try {
             // 현재 인증된 사용자 가져오기
             Long userId = SecurityContextUtil.getCurrentUser().getUserId();
@@ -334,7 +372,7 @@ public class UserService {
             if (dto.getNickname() != null) {
                 boolean nicknameExists = userRepository.findByNickname(dto.getNickname()).isPresent();
                 if (nicknameExists) {
-                    return new CommonResDto(HttpStatus.BAD_REQUEST, "닉네임이 이미 존재합니다.", null);
+                    return new CommonResDto(HttpStatus.BAD_REQUEST,400, "닉네임이 이미 존재합니다.", null,links);
                 }
                 user.setNickname(dto.getNickname());
                 userRepository.save(user);
@@ -372,17 +410,21 @@ public class UserService {
 //                // DB 업데이트
 //                userRepository.save(user);
             }
-            return new CommonResDto(HttpStatus.OK, "사용자 정보가 성공적으로 수정되었습니다.", null);
+            return new CommonResDto(HttpStatus.OK,200, "사용자 정보가 성공적으로 수정되었습니다.", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러 발생: " + e.getMessage(), null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "에러 발생: " + e.getMessage(), null,links);
         }
     }
 
 ////////////////////////////////// 친구 관리///////////////////////////////////////////////////////////////////////////////
     // 친구요청
     public CommonResDto addFriends(String resEmail) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             String email = securityContextUtil.getCurrentUser().getEmail();
             // Redis에 친구 요청 확인
@@ -394,45 +436,53 @@ public class UserService {
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + resEmail));
             // 이미 요청이 진행 중인지 확인
             if (Boolean.TRUE.equals(friendsTemplate.opsForSet().isMember(email, resEmail))) {
-                return new CommonResDto(HttpStatus.OK, "이미 친구요청이 진행중입니다", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "이미 친구요청이 진행중입니다", null,links);
             }
 
             // Redis에 요청 저장 (요청자와 응답자 양쪽에 저장)
             friendsTemplate.opsForSet().add(reqKey, resKey);
             friendsTemplate.opsForSet().add(resKey, reqKey);
 
-            return new CommonResDto(HttpStatus.OK, "친구요청 완료", null);
+            return new CommonResDto(HttpStatus.OK,200, "친구요청 완료", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러발생: " + e.getMessage(), null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,401, "에러발생: " + e.getMessage(), null,links);
         }
     }
 
     // 친구목록 조회
     public CommonResDto UserFriends() {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try{
             String email = securityContextUtil.getCurrentUser().getEmail();
             List<Friends> friends = friendsRepository.findByUserEmail(email);
 
             // 친구 목록이 없을 경우 처리
             if (friends == null || friends.isEmpty()) {
-                return new CommonResDto(HttpStatus.OK, "친구 목록이 비어 있습니다.", Collections.emptyList());
+                return new CommonResDto(HttpStatus.OK,200, "친구 목록이 비어 있습니다.", Collections.emptyList(),links);
             }
             // 닉네임 목록으로 변환
             List<String> friendemail = friends.stream()
                     .map(friend -> friend.getFriend().getEmail()) // 친구의 닉네임만 추출
                     .collect(Collectors.toList());
 
-            return new CommonResDto(HttpStatus.OK, "친구목록 조회 성공", friendemail);
+            return new CommonResDto(HttpStatus.OK,200, "친구목록 조회 성공", friendemail,links);
         }catch (Exception e){
             e.printStackTrace();
-            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,"에러발생"+e.getMessage(),null);
+            return new  CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400,"에러발생"+e.getMessage(),null,links);
         }
     }
 
     // 친구 삭제
     public CommonResDto deleteFriend(String resEmail) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             // 현재 사용자 정보 가져오기
             String email = securityContextUtil.getCurrentUser().getEmail();
@@ -457,16 +507,20 @@ public class UserService {
             friendsRepository.delete(friendToRemove);
             friendsRepository.delete(reverseFriendToRemove);
 
-            return new CommonResDto(HttpStatus.OK, "양방향 친구 관계가 삭제되었습니다.", null);
+            return new CommonResDto(HttpStatus.OK,200, "양방향 친구 관계가 삭제되었습니다.", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러 발생: " + e.getMessage(), null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,401, "에러 발생: " + e.getMessage(), null,links);
         }
     }
 
 
     public CommonResDto addResFriends(friendsDto dto) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             String email = securityContextUtil.getCurrentUser().getEmail();
 
@@ -487,25 +541,33 @@ public class UserService {
             friendsTemplate.opsForSet().remove(reqKey, resKey);
             friendsTemplate.opsForSet().remove(resKey,reqKey);
 
-            return new CommonResDto(HttpStatus.OK, "친구가 되었습니다.", null);
+            return new CommonResDto(HttpStatus.OK,200,"친구가 되었습니다.", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러발생: " + e.getMessage(), null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "에러발생: " + e.getMessage(), null,links);
         }
     }
 
     public CommonResDto addFriendsJoin() {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         String email = securityContextUtil.getCurrentUser().getEmail();
         String reqKey = email; // 요청 리스트 키
 
         List<String> members = (List<String>) friendsTemplate.opsForSet().members(reqKey);
-        return new CommonResDto(HttpStatus.OK,"친구 요청 조회를 완료했습니다.", members );
+        return new CommonResDto(HttpStatus.OK,200,"친구 요청 조회를 완료했습니다.", members,links );
     }
 ////////////////////////////////// 서버 관리 ///////////////////////////////////////////////////////////////////////////////
 
     // 서버 가입 신청
     public CommonResDto addReqServer(long serverId) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         String email = securityContextUtil.getCurrentUser().getEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
@@ -513,29 +575,37 @@ public class UserService {
         long redisServerId  = Long.parseLong(serverTemplate.opsForValue().get(email));
 
         if(serverId == redisServerId){
-            return new CommonResDto(HttpStatus.OK, "이미 가입이 진행중입니다.", null);
+            return new CommonResDto(HttpStatus.OK,200, "이미 가입이 진행중입니다.", null,links);
         }
 
         if (user.getServerList().contains(serverId)) {
-            return new CommonResDto(HttpStatus.OK,"이미 서버에 가입이 되어 있습니다,", null);
+            return new CommonResDto(HttpStatus.OK,200,"이미 서버에 가입이 되어 있습니다,", null,links);
         }
 
         serverTemplate.opsForSet().add(email, String.valueOf(serverId));
-        return new CommonResDto(HttpStatus.OK, "서버 가입 요청이 완료되었습니다.",null);
+        return new CommonResDto(HttpStatus.OK,200, "서버 가입 요청이 완료되었습니다.",null,links);
     }
 
     // 가입된 서버 조회
     public CommonResDto userServerJoin() {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         String email = securityContextUtil.getCurrentUser().getEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
         List<Servers> serverList = user.getServerList();
 
-        return new CommonResDto(HttpStatus.OK,"서바 조회 완료", serverList);
+        return new CommonResDto(HttpStatus.OK,200,"서바 조회 완료", serverList,links);
     }
 
     // 서버 탈퇴
      public CommonResDto deleteServer(long serverId) {
+         List<CommonResDto.Link> links = new ArrayList<>();
+         links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+         links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+         links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             String email = securityContextUtil.getCurrentUser().getEmail();
             // 사용자 조회
@@ -549,7 +619,7 @@ public class UserService {
                     .orElse(null);
 
             if (serverToRemove == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "해당 serverId를 찾을 수 없습니다.", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "해당 serverId를 찾을 수 없습니다.", null,links);
             }
 
             // 서버 리스트에서 제거
@@ -561,15 +631,19 @@ public class UserService {
             // Servers 엔티티 삭제
             serverRepository.delete(serverToRemove);
 
-            return new CommonResDto(HttpStatus.OK, "서버 삭제 성공", null);
+            return new CommonResDto(HttpStatus.OK,200, "서버 삭제 성공", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 삭제 중 에러 발생", e.getMessage());
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "서버 삭제 중 에러 발생", e.getMessage(),links);
         }
     }
     // 서버 가입 응답
     public CommonResDto addResServer(long serverId, String status) {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             String email = securityContextUtil.getCurrentUser().getEmail();
             // 사용자 조회
@@ -578,13 +652,13 @@ public class UserService {
 
             // AddStatus 검증
             if (status == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "Status를 결정해주세요 Approve or Rejection", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Status를 결정해주세요 Approve or Rejection", null,links);
             }
 
             // Redis에서 serverId 가져오기
             String serverIdStr = serverTemplate.opsForValue().get(email);
             if (serverIdStr == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, "해당 요청에 대한 serverId가 Redis에 없습니다.", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "해당 요청에 대한 serverId가 Redis에 없습니다.", null,links);
             }
             int serverIds = Integer.parseInt(serverIdStr);
 
@@ -600,23 +674,27 @@ public class UserService {
                 // Redis 데이터 삭제
                 deleteRedisServerData(email,  serverId);
 
-                return new CommonResDto(HttpStatus.OK, "서버 가입에 승인되었습니다.", null);
+                return new CommonResDto(HttpStatus.OK,200, "서버 가입에 승인되었습니다.", null,links);
             } else if (status == "REJECT") {
                 // Redis 데이터 삭제
                 deleteRedisServerData(email, serverId);
 
-                return new CommonResDto(HttpStatus.OK, "서버 가입에 거절되었습니다.", null);
+                return new CommonResDto(HttpStatus.OK,200, "서버 가입에 거절되었습니다.", null,links);
             }
 
-            return new CommonResDto(HttpStatus.BAD_REQUEST, "Invalid AddStatus", null);
+            return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Invalid AddStatus", null,links);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "에러 발생!!", e.getMessage());
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "에러 발생!!", e.getMessage(),links);
         }
     }
 
     //서버 가입 요청 조회
     public CommonResDto addServerJoin() {
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
+        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
+        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
             // Redis에서 특정 키의 모든 멤버 데이터 조회
@@ -635,11 +713,11 @@ public class UserService {
 
 
             // 반환할 응답 객체 생성
-            return new CommonResDto(HttpStatus.OK, "서버 데이터 조회 성공", serverResList);
+            return new CommonResDto(HttpStatus.OK,200, "서버 데이터 조회 성공", serverResList,links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 데이터 조회 중 에러 발생", null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "Redis 데이터 조회 중 에러 발생", null,links);
         }
     }
 
