@@ -32,7 +32,7 @@ public class ServerController {
 
 
     @PostMapping("/server/servers")
-    public ResponseEntity<?> createServer(ServerCreateDto dto) throws IOException {
+    public ResponseEntity<?> createServer(@ModelAttribute ServerCreateDto dto) throws IOException {
 
         Server result = serverService.createServer(dto);
 
@@ -62,7 +62,7 @@ public class ServerController {
     }
 
 
-    @PostMapping("/channels")
+    @PostMapping("server/channels")
     public ResponseEntity<?> createChannel(ChannelCreateDto dto) {
 
         Channel result = serverService.createChannel(dto);
