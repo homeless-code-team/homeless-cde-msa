@@ -588,24 +588,32 @@ public class UserService {
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
-        String email = SecurityContextUtil.getCurrentUser().getEmail();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
+        links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/users", "Delete"));
 
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
 
-        long redisServerId  = Long.parseLong(serverTemplate.opsForValue().get(email));
+            // Redis에 서버 ID 추가
+            if (dto.getServerId() == null || dto.getServerId() <= 0) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "유효하지 않은 서버 ID입니다.", null, links);
+            }
 
-        if(dto.getServerId() == redisServerId){
-            return new CommonResDto(HttpStatus.OK,200, "이미 가입이 진행중입니다.", null,links);
+            // Redis에 기존 값 확인
+            Set<String> existingServerIds = serverTemplate.opsForSet().members(email);
+            if (existingServerIds != null && existingServerIds.contains(String.valueOf(dto.getServerId()))) {
+                return new CommonResDto(HttpStatus.OK, 200, "이미 가입이 진행 중입니다.", null, links);
+            }
+
+            // Redis에 서버 ID 추가
+            serverTemplate.opsForSet().add(email, String.valueOf(dto.getServerId()));
+            return new CommonResDto(HttpStatus.OK, 200, "서버 가입 요청이 완료되었습니다.", null, links);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 가입 요청 중 오류가 발생했습니다.", e.getMessage(), links);
         }
-
-        if (user.getServerList().contains(dto.getServerId())) {
-            return new CommonResDto(HttpStatus.OK,200,"이미 서버에 가입이 되어 있습니다,", null,links);
-        }
-
-        serverTemplate.opsForSet().add(email, String.valueOf(dto.getServerId()));
-        return new CommonResDto(HttpStatus.OK,200, "서버 가입 요청이 완료되었습니다.",null,links);
     }
 
     // 가입된 서버 조회
@@ -613,14 +621,33 @@ public class UserService {
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
-        String email = SecurityContextUtil.getCurrentUser().getEmail();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
-        List<Servers> serverList = user.getServerList();
+        links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/users", "DELETE"));
 
-        return new CommonResDto(HttpStatus.OK,200,"서버 조회 완료", serverList,links);
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+            // Redis에서 특정 키의 모든 멤버 데이터 조회
+            Set<String> allData = serverTemplate.opsForSet().members(email);
+
+            if (allData == null || allData.isEmpty()) {
+                return new CommonResDto(HttpStatus.OK, 200, "가입된 서버가 없습니다.", null, links);
+            }
+
+            // Set 데이터를 List로 변환
+            List<ServerResDto> serverResList = new ArrayList<>();
+            for (String data : allData) {
+                serverResList.add(new ServerResDto(data, null));
+            }
+
+            // 반환할 응답 객체 생성
+            return new CommonResDto(HttpStatus.OK, 200, "서버 데이터 조회 성공", serverResList, links);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 조회 중 오류 발생", null, links);
+        }
     }
+
 
     // 서버 탈퇴
      public CommonResDto deleteServer(long serverId) {
@@ -665,82 +692,88 @@ public class UserService {
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
+        links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/users", "DELETE"));
+
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
-            log.info(email);
+            log.info("Requester Email: {}", email);
+
             // 사용자 조회
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
 
             // AddStatus 검증
             if (dto.getAddStatus() == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Status를 결정해주세요 Approve or Rejection", null,links);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Status를 결정해주세요 (APPROVE 또는 REJECT)", null, links);
             }
 
             // Redis에서 serverId 가져오기
-            String serverIdStr = serverTemplate.opsForValue().get(email);
-            if (serverIdStr == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "해당 요청에 대한 serverId가 Redis에 없습니다.", null,links);
+            String serverIdStr = serverTemplate.opsForSet().pop(email);
+            if (serverIdStr == null || serverIdStr.isEmpty()) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "해당 요청에 대한 serverId가 없습니다.", null, links);
             }
-            int serverIds = Integer.parseInt(serverIdStr);
 
-            if (Objects.equals(dto.getAddStatus(), "APPROVE")) {
+            // 안전하게 Long 변환
+            int serverId;
+            try {
+                serverId = Integer.parseInt(serverIdStr);
+            } catch (NumberFormatException e) {
+                log.error("Invalid serverId format in Redis: {}", serverIdStr, e);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Redis에 저장된 serverId 형식이 올바르지 않습니다.", null, links);
+            }
+
+            if ("APPROVE".equalsIgnoreCase(String.valueOf(dto.getAddStatus()))) {
                 // 서버 생성 및 저장
                 Servers server = new Servers();
-                server.setServerId(serverIds);
-                server.setUser(user); // 관계 설정
+                server.setServerId(serverId);
+                server.setUser(user);
 
-                user.getServerList().add(server); // User의 서버 리스트에 추가
-                serverRepository.save(server);   // 서버 저장
+                user.getServerList().add(server);
+                serverRepository.save(server);
 
-                // Redis 데이터 삭제
-                deleteRedisServerData(email, dto.getServerId());
+                return new CommonResDto(HttpStatus.OK, 200, "서버 가입이 승인되었습니다.", null, links);
+            } else if ("REJECT".equalsIgnoreCase(String.valueOf(dto.getAddStatus()))) {
+                // 서버 가입 요청 거절
+                serverTemplate.opsForSet().remove(email, String.valueOf(serverId));
 
-                return new CommonResDto(HttpStatus.OK,200, "서버 가입에 승인되었습니다.", null,links);
-            } else if (Objects.equals(dto.getAddStatus(), "REJECT")) {
-                // Redis 데이터 삭제
-                deleteRedisServerData(email, dto.getServerId());
-
-                return new CommonResDto(HttpStatus.OK,200, "서버 가입에 거절되었습니다.", null,links);
+                return new CommonResDto(HttpStatus.OK, 200, "서버 가입이 거절되었습니다.", null, links);
             }
 
-            return new CommonResDto(HttpStatus.BAD_REQUEST,400, "Invalid AddStatus", null,links);
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Invalid AddStatus", null, links);
         } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "에러 발생!!", e.getMessage(),links);
+            log.error("Error in addResServer: {}", e.getMessage(), e);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 응답 처리 중 오류 발생", e.getMessage(), links);
         }
     }
 
-    //서버 가입 요청 조회
+
+    // 서버 가입 요청 조회
     public CommonResDto addServerJoin() {
         List<CommonResDto.Link> links = new ArrayList<>();
-        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
-        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-        links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
+        links.add(new CommonResDto.Link("addServers", "/api/v1/users/servers", "POST"));
+        links.add(new CommonResDto.Link("ListServers", "/api/v1/users/servers", "GET"));
+        links.add(new CommonResDto.Link("DeleteServers", "/api/v1/users/servers", "DELETE"));
+
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
-            // Redis에서 특정 키의 모든 멤버 데이터 조회
 
+            // Redis에서 모든 요청 서버 ID 조회
             Set<String> allData = serverTemplate.opsForSet().members(email);
 
-            // Set 데이터를 List로 변환
-            List<ServerResDto> serverResList = new ArrayList<>();
-            if (allData != null) { // Null check for safety
-                for (Object data : allData) {
-                    // ServerResDto 생성 시, key와 value에 동일한 값을 넣거나 null 처리
-                    serverResList.add(new ServerResDto(data.toString(), null));
-                }
+            if (allData == null || allData.isEmpty()) {
+                return new CommonResDto(HttpStatus.OK, 200, "가입 요청된 서버가 없습니다.", null, links);
             }
 
+            // 요청 데이터 처리
+            List<ServerResDto> serverResList = allData.stream()
+                    .map(serverId -> new ServerResDto(serverId, null))
+                    .collect(Collectors.toList());
 
-
-            // 반환할 응답 객체 생성
-            return new CommonResDto(HttpStatus.OK,200, "서버 데이터 조회 성공", serverResList,links);
+            return new CommonResDto(HttpStatus.OK, 200, "가입 요청 서버 목록 조회 성공", serverResList, links);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "Redis 데이터 조회 중 에러 발생", null,links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 요청 조회 중 오류 발생", null, links);
         }
     }
 
