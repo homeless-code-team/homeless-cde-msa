@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface ServerRepository extends JpaRepository<Server, String> {
     List<Server> findByIdIn(List<String> collect);
+
+    List<Server> findByIdInOrServerType(List<String> collect, int i);
+
 }
