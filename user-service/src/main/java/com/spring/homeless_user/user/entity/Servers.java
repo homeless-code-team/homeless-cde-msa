@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "tbl_servers", indexes = {
+@Table(name = "tbl_server", indexes = {
         @Index(name = "idx_servers_user_id", columnList = "user_id"),
         @Index(name = "idx_servers_server_id", columnList = "serverId")
 })

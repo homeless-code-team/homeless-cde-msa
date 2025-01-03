@@ -1,7 +1,6 @@
 package com.playdata.homelesscode.dto.server;
 
 import com.playdata.homelesscode.entity.Server;
-import com.playdata.homelesscode.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,18 +13,17 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class ServerCreateDto {
 
-//    private String userId;
+
     private String title;
     private String tag;
     private MultipartFile serverImg;
 
 
 
-    public Server toEntity(User user) {
+    public Server toEntity() {
         return Server.builder()
                 .title(title)
                 .tag(tag)
-                .user(user)
                 .build();
     }
 
