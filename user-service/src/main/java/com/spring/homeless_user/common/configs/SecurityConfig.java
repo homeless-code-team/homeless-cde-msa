@@ -36,6 +36,7 @@ public class SecurityConfig {
                                     "/user-service/api/v1/users/sign-in","/api/v1/users/confirm", "/api/v1/users/duplicate","/api/v1/users/refresh-token").permitAll()
                             .anyRequest().authenticated();
                 })
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(errorEntryPoint));
 
         return http.build();

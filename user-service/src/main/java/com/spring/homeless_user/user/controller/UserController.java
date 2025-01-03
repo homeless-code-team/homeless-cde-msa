@@ -98,8 +98,8 @@ public class UserController {
 
     // 정보수정
     @PatchMapping(value = "", consumes = "multipart/form-data")
-    public CommonResDto modify(  @RequestPart("img") MultipartFile img,
-                                 @RequestPart("data") String dataJson) throws IOException {
+    public CommonResDto modify(  @RequestPart(value = "img", required = false) MultipartFile img,
+                                 @RequestPart(value = "data", required = false) String dataJson) throws IOException {
     log.info("profileImageUpdate");
         ObjectMapper objectMapper = new ObjectMapper();
         ModifyDto dto = objectMapper.readValue(dataJson, ModifyDto.class); {
