@@ -44,11 +44,11 @@ public class ServerController {
 
     @GetMapping("/server/servers")
     public ResponseEntity<?> getServer() {
-        String id = "3cc4dc0d-ca72-492f-9971-45e66a08f236";
 
-        List<ServerResponseDto> result = serverService.getServer(id);
+        log.info("/server/servers: GET");
+        List<ServerResponseDto> result = serverService.getServer();
 
-
+        log.info("result: {}", result);
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "서버 조회 성공", result);
 
         return new ResponseEntity<>(resDto, HttpStatus.OK);

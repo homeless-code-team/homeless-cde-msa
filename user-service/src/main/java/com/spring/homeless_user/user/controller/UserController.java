@@ -179,4 +179,16 @@ public class UserController {
                 return userService.addServerJoin();
     }
 
+
+    /// feign 통신
+
+//    @GetMapping("/memberId/{id}")
+//    public CommonResDto findMember(@PathVariable String id) {
+//
+//        userService.findMember(id);
+//
+//    }
+
 }
+
+
