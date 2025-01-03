@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 @Builder
 public class ChannelResponseDto {
 
+    private String id;
     private String name;
     private String createAt;
 

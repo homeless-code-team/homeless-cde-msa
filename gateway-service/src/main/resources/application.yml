@@ -43,14 +43,6 @@ spring:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/user-service/actuator/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
 
 
         - id: chat-service
@@ -83,13 +75,14 @@ spring:
             # AuthorizationHeaderFilter
 
         - id: server-service
-          uri: lb://SERVER-SERVICE
+          uri: lb://server-service
           predicates:
-            - Path=/server-service/actuator/**
+            - Path=/server/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
             #- AuthorizationHeaderFilter
+
 
 
 # log level setting
