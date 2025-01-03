@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class ServerCreateDto {
 
-    private String userId;
+//    private String userId;
     private String title;
     private String tag;
     private MultipartFile serverImg;
@@ -25,7 +25,6 @@ public class ServerCreateDto {
         return Server.builder()
                 .title(title)
                 .tag(tag)
-                .serverImg(serverImg.getOriginalFilename())
                 .user(user)
                 .build();
     }

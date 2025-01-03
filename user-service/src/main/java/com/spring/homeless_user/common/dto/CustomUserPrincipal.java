@@ -5,9 +5,9 @@ import lombok.*;
 @Getter@Setter@ToString
 public  class CustomUserPrincipal {
     private final String email;
-    private final Long userId;
+    private final String userId;
 
-    public CustomUserPrincipal(String email, Long userId) {
+    public CustomUserPrincipal(String email, String  userId) {
         this.email = email;
         this.userId = userId;
     }
@@ -16,7 +16,7 @@ public  class CustomUserPrincipal {
         return email;
     }
 
-    public Long getUserId() {
+    public String  getUserId() {
         return userId;
     }
 

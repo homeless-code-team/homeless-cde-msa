@@ -10,7 +10,7 @@ spring:
         cors-configurations:
           "[/**]": # 모든 경로에 대한 CORS 설정
             allowed-origins:
-              # - "http://localhost:3000"
+              - "http://localhost:3000"
               # - 나중에 도메인
             allowed-methods:
               - GET
@@ -43,14 +43,6 @@ spring:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/user-service/actuator/**
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
 
 
         - id: chat-service
@@ -76,20 +68,21 @@ spring:
         - id: server-service
           uri: lb://SERVER-SERVICE
           predicates:
-            - Path=/server-service/**
+            - Path=/server/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
+            # AuthorizationHeaderFilter
 
         - id: server-service
-          uri: lb://SERVER-SERVICE
+          uri: lb://server-service
           predicates:
-            - Path=/server-service/actuator/**
+            - Path=/server/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
+            #- AuthorizationHeaderFilter
+
 
 
 # log level setting
