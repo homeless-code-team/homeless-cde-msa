@@ -43,10 +43,11 @@ spring:
 
 security:
   excluded-paths:
-    - /api/v1/user/sign-up
-    - /api/v1/user/confirm
-    - /api/v1/user/sign-in
-    - /api/v1/user/duplicate
+    - /api/v1/users/sign-up
+    - /api/v1/users/confirm
+    - /user-service/api/v1/users/sign-in
+    - /api/v1/users/sign-in
+    - /api/v1/users/duplicate
 
 instance:
   instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
