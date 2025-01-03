@@ -69,7 +69,7 @@ public class ServerService {
 
         List<Server> byIdIn = serverRepository.findByIdInOrServerType(collect, 0);
 
-        List<ServerResponseDto> collect1 = byIdIn.stream().map(e -> new ServerResponseDto(e.getId(), e.getTag(), e.getTitle(), e.getServerImg())).collect(Collectors.toList());
+        List<ServerResponseDto> collect1 = byIdIn.stream().map(e -> new ServerResponseDto(e.getId(), e.getTag(), e.getTitle(), e.getServerImg(),e.getUser().getId())).collect(Collectors.toList());
 
         return collect1;
 
