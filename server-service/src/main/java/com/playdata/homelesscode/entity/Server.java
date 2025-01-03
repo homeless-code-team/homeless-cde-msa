@@ -18,17 +18,19 @@ import java.util.List;
 @EqualsAndHashCode
 @Builder
 @Entity
-@Table(name = "tb_server")
+@Table(name = "tbl_servers")
 public class Server {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id")
-    @JsonIgnore
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name="user_id")
+//    @JsonIgnore
+//    private User user;
+
+    private String email;
 
     @Column
     private String title;

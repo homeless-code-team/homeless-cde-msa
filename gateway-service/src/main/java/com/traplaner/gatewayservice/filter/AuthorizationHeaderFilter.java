@@ -84,7 +84,8 @@ public class AuthorizationHeaderFilter
             // 사용자 정보를 클레임에서 꺼내서 헤더에 담자.
             ServerHttpRequest request = exchange.getRequest()
                     .mutate()
-                    .header("X-User-Id", claims.getSubject())
+                    .header("X-User-Email", claims.getSubject())
+                    .header("X-User-Id", String.valueOf(claims.get("user_id")))
                     .build();
 
             // 새롭게 만든(토큰 정보를 헤더에 담은) request를 exchange에 갈아끼워서 보내자.
