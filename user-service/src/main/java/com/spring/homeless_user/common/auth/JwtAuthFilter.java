@@ -26,154 +26,51 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> loginRedis;
-    private final SecurityPropertiesUtil securityPropertiesUtil;
 
-    public JwtAuthFilter(
-            @Qualifier("login") RedisTemplate<String, String> loginRedis,
-            JwtUtil jwtUtil,
-            SecurityPropertiesUtil securityPropertiesUtil) {
-        this.loginRedis = loginRedis;
-        this.jwtUtil = jwtUtil;
-        this.securityPropertiesUtil = securityPropertiesUtil;
-    }
-
-    //////////////////////////////////선언 종료 //////////////////////////////////////////////////////////////////
-
-
+    // 필터가 해야 할 일들을 작성.
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
 
-        log.info("start");
-        // 토큰 가져오기
-        String token = request.getHeader("Authorization");
+        // 게이트웨이가 토큰 내에 클레임을 헤더에 담아서 보내준다.
+        String userEmail = request.getHeader("X-User-Email");
+        String userId = request.getHeader("X-User-Id");
 
-        // 토큰 없으면 컷
-        if (token == null || token.trim().isEmpty()) {
-            log.warn("Authorization header is missing or empty");
-            sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing or empty");
-            return;
-        }
+        log.info("userEmail: {}", userEmail);
+        log.info("userId: {}", userId);
+        log.info("request Url: {}", request.getRequestURI());
 
-        try {
-            // Bearer 검증 및 공백 제거
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7).trim(); // "Bearer " 제거 후 공백 제거
-            }
 
-            // JWT 파싱 및 검증
-            try {
-                jwtUtil.extractAllClaims(token);
-                String emailFromToken = jwtUtil.getEmailFromToken(token);
-                log.info(emailFromToken);
-            } catch (ExpiredJwtException e) {
-                log.warn("Token has expired: {}", e.getMessage());
-                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
-                return;
-            } catch (MalformedJwtException e) {
-                log.warn("Malformed token: {}", e.getMessage());
-                sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Malformed token");
-                return;
-            } catch (IllegalArgumentException e) {
-                log.error("Invalid token format: {}", e.getMessage());
-                sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid token format");
-                return;
-            } catch (Exception e) {
-                log.error("Unexpected error during token validation: {}", e.getMessage());
-                sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error occurred");
-                return;
-            }
+        if (userEmail != null) {
+            // spring security에게 전달할 인가 정보 리스트를 생성. (권한 정보)
+            List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+            // ROLE_USER, ROLE_ADMIN (ROLE_ 접두사는 필수입니다.)
+//            authorityList.add(new SimpleGrantedAuthority("ROLE_" + userRole));
 
-            jwtUtil.extractAllClaims(token);
-            String email = jwtUtil.getEmailFromToken(token);
-            String userId = String.valueOf(jwtUtil.getUserIdFromToken(token));
 
-            log.info(email);
-            log.info(userId);
-            // Redis 토큰 확인
-            String redisToken = loginRedis.opsForValue().get(email);
-            log.info(redisToken);
-            if (redisToken == null) {
-                log.warn("No token found in Redis for email: {}", email);
-                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token not found in Redis");
-                return;
-            }
-
-            if (!checkToken(token, redisToken)) {
-                log.warn("Token mismatch for email: {}", email);
-                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token mismatch");
-                return;
-            }
-
-            // 인증 성공 후 인증 정보 설정
-            log.info("Token validated successfully for email: {}", email);
-
-            // 권한 정보 리스트 생성 (예: ROLE_USER)
-            List<SimpleGrantedAuthority> authorityList = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-
-            // Custom Principal 생성
-            CustomUserPrincipal customPrincipal = new CustomUserPrincipal(email, userId);
-
-            // 인증 객체 생성
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    customPrincipal, // Principal (사용자 정보)
-                    null, // Credentials (일반적으로 비밀번호는 null)
-                    authorityList // Authorities (권한 리스트)
+            // 인증 완료 처리
+            // spring security에게 인증 정보를 전달해서 전역적으로 어플리케이션 내에서
+            // 인증 정보를 활용할 수 있도록 설정.
+            Authentication auth = new UsernamePasswordAuthenticationToken(new CustomUserPrincipal(userEmail, userId), // 컨트롤러 등에서 활용할 유저 정보
+                    "", // 인증된 사용자 비밀번호: 보통 null 혹은 빈 문자열로 선언.
+                    authorityList // 인가 정보 (권한)
             );
 
-// SecurityContext에 인증 정보 설정
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-// 다음 필터 호출
-            filterChain.doFilter(request, response);
-
-
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid token format: {}", e.getMessage());
-            e.printStackTrace();
-            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid token format");
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Unexpected error during token validation: {}", e.getMessage());
-            sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: " + e.getMessage());
+            // 시큐리티 컨테이너에 인증 정보 객체 등록
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
-    }
 
-    ///////////////////////////////////////////////////////서브 메서드 /////////////////////////////////////////////////////////////////////////////
-    // 토큰 같은지 확인 로직
-    private boolean checkToken(String reqToken, String redisToken) {
-        return reqToken.equals(redisToken);
-    }
 
-    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.getWriter().write(String.format("{\"error\": \"%s\"}", message));
-    }
+        // 필터를 통과하는 메서드 (doFilter 안하면 필터를 통과하지 못함)
+        filterChain.doFilter(request, response);
 
-    //필터링 제외
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String requestPath = request.getRequestURI();
-        log.info("Request Path: {}", requestPath);
-        log.info("Excluded Paths: {}", securityPropertiesUtil.getExcludedPaths());
 
-        boolean flag = securityPropertiesUtil.getExcludedPaths()
-                .stream()
-                .anyMatch(excludedPath -> {
-                    log.info("Comparing '{}' with '{}'", requestPath, excludedPath);
-                    return requestPath.startsWith(excludedPath);
-                });
-        log.info("shouldNotFilter Flag: {}", flag);
-        return flag;
     }
 
 }

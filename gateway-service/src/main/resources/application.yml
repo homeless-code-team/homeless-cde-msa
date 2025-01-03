@@ -18,6 +18,7 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
+              - PATCH
             allowed-headers:
               - "Content-Type"
               - "Authorization"
