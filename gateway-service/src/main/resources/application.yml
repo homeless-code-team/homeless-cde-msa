@@ -71,13 +71,13 @@ spring:
             - Path=/server/**
           filters:
             - RemoveRequestHeader=Cookie
-            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-            # AuthorizationHeaderFilter
+#            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
 
         - id: server-service
           uri: lb://server-service
           predicates:
-            - Path=/server/**
+            - Path=/server/actuator
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}

@@ -792,7 +792,12 @@ public class UserService {
         return reqToken.equals(redisToken);
     }
 
+    ///feign 통신
 
+//    public void findMember(String id) {
+//
+//        userRepository.fin
+//    }
 }
 
 
