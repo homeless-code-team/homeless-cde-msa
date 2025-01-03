@@ -135,13 +135,13 @@ public class UserService {
     // 로그인로직
     public CommonResDto userSignIn(UserLoginReqDto dto) {
 
-        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
-            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
-        }
+//        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
+//            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+//            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
+//        }
         if(dto.getEmail()==null||dto.getPassword()==null){
             CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잚못된 요청입니다.",null,List.of(Link));
+            return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잘못된 요청입니다.",null,List.of(Link));
         }
         User user =userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + dto.getEmail()));

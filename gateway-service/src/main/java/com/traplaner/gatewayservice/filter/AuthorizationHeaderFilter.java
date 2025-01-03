@@ -31,10 +31,10 @@ public class AuthorizationHeaderFilter
     private final List<String> allowUrl = Arrays.asList(
             // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
             "*",
-            "/user-service/api/v1/user/sign-up","api/v1/user/sign-in",
-            "/user-service/api/v1/user/sign-in",
-            "/user-service/api/v1/user/confirm",
-            "/user-service/api/v1/user/duplicate"
+            "/user-service/api/v1/users/sign-up","/api/v1/users/sign-in",
+            "/user-service/api/v1/users/sign-in",
+            "/user-service/api/v1/users/confirm",
+            "/user-service/api/v1/users/duplicate"
             
 
     );
