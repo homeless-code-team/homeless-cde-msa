@@ -68,11 +68,11 @@ spring:
         - id: server-service
           uri: lb://SERVER-SERVICE
           predicates:
-            - Path=/server-service/**
+            - Path=/server/**
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
+            # AuthorizationHeaderFilter
 
         - id: server-service
           uri: lb://server-service
@@ -81,7 +81,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
+            #- AuthorizationHeaderFilter
 
 
 
