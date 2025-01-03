@@ -5,6 +5,7 @@ import com.playdata.homelesscode.dto.board.BoardCreateDto;
 import com.playdata.homelesscode.dto.board.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
+import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
 import com.playdata.homelesscode.entity.Board;
@@ -27,14 +28,12 @@ public class ServerController {
 
 
 
-
-
     private final ServerService serverService;
 
 
 
-    @PostMapping("/servers")
-    public ResponseEntity<?> createServer(ServerCreateDto dto) throws IOException {
+    @PostMapping("/server/servers")
+    public ResponseEntity<?> createServer(@ModelAttribute ServerCreateDto dto) throws IOException {
 
         Server result = serverService.createServer(dto);
 
@@ -43,7 +42,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/servers")
+    @GetMapping("/server/servers")
     public ResponseEntity<?> getServer() {
         String id = "3cc4dc0d-ca72-492f-9971-45e66a08f236";
 
@@ -55,7 +54,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/servers")
+    @DeleteMapping("/server/servers")
     public ResponseEntity<?> deleteServer(@RequestParam("id") String id) {
 
         serverService.deleteServer(id);
@@ -64,7 +63,7 @@ public class ServerController {
     }
 
 
-    @PostMapping("/channels")
+    @PostMapping("server/channels")
     public ResponseEntity<?> createChannel(ChannelCreateDto dto) {
 
         Channel result = serverService.createChannel(dto);
@@ -74,7 +73,7 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @GetMapping("/channels")
+    @GetMapping("/server/channels")
     public ResponseEntity<?> getChannel(@RequestParam String id) {
 
         List<ChannelResponseDto> result = serverService.getChannel(id);
@@ -84,13 +83,25 @@ public class ServerController {
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("/channels")
+    @DeleteMapping("/server/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id) {
 
         serverService.deleteChannel(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    @PutMapping("/server/channels")
+    public ResponseEntity<?> updateChannel(ChannelUpdateDto dto){
+        Channel result = serverService.updateChannel(dto);
+
+        CommonResDto resDto = new CommonResDto(HttpStatus.OK, "수정성공", result);
+
+        return new ResponseEntity<>(resDto, HttpStatus.OK);
+
+    }
+
 
     @PostMapping("/boards")
     public ResponseEntity<?> createBoard(@RequestBody BoardCreateDto dto){
