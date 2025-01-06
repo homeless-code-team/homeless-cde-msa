@@ -30,7 +30,10 @@ public class AuthorizationHeaderFilter
 
     private final List<String> allowUrl = Arrays.asList(
             // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
-            "sign-up","sign-in","confirm","duplicate"
+            "/user-service/api/v1/users/sign-up","/api/v1/users/sign-in",
+            "/user-service/api/v1/users/sign-in",
+            "/user-service/api/v1/users/confirm",
+            "/user-service/api/v1/users/duplicate"
             
 
     );
@@ -50,7 +53,7 @@ public class AuthorizationHeaderFilter
             log.info("secrets: {}", secretKey);
             // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
             boolean isAllowed
-                    = allowUrl.stream().anyMatch(url -> antPathMatcher.matchStart(url, path));
+                    = allowUrl.stream().anyMatch(url -> antPathMatcher.match(url, path));
             log.info("isAllowed: {}", isAllowed);
             if (isAllowed) {
                 // 허용 url이 맞다면 그냥 통과~
@@ -80,7 +83,8 @@ public class AuthorizationHeaderFilter
             // 사용자 정보를 클레임에서 꺼내서 헤더에 담자.
             ServerHttpRequest request = exchange.getRequest()
                     .mutate()
-                    .header("X-User-Id", claims.getSubject())
+                    .header("X-User-Email", claims.getSubject())
+                    .header("X-User-Id", String.valueOf(claims.get("user_id")))
                     .build();
 
             // 새롭게 만든(토큰 정보를 헤더에 담은) request를 exchange에 갈아끼워서 보내자.

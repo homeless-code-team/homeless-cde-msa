@@ -14,13 +14,17 @@ public class ServerResponseDto {
 
     private String id;
     private String tag;
+    private String title;
     private String serveImg;
+    private String userId;
 
 
-    public ServerResponseDto(String id, String tag, String serveImg) {
+    public ServerResponseDto(String id, String tag, String title, String serveImg, String userId) {
 
         this.id = id;
+        this.title = title;
         this.tag = tag;
         this.serveImg = serveImg;
+        this.userId = userId;
     }
 }

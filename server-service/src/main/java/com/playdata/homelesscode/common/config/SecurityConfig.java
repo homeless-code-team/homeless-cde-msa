@@ -1,8 +1,7 @@
-package com.spring.homeless_user.common.configs;
+package com.playdata.homelesscode.common.config;
 
 
-import com.spring.homeless_user.common.auth.JwtAuthFilter;
-import com.spring.homeless_user.common.dto.ErrorEntryPoint;
+import com.playdata.homelesscode.common.auth.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +22,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final ErrorEntryPoint errorEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -32,12 +30,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // YAML 설정과 통합
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/v1/users/sign-up", "/api/v1/users/sign-in",
-                                    "/user-service/api/v1/users/sign-in","/api/v1/users/confirm", "/api/v1/users/duplicate","/api/v1/users/refresh-token").permitAll()
+                    auth.requestMatchers("/server/servers").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(errorEntryPoint));
+        ;
 
         return http.build();
     }
