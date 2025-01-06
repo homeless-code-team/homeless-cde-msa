@@ -325,18 +325,10 @@ public class FriendsAndServerService {
         try {
 
             // Redis에서 모든 요청 서버 ID 조회
-            Set<String> allData = serverTemplate.opsForSet().members(serverId);
+            List<String> keysByValue = findKeysByValue(serverId);
 
-            if (allData == null || allData.isEmpty()) {
-                return new CommonResDto(HttpStatus.OK, 200, "가입 요청된 서버가 없습니다.", null, links);
-            }
 
-            // 요청 데이터 처리
-            List<ServerResDto> serverResList = allData.stream()
-                    .map(serverIds -> new ServerResDto(serverId, null))
-                    .collect(Collectors.toList());
-
-            return new CommonResDto(HttpStatus.OK, 200, "가입 요청 서버 목록 조회 성공", serverResList, links);
+            return new CommonResDto(HttpStatus.OK, 200, "가입 요청 서버 목록 조회 성공", keysByValue, links);
 
         } catch (Exception e) {
             e.printStackTrace();
