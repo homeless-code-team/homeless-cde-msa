@@ -27,16 +27,10 @@ public class UserController {
     private final UserService userService;
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
     //회원가입
-    @PostMapping(value = "/sign-up", consumes = "multipart/form-data")
-    public CommonResDto userSignUp(
-            @RequestPart("img") MultipartFile img,
-            @RequestPart("data") String dataJson) throws IOException {
+    @PostMapping(value = "/sign-up")
+    public CommonResDto userSignUp(@ModelAttribute UserSaveReqDto dto) throws IOException {
         log.info("singup");
-        // form- data를 파싱해서 dto로 전환
-        ObjectMapper objectMapper = new ObjectMapper();
-        UserSaveReqDto dto = objectMapper.readValue(dataJson, UserSaveReqDto.class);
-
-        return userService.userSignUp(dto, img);
+        return userService.userSignUp(dto);
     }
 
     // 로그인
@@ -83,9 +77,11 @@ public class UserController {
 
     // 이메일 & 닉네임 중복검사
     @GetMapping("/duplicate")
-    public CommonResDto duplicateEmail(@RequestParam String email, String nickname) {
-    log.info("duplicateEmail");
-        return userService.duplicateCheck(email,nickname);
+    public CommonResDto duplicateCheck(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String nickname) {
+        log.info("duplicateCheck - email: {}, nickname: {}", email, nickname);
+        return userService.duplicateCheck(email, nickname);
     }
 
     // 회원탈퇴
@@ -97,13 +93,11 @@ public class UserController {
 
 
     // 정보수정
-    @PatchMapping(value = "", consumes = "multipart/form-data")
-    public CommonResDto modify(  @RequestPart(value = "img", required = false) MultipartFile img,
-                                 @RequestPart(value = "data", required = false) String dataJson) throws IOException {
-    log.info("profileImageUpdate");
-        ObjectMapper objectMapper = new ObjectMapper();
-        ModifyDto dto = objectMapper.readValue(dataJson, ModifyDto.class); {
-        return userService.modify(dto, img);}
+    @PatchMapping(value = "")
+    public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
+    log.info("profileUpdate");
+
+        return userService.modify(dto);
     }
 ////////////////////////////////////////////// 친구관리 /////////////////////////////////////////////////////////////////
 
@@ -151,19 +145,19 @@ public class UserController {
             return userService.addReqServer(dto);
     }
 
-    // 속한 서버 조회
-    @GetMapping("/servers")
-        public CommonResDto userFriendJoin() {
-        log.info("userFriends");
-            return userService.userServerJoin();
-    }
-
-    // 서버 탈퇴
-    @DeleteMapping("/servers")
-        public CommonResDto deleteFriend(@RequestParam long serverId) {
-        log.info("deleteFriend");
-            return userService.deleteServer(serverId);
-    }
+//    // 속한 서버 조회
+//    @GetMapping("/servers")
+//        public CommonResDto userFriendJoin() {
+//        log.info("userFriends");
+//            return userService.userServerJoin();
+//    }
+//
+//    // 서버 탈퇴
+//    @DeleteMapping("/servers")
+//        public CommonResDto deleteFriend(@RequestParam long serverId) {
+//        log.info("deleteFriend");
+//            return userService.deleteServer(serverId);
+//    }
 
     //서버 요청 응답
     @PostMapping("/servers/response")
@@ -179,16 +173,4 @@ public class UserController {
                 return userService.addServerJoin();
     }
 
-
-    /// feign 통신
-
-//    @GetMapping("/memberId/{id}")
-//    public CommonResDto findMember(@PathVariable String id) {
-//
-//        userService.findMember(id);
-//
-//    }
-
 }
-
-
