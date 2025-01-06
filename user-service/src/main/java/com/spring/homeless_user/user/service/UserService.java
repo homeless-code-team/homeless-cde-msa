@@ -101,7 +101,7 @@ public class UserService {
 //    }
 
     //회원가입 로직
-    public CommonResDto userSignUp(@Valid UserSaveReqDto dto, MultipartFile img) throws IOException {
+    public CommonResDto userSignUp(@Valid UserSaveReqDto dto) throws IOException {
         try{
             if (dto.getEmail()==null || dto.getNickname()==null || dto.getPassword()==null){
                 CommonResDto.Link loginLink = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
@@ -112,7 +112,7 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
             user.setNickname(dto.getNickname());
             user.setCreatedAt(LocalDateTime.now());
-//        user.setProfileImage(uploadFile(img));
+//        user.setProfileImage(uploadFile(dto.getProfileImage()));
 
 
             userRepository.save(user);
@@ -319,10 +319,7 @@ public class UserService {
                 return emailExists
                         ? new CommonResDto(HttpStatus.OK,20, "이메일 사용 불가", null,links)
                         : new CommonResDto(HttpStatus.OK,200, "이메일을 사용해도 좋아요.", null,links);
-            }
-
-            // 닉네임 중복 체크
-            if (nickname != null) {
+            }else if (nickname != null) {
                 boolean nicknameExists = userRepository.findByNickname(nickname).isPresent();
                 return nicknameExists
                         ? new CommonResDto(HttpStatus.OK,200, "닉네임 사용 불가", null,links)
@@ -353,8 +350,8 @@ public class UserService {
         }
     }
 
-// 회원정보수정
-    public CommonResDto modify(ModifyDto dto, MultipartFile img) {
+    // 회원정보수정
+    public CommonResDto modify(ModifyDto dto) {
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("sign-in", "/api/v1/users/sign-in", "POST"));
         links.add(new CommonResDto.Link("modify","/api/v1/users","PATCH"));
@@ -374,23 +371,19 @@ public class UserService {
                 }
                 user.setNickname(dto.getNickname());
                 userRepository.save(user);
-            }
-
-            // 비밀번호 변경
-            if (dto.getPassword() != null){
+                return new CommonResDto(HttpStatus.OK,200,"닉네임변경성공",null,links);
+            }else if (dto.getPassword() != null) {
+                // 비밀번호 수정
                 String hashedPassword = passwordEncoder.encode(dto.getPassword());
                 user.setPassword(hashedPassword);
                 userRepository.save(user);
-            }
-
-            // 소개글(content) 변경
-            if (dto.getContent() != null) {
+                return new CommonResDto(HttpStatus.OK,200,"페스워드변경성공",null,links);
+            }else if (dto.getContent() != null) {
+                // 소개글 수정
                 user.setContents(dto.getContent());
                 userRepository.save(user);
-            }
-
-            // 이미지 업로드 처리
-            if (img != null && !img.isEmpty()) {
+                return new CommonResDto(HttpStatus.OK,200,"소개글변경성공",null,links);
+            } else if (dto.getProfileImage() != null) {
                 String oldProfileImage = user.getProfileImage(); // 기존 프로필 이미지 URL
                 String bucketName = "your-s3-bucket-name";
                 String newProfileImageUrl;
@@ -407,8 +400,9 @@ public class UserService {
 //                user.setProfileImage(newProfileImageUrl);
 //                // DB 업데이트
 //                userRepository.save(user);
+                return new CommonResDto(HttpStatus.OK,200,"이미지변경성공",null,links);
             }
-            return new CommonResDto(HttpStatus.OK,200, "사용자 정보가 성공적으로 수정되었습니다.", null,links);
+            return new CommonResDto(HttpStatus.BAD_REQUEST,401, "사용자 수정 정보가 없습니다.", null,links);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -613,78 +607,6 @@ public class UserService {
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 가입 요청 중 오류가 발생했습니다.", e.getMessage(), links);
-        }
-    }
-
-    // 가입된 서버 조회
-    public CommonResDto userServerJoin() {
-        List<CommonResDto.Link> links = new ArrayList<>();
-        links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
-        links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-        links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/users", "DELETE"));
-
-        try {
-            String email = SecurityContextUtil.getCurrentUser().getEmail();
-
-            // Redis에서 특정 키의 모든 멤버 데이터 조회
-            Set<String> allData = serverTemplate.opsForSet().members(email);
-
-            if (allData == null || allData.isEmpty()) {
-                return new CommonResDto(HttpStatus.OK, 200, "가입된 서버가 없습니다.", null, links);
-            }
-
-            // Set 데이터를 List로 변환
-            List<ServerResDto> serverResList = new ArrayList<>();
-            for (String data : allData) {
-                serverResList.add(new ServerResDto(data, null));
-            }
-
-            // 반환할 응답 객체 생성
-            return new CommonResDto(HttpStatus.OK, 200, "서버 데이터 조회 성공", serverResList, links);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 조회 중 오류 발생", null, links);
-        }
-    }
-
-
-    // 서버 탈퇴
-     public CommonResDto deleteServer(long serverId) {
-         List<CommonResDto.Link> links = new ArrayList<>();
-         links.add(new CommonResDto.Link("addFriends", "/api/v1/users/friends", "POST"));
-         links.add(new CommonResDto.Link("ListFriends", "/api/v1/users/friends", "GET"));
-         links.add(new CommonResDto.Link("DeleteFriends","/api/v1/users","Delete"));
-        try {
-            String email = SecurityContextUtil.getCurrentUser().getEmail();
-            // 사용자 조회
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
-
-            // 서버 리스트에서 특정 serverId를 가진 Servers 객체 찾기
-            Servers serverToRemove = user.getServerList().stream()
-                    .filter(server -> server.getServerId() == serverId)
-                    .findFirst()
-                    .orElse(null);
-
-            if (serverToRemove == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST,400, "해당 serverId를 찾을 수 없습니다.", null,links);
-            }
-
-            // 서버 리스트에서 제거
-            user.getServerList().remove(serverToRemove);
-
-            // 변경된 엔티티 저장
-            userRepository.save(user);
-
-            // Servers 엔티티 삭제
-            serverRepository.delete(serverToRemove);
-
-            return new CommonResDto(HttpStatus.OK,200, "서버 삭제 성공", null,links);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,400, "서버 삭제 중 에러 발생", e.getMessage(),links);
         }
     }
     // 서버 가입 응답

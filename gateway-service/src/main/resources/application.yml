@@ -84,6 +84,16 @@ spring:
             - RewritePath=/server-service/(?<segment>.*), /$\{segment}
             #- AuthorizationHeaderFilter
 
-
+jwt:
+  exclude-paths:
+    - /api/v1/users/sign-up
+    - /api/v1/users/confirm
+    - /api/v1/users/sign-in
+    - /api/v1/users/duplicate
+    - /api/v1/users/refresh-token
+  expiration: 3600000
+  secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
+  expirationRt: 1209600000
+  secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
 
 # log level setting
