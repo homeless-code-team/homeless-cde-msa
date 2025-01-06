@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -23,7 +24,7 @@ public class UserSaveReqDto {
     private String nickname;
 
     private String content;
-    private String profileImage;
+    private MultipartFile profileImage;
 
     @JsonCreator
     public UserSaveReqDto(
