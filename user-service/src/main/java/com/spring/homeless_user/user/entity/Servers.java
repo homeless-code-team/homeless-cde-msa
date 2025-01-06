@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 public class Servers {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     private int serverId;
 
@@ -27,7 +27,7 @@ public class Servers {
     private AddStatus addStatus;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_email", nullable = false)
     @JsonIgnore
     private User user; //1234
 
