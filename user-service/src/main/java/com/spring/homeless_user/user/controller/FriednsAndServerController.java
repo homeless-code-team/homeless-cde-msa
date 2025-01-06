@@ -1,8 +1,8 @@
 package com.spring.homeless_user.user.controller;
 
 import com.spring.homeless_user.user.dto.CommonResDto;
+import com.spring.homeless_user.user.dto.FriendsDto;
 import com.spring.homeless_user.user.dto.ServerDto;
-import com.spring.homeless_user.user.dto.friendsDto;
 import com.spring.homeless_user.user.service.FriendsAndServerService;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class FriednsAndServerController {
 
     // 친구 요청
     @PostMapping("/friends")
-    public CommonResDto addFriend(@RequestBody friendsDto dto) {
+    public CommonResDto addFriend(@RequestBody FriendsDto dto) {
         log.info("addFriend");
         return friendsAndServerService.addFriends(dto);
     }
@@ -33,15 +33,16 @@ public class FriednsAndServerController {
 
     // 친구삭제
     @DeleteMapping("/friends")
-    public CommonResDto deleteFriend(@RequestBody friendsDto dto ) {
+    public CommonResDto deleteFriend(@RequestBody FriendsDto dto ) {
         log.info("deleteFriend");
         return friendsAndServerService.deleteFriend(dto);
     }
 
     //친구 요청응답
     @PostMapping("/friends/response")
-    public CommonResDto addResFriend(@RequestBody friendsDto dto) {
+    public CommonResDto addResFriend(@RequestBody FriendsDto dto) {
         log.info("addFriend");
+        log.info(dto.toString());
         return friendsAndServerService.addResFriends(dto);
     }
 
@@ -70,9 +71,9 @@ public class FriednsAndServerController {
 
     //서버추가 요청 조회
     @GetMapping("/servers/response")
-    public CommonResDto addServerJoin() {
+    public CommonResDto addServerJoin(@RequestParam String serverId) {
         log.info("addFriendJoin");
-        return friendsAndServerService.addServerJoin();
+        return friendsAndServerService.addServerJoin(serverId);
     }
 
 }

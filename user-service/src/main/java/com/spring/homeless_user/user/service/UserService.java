@@ -5,16 +5,10 @@ import com.spring.homeless_user.common.auth.JwtTokenProvider;
 import com.spring.homeless_user.common.utill.JwtUtil;
 import com.spring.homeless_user.common.utill.SecurityContextUtil;
 import com.spring.homeless_user.user.dto.*;
-import com.spring.homeless_user.user.entity.AddStatus;
-import com.spring.homeless_user.user.entity.Friends;
-import com.spring.homeless_user.user.entity.Servers;
 import com.spring.homeless_user.user.entity.User;
-import com.spring.homeless_user.user.repository.FriendsRepository;
-import com.spring.homeless_user.user.repository.ServerRepository;
 import com.spring.homeless_user.user.repository.UserRepository;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +20,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -179,7 +172,7 @@ public class UserService {
             String accessToken = jwtTokenProvider.accessToken(dto.getEmail(), user.getId(), user.getNickname());
 
             // accessToken redis에 저장
-            loginTemplate.opsForValue().set(dto.getEmail(), accessToken);
+            loginTemplate.opsForValue().set(dto.getEmail(), accessToken,30, TimeUnit.MINUTES);
             log.info("accessToken:{}", accessToken);
 
             return new CommonResDto(HttpStatus.OK, 200, "SignIn successfully.", accessToken, links);

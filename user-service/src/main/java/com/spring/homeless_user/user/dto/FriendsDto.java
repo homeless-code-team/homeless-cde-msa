@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class friendsDto {
-    private String ResEmail;
+public class FriendsDto {
+    private String resEmail;
+    private AddStatus addStatus;
 }

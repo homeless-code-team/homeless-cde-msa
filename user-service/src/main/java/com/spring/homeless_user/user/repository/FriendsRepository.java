@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface FriendsRepository extends JpaRepository<Friends, Long> {
+    
 
     // 특정 사용자가 요청한 친구 목록
     List<Friends> findByUserEmail(String email);
@@ -17,4 +18,5 @@ public interface FriendsRepository extends JpaRepository<Friends, Long> {
 
     // 두 사용자 간의 친구 관계 조회
     Optional<Friends> findByUserEmailAndFriendEmail(String userEmail, String friendEmail);
+
 }
