@@ -44,6 +44,7 @@ public class ServerService {
 
         log.info("이메일1111, {}", userEmail);
         Server server = dto.toEntity();
+        server.setEmail(userEmail);
         server.setServerType(1);
 
         if(dto.getServerImg() != null){
