@@ -1,20 +1,12 @@
-package com.spring.homeless_user.common.auth;
+package com.playdata.homelesscode.common.auth;
 
-
-import com.spring.homeless_user.common.dto.CustomUserPrincipal;
-import com.spring.homeless_user.common.utill.JwtUtil;
-import com.spring.homeless_user.common.utill.SecurityPropertiesUtil;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.security.Keys;
+import com.playdata.homelesscode.common.dto.CustomUserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,10 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,5 +61,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
     }
-
 }

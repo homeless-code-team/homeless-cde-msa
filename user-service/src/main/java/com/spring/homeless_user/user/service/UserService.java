@@ -135,13 +135,13 @@ public class UserService {
     // 로그인로직
     public CommonResDto userSignIn(UserLoginReqDto dto) {
 
-        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
-            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
-        }
+//        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
+//            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+//            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
+//        }
         if(dto.getEmail()==null||dto.getPassword()==null){
             CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잚못된 요청입니다.",null,List.of(Link));
+            return new CommonResDto(HttpStatus.BAD_REQUEST,400,"잘못된 요청입니다.",null,List.of(Link));
         }
         User user =userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + dto.getEmail()));
@@ -161,7 +161,7 @@ public class UserService {
             userRepository.save(user);
 
             //redis에 accesstoken 저장
-            String accessToken = jwtTokenProvider.accessToken(dto.getEmail(), user.getId(),user.getNickname(),user.getProfileImage());
+            String accessToken = jwtTokenProvider.accessToken(dto.getEmail(), user.getId(),user.getNickname());
             loginTemplate.opsForValue().set(dto.getEmail(), accessToken);
 
             List<CommonResDto.Link> links = new ArrayList<>();
@@ -214,7 +214,7 @@ public class UserService {
             log.info(refreshToken);
             log.info(String.valueOf(flag));
             if (!flag) {
-                String newAccessToken = jwtTokenProvider.accessToken(dto.getEmail(), userId,user.getNickname(),user.getProfileImage());
+                String newAccessToken = jwtTokenProvider.accessToken(dto.getEmail(), userId,user.getNickname());
                 log.info(newAccessToken);
                 loginTemplate.delete(dto.getEmail());
                 loginTemplate.opsForValue().set(dto.getEmail(), newAccessToken);
@@ -792,7 +792,12 @@ public class UserService {
         return reqToken.equals(redisToken);
     }
 
+    ///feign 통신
 
+//    public void findMember(String id) {
+//
+//        userRepository.fin
+//    }
 }
 
 

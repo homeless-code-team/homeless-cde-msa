@@ -1,9 +1,10 @@
-package com.spring.homeless_user.common.utill;
+package com.playdata.homelesscode.common.utill;
 
-import com.spring.homeless_user.common.dto.CustomUserPrincipal;
+import com.playdata.homelesscode.common.dto.CustomUserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
 
 
 @Component
