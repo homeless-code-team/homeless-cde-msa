@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServerDto {
-    private Long serverId;
+    private String serverId;
     private AddStatus addStatus;
 }
