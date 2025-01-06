@@ -29,5 +29,9 @@ public class Servers {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
-    private User user;
+    private User user; //1234
+
+
+
+
 }
