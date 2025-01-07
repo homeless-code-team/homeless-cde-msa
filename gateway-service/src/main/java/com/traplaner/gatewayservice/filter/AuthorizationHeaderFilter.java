@@ -2,10 +2,12 @@ package com.traplaner.gatewayservice.filter;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -28,9 +30,11 @@ public class AuthorizationHeaderFilter
     @Value("${jwt.secretKey}")
     private String secretKey;
 
+    private final RedisTemplate<String, String> loginTemplate;
+
     private final List<String> allowUrl = Arrays.asList(
             // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
-            "/user-service/api/v1/users/sign-up","/api/v1/users/sign-in",
+            "/api/v1/users/sign-up","/api/v1/users/sign-in",
             "/user-service/api/v1/users/sign-in",
             "/user-service/api/v1/users/confirm",
             "/user-service/api/v1/users/duplicate"
@@ -38,8 +42,9 @@ public class AuthorizationHeaderFilter
 
     );
 
-    public AuthorizationHeaderFilter() {
+    public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate) {
         super(Config.class);
+        this.loginTemplate = loginTemplate;
     }
 
     @Override
@@ -84,6 +89,7 @@ public class AuthorizationHeaderFilter
             ServerHttpRequest request = exchange.getRequest()
                     .mutate()
                     .header("X-User-Email", claims.getSubject())
+                    .header("X-User-Nickname", String.valueOf(claims.get("nickname")))
                     .header("X-User-Id", String.valueOf(claims.get("user_id")))
                     .build();
 
@@ -94,11 +100,24 @@ public class AuthorizationHeaderFilter
 
     private Claims validateJwt(String token) {
         try {
+            Claims body = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            String email = body.getSubject();
+
+            String redisToken = loginTemplate.opsForValue().get(email);
+            if (redisToken == null || !redisToken.equals(token)) {
+                log.error("Token mismatch or not found in Redis");
+                return null;
+            }
             return Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
+
         } catch (Exception e) {
             log.error("JWT validation failed: {}", e.getMessage());
             return null;
