@@ -1,14 +1,14 @@
-package com.spring.homeless_user.common.auth;
+package com.spring.homelesscode.friends_server.common.auth;
 
 
-import com.spring.homeless_user.user.entity.Role;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+
+import com.spring.homelesscode.friends_server.entity.Role;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Component
 public class JwtTokenProvider {
 
-    private  Role role;
+    private Role role;
 
     @Value("${jwt.secretKey}")
     private String secretKey;

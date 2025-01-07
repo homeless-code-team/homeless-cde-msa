@@ -21,8 +21,8 @@ import java.util.List;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String  id;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -36,12 +36,6 @@ public class User {
     private LocalDateTime createdAt; // Camel case 수정
     private String refreshToken;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Friends> friends = new ArrayList<>();
 
-    @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Friends> friendOf = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Servers> serverList = new ArrayList<>();
 }
