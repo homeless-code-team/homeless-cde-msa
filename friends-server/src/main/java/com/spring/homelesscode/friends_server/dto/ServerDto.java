@@ -1,6 +1,6 @@
-package com.spring.homeless_user.user.dto;
+package com.spring.homelesscode.friends_server.dto;
 
-import com.spring.homeless_user.user.entity.AddStatus;
+import com.spring.homelesscode.friends_server.entity.AddStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

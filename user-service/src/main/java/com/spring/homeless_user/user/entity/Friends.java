@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 public class Friends {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne
     @JoinColumn(name = "user_email", referencedColumnName = "email", nullable = false)
