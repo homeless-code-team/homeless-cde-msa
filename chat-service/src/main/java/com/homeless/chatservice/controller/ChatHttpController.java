@@ -45,22 +45,27 @@ public class ChatHttpController {
 
     // HTTP POST 요청을 통한 메시지 전송 처리
     @PostMapping("/{serverId}/{channelId}")
-    public ResponseEntity<ChatMessageResponse> sendMessageHttp(
+    public ResponseEntity<CommonResDto<?>> sendMessageHttp(
             @PathVariable Long serverId,
             @PathVariable Long channelId,
             @RequestBody ChatMessageRequest chatMessage) {
         try {
             // 채팅 메시지 생성
-
             ChatMessageCreateCommand chatMessageCreateCommand =
                     new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
 
-            // 메시지 저장
+            // 메시지 저장 후 생성된 chatId
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
+
             rabbitTemplate.convertAndSend("chatQueue", chatMessage);
 
             // 저장된 메시지 응답
-            return ResponseEntity.ok(new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp()));
+            ChatMessageResponse response = new ChatMessageResponse(chatId,chatMessage.text(),chatMessage.writer(),chatMessage.timestamp());
+            Map<String,Object> result = new HashMap<>();
+            result.put("chatMessage", response);
+            CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 전송 완료", result);
+
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException("Error: Not resolve sendMessageHttp() [POST]", e);
         }
