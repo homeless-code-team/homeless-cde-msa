@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String> {
     List<ChatMessage> findByChannelId(Long channelId);  // 방 번호로 메시지 찾기
+    Long findServerIdByChannelId(Long channelId);
 }
