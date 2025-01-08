@@ -3,9 +3,8 @@ package com.homeless.chatservice.controller;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.dto.ChatMessageResponse;
-import com.homeless.chatservice.repository.ChatMessageRepository;
+import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.service.ChatHttpService;
-import com.homeless.chatservice.service.StompMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
@@ -13,29 +12,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/chats")
 public class ChatHttpController {
 
-    private final StompMessageService stompMessageService;
     private final ChatHttpService chatHttpService;
     private final RabbitTemplate rabbitTemplate;
 
 
     // 특정 채널의 메시지 조회
     @GetMapping("/{serverId}/{channelId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getMessages(
+    public ResponseEntity<?> getMessages(
             @PathVariable Long serverId,
             @PathVariable Long channelId) {
         try {
             // 메시지 조회
             List<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId);
-            // api 에서 요청한 serverId 내에
 
-            return ResponseEntity.ok(messages);
+            Map<String,Object> result = new HashMap<>();
+            result.put("messages", messages);
+            CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 조회 완료", result);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException("Error: Not resolve getMessages() [GET]", e);
         }
@@ -55,7 +57,6 @@ public class ChatHttpController {
 
             // 메시지 저장
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
-
             rabbitTemplate.convertAndSend("chatQueue", chatMessage);
 
             // 저장된 메시지 응답

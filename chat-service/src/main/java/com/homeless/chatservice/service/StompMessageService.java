@@ -1,7 +1,6 @@
 package com.homeless.chatservice.service;
 
-import com.homeless.chatservice.common.entity.ChatMessage;
-import com.homeless.chatservice.repository.ChatMessageRepository;
+import com.homeless.chatservice.entity.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

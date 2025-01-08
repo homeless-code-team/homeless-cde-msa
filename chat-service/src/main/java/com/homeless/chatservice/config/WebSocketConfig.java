@@ -1,4 +1,6 @@
 package com.homeless.chatservice.config;
+import com.homeless.chatservice.Listener.WebSocketEventListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -14,12 +16,15 @@ import reactor.netty.tcp.TcpClient;
 @Configuration
 @EnableWebSocketMessageBroker // WebSocket을 통한 메시지 브로커 기능 활성화하기
 @Slf4j
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /*
         WebSocket과 STOMP 메시징을 위한 설정을 추가.
         이 설정은 클라이언트가 서버에 연결할 수 있는 엔드포인트와 메시지 브로커를 설정.
      */
+
+    private final WebSocketEventListener webSocketEventListener;
 
     @Value("${spring.rabbitmq.host}")
     private String RABBITMQ_HOST;
@@ -72,4 +77,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 메시지를 발행(송신)하는 엔드포인트
 //        registry.setApplicationDestinationPrefixes("/pub");
     }
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        registry.addDecoratorFactory(webSocketEventListener); // 이벤트 리스너를 WebSocket 핸들러에 적용
+    }
+
 }

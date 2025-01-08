@@ -2,7 +2,7 @@ package com.homeless.chatservice.repository;
 
 
 
-import com.homeless.chatservice.common.entity.ChatMessage;
+import com.homeless.chatservice.entity.ChatMessage;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
