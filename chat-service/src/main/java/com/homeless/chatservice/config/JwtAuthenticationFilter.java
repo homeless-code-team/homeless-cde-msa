@@ -2,7 +2,7 @@ package com.homeless.chatservice.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-        } catch (SignatureException e) {
+        } catch (JwtException e) { // SignatureException을 JwtException으로 변경
             logger.error("Invalid JWT signature: {}");
         } catch (Exception e) {
             logger.error("Failed to parse JWT: {}");

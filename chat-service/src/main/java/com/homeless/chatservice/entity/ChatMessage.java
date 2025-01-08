@@ -1,5 +1,7 @@
-package com.homeless.chatservice.common.entity;
+package com.homeless.chatservice.entity;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +24,8 @@ public class ChatMessage {
     private Long serverId;
     private Long channelId;
     private String writer;
+    @NotNull(message = "Message content cannot be null")
+    @Size(min = 1, max = 1000, message = "Message content must be between 1 and 1000 characters")
     private String content;
     private Long timestamp;
 }

@@ -1,10 +1,11 @@
 package com.homeless.chatservice.controller;
 
 
-import com.homeless.chatservice.common.entity.ChatMessage;
+import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.service.ChatHttpService;
 import com.homeless.chatservice.service.StompMessageService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
@@ -14,7 +15,6 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
-import javax.validation.Valid;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -25,7 +25,6 @@ public class WebSocketController {
     private final RabbitMessagingTemplate messagingTemplate;
 
     private final StompMessageService messageService;
-    private final ChatHttpService chatHttpService;
 
     // 채팅 메시지 수신 및 저장
     @MessageMapping("/api/v1/chats.{serverId}.{channelId}") // 웹소켓을 통해 들어오는 메시지의 목적지를 정함.
@@ -33,7 +32,7 @@ public class WebSocketController {
     public void sendMessage(
             @DestinationVariable String serverId,
             @DestinationVariable String channelId,
-            @Vaild @Payload ChatMessage chatMessage) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
+            @Valid @Payload ChatMessage chatMessage) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
         log.info("serverID: {},roomId: {}, chatMessage: {}",serverId, channelId, chatMessage);
         // 메시지 저장
         messageService.sendMessage(chatMessage);
