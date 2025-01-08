@@ -22,6 +22,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 
+// ReadOnly attribute
+
 @Configuration
 @EnableRabbit // Spring에서 RabbitMQ 기능 활성화 하기
 @Slf4j

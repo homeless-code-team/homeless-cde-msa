@@ -25,7 +25,7 @@ public class ChatMessageServiceTest {
 
     @Test
     public void testCreateChatMessage() {
-        ChatMessageCreateCommand command = new ChatMessageCreateCommand(1L, "Hello", "user1");
+        ChatMessageCreateCommand command = new ChatMessageCreateCommand(1L, 1L,"안녕" ,"user1");
         ChatMessage savedMessage = ChatMessage.builder()
                 .id("123")
                 .channelId(1L)

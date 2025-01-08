@@ -57,6 +57,7 @@ public class ChatHttpController {
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
 
             rabbitTemplate.convertAndSend("chatQueue", chatMessage);
+
             // 저장된 메시지 응답
             return ResponseEntity.ok(new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp()));
         } catch (Exception e) {
