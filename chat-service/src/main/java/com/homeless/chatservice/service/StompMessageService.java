@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,13 +20,12 @@ public class StompMessageService {
     private String CHAT_EXCHANGE_NAME;
 
 
-    // 메시지를 RabbitMQ로 전달하는 메서드
-    // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
-    public void sendMessage(ChatMessage message) {
-        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME,
-                "chat.room." + message.getId(),
-                message
-        );
+    // 라우팅 키를 동적으로 처리하는 메서드로 수정
+    public void sendMessage(ChatMessage message, String serverId, String channelId) {
+        // 새로운 라우팅 키로 메시지를 전송
+        String routingKey = "chat." + serverId + "." + channelId;
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, routingKey, message);
+        log.info("Sent message to RabbitMQ with routingKey: {}", routingKey);
     }
 
     // RabbitMQ로부터 메시지를 수신하여 WebSocket 구독자들에게 전달
@@ -35,7 +33,9 @@ public class StompMessageService {
     public void handleMessage(ChatMessage message) {
         log.info("Received message from queue: {}", message);
         // WebSocket 구독자들에게 메시지 전달
-        messagingTemplate.convertAndSend("/topic/chat.room." + message.getId(), message);
+        // WebSocket 메시지를 "/topic/chat.${serverId}.${channelId}" 형식으로 전송
+        String routingKey = "chat." + message.getServerId() + "." + message.getChannelId();  // 채팅방 식별자에 맞게
+        messagingTemplate.convertAndSend("/topic/" + routingKey, message);
+        log.info("Sent message to WebSocket: /topic/{}", routingKey);
     }
-
 }
