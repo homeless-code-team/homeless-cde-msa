@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -41,6 +43,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JavaMailSender mailSender;
     private final JwtUtil jwtUtil;
+    private final CacheManager cacheManager;
 //    private final AmazonS3 amazonS3;
 
 
@@ -48,6 +51,7 @@ public class UserService {
     // 주입할 RedisTemplate
     private final RedisTemplate<String, String> checkTemplate;
     private final RedisTemplate<String, String> loginTemplate;
+    private final RedisTemplate<String,String > cacheTemplate;
     private final SecurityContextUtil securityContextUtil;
 
 
@@ -55,18 +59,21 @@ public class UserService {
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
                        JavaMailSender mailSender,
-                       JwtUtil jwtUtil,
+                       JwtUtil jwtUtil, CacheManager cacheManager,
                        @Qualifier("check") RedisTemplate<String, String> checkTemplate,
                        @Qualifier("login") RedisTemplate<String, String> loginTemplate,
-                       SecurityContextUtil securityContextUtil
-    ) {
+                       @Qualifier("cache") RedisTemplate<String, String> cacheTemplate,
+                       SecurityContextUtil securityContextUtil,
+                       RedisTemplate redisTemplate) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.mailSender = mailSender;
         this.jwtUtil = jwtUtil;
+        this.cacheManager = cacheManager;
         this.checkTemplate = checkTemplate;
         this.loginTemplate = loginTemplate;
+        this.cacheTemplate = cacheTemplate;
         this.securityContextUtil = securityContextUtil;
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +144,6 @@ public class UserService {
     }
 
     // 로그인로직
-    @Cacheable(value = "userCache", key = "#email")
     public CommonResDto userSignIn(@Valid UserLoginReqDto dto) {
 
         // REST API 링크 설정
@@ -152,12 +158,12 @@ public class UserService {
 //            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
 //        }
         // mysql에서 사용자 검색
-        String email = dto.getEmail();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " +email));
-        log.info(user.toString());
+
 
         try {
+            String email = dto.getEmail();
+            User user = getUserEntity(email);
+            log.info(user.toString());
             // 비밀번호 일치여부 확인
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Invalid password.", null, links);
@@ -180,6 +186,8 @@ public class UserService {
             loginTemplate.opsForValue().set(dto.getEmail(), accessToken,30, TimeUnit.MINUTES);
             log.info("accessToken:{}", accessToken);
 
+
+
             return new CommonResDto(HttpStatus.OK, 200, "SignIn successfully.", accessToken, links);
         } catch (Exception e) {
             e.printStackTrace();
@@ -189,18 +197,15 @@ public class UserService {
     }
 
     //로그아웃
-    @CacheEvict(value = "userCache", key = "#email")
     public CommonResDto userSignOut() {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("logout", "api/v1/users/sign-out", "DELETE");
+        // 토큰을 통해서 저장한 이메일 불러오기
 
         try {
-            // 토큰을 통해서 저장한 이메일 불러오기 
             String email = SecurityContextUtil.getCurrentUser().getEmail();
-
             //mysql에서 email을 기반으로 사용자 검색
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
+            User user = getUserEntity(email);
 
             //refreshToken mysql에서 지우기
             user.setRefreshToken(null);
@@ -209,6 +214,9 @@ public class UserService {
 
             //레디스에서 이메일관련 accessToken제거
             loginTemplate.delete(email);
+
+            //레디스 캐싱 내용 지우기
+            cacheTemplate.delete(email);
 
             return new CommonResDto(HttpStatus.OK, 200, "SignOut successfully.", null, List.of(Link));
         } catch (Exception e) {
@@ -228,8 +236,7 @@ public class UserService {
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
             // mysql에서 사용자검색
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
+            User user = getUserEntity(email);
             //userId 불러어기
             String userId = user.getId();
             // 리프레쉬 토큰 유효성 검사
@@ -311,15 +318,16 @@ public class UserService {
             String email  = dto.getEmail();
             //redis에 현재 토큰이 있는 지 확인
             String redisEmail = checkTemplate.opsForValue().get(token);
-
+            User user = getUserEntity(email);
+            String email1 = user.getEmail();
             // 비밀번호 찾기 이메일 인증
-            if (!redisEmail.isEmpty() && userRepository.findByEmail(email).isPresent()) {
+            if (!redisEmail.isEmpty() && redisEmail.equals(email1)) {
                 if (redisEmail.equals(email)) {
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 비밀번호를 수정해주세요", null, links);
                 }
                 //회원가입 미메일 인증
-            } else if (!redisEmail.isEmpty() && !userRepository.findByEmail(email).isPresent()) {
+            } else if (!redisEmail.isEmpty() && !redisEmail.equals(email1)) {
                 if (redisEmail.equals(email)) {
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 회원가입을 계속 진행하세요", null, links);
@@ -341,15 +349,17 @@ public class UserService {
         links.add(new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"));
         links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
         try {
+            String email = dto.getEmail();
+            User user = getUserEntity(email);
             // 이메일 중복 체크
             if (dto.getEmail() != null) {
-                boolean emailExists = userRepository.findByEmail(dto.getEmail()).isPresent();
+                boolean emailExists = user.getEmail().equals(dto.getEmail());
                 return emailExists
                         ? new CommonResDto(HttpStatus.OK, 20, "이메일 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "이메일을 사용해도 좋아요.", null, links);
             } else if (dto.getNickname() != null) {
                 //닉네임 중복체크
-                boolean nicknameExists = userRepository.findByNickname(dto.getNickname()).isPresent();
+                boolean nicknameExists = user.getNickname().equals(dto.getNickname());
                 return nicknameExists
                         ? new CommonResDto(HttpStatus.OK, 200, "닉네임 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "닉네임을 사용해도 좋아요.", null, links);
@@ -365,17 +375,21 @@ public class UserService {
     }
 
     //회원탈퇴
-    @CacheEvict(value = "userCache", key = "#email")
     public CommonResDto delete() {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("Delete", "api/v1/users", "DELETE");
         try {
             // 이메일 불러오기 
             String email = securityContextUtil.getCurrentUser().getEmail();
+            User user = getUserEntity(email);
             // mysql에서 삭제
-            userRepository.deleteByEmail(email);
+            userRepository.delete(user);
+
             //redis에서 삭제
             loginTemplate.delete(email);
+
+            //캐싱 삭제
+            cacheTemplate.delete(email);
 
             return new CommonResDto(HttpStatus.OK, 200, "삭제완료", null, List.of(Link));
         } catch (Exception e) {
@@ -385,7 +399,6 @@ public class UserService {
     }
 
     // 회원정보수정
-    @CachePut(value = "userCache", key = "#email")
     public CommonResDto modify(ModifyDto dto) {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
@@ -394,11 +407,9 @@ public class UserService {
 
         try {
             // 현재 인증된 사용자 가져오기
-            String userId = SecurityContextUtil.getCurrentUser().getUserId();
             String email = securityContextUtil.getCurrentUser().getEmail();
             // 사용자 검색
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
+            User user = getUserEntity(email);
 
             // 닉네임 변경
             if (dto.getNickname() != null) {
@@ -406,8 +417,7 @@ public class UserService {
                 if (nicknameExists) {
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "닉네임이 이미 존재합니다.", null, links);
                 }
-                user.setNickname(dto.getNickname());
-                userRepository.save(user);
+                updateUserEntity(email,user);
                 return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", null, links);
             } else if (dto.getPassword() != null) {
                 if (!isValidPassword(dto.getPassword())){
@@ -415,15 +425,34 @@ public class UserService {
                 }
                 // 비밀번호 수정
                 String hashedPassword = passwordEncoder.encode(dto.getPassword());
-                user.setPassword(hashedPassword);
-                userRepository.save(user);
+                updateUserEntity(email,user);
                 return new CommonResDto(HttpStatus.OK, 200, "페스워드변경성공", null, links);
             } else if (dto.getContent() != null) {
                 // 소개글 수정
-                user.setContents(dto.getContent());
-                userRepository.save(user);
+                updateUserEntity(email,user);
                 return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", null, links);
-            } else if (dto.getProfileImage() != null) {
+            }
+
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "사용자 수정 정보가 없습니다.", null, links);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
+        }
+    }
+
+    // 이미지 정보수정
+    public CommonResDto ImageModify(ModifyDto dto) {
+
+        // REST API 링크 설정
+        List<CommonResDto.Link> links = new ArrayList<>();
+        links.add(new CommonResDto.Link("sign-in", "/api/v1/users/sign-in", "POST"));
+        links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
+
+        try{
+            if (dto.getProfileImage() != null) {
+                String email = SecurityContextUtil.getCurrentUser().getEmail();
+                User user = getUserEntity(email);
                 String oldProfileImage = user.getProfileImage(); // 기존 프로필 이미지 URL
                 String bucketName = "your-s3-bucket-name";
                 String newProfileImageUrl;
@@ -440,11 +469,13 @@ public class UserService {
 //                user.setProfileImage(newProfileImageUrl);
 //                // DB 업데이트
 //                userRepository.save(user);
+
+                //캐싱 정보 수정
+                updateUserEntity(email,user);
                 return new CommonResDto(HttpStatus.OK, 200, "이미지변경성공", null, links);
             }
             return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "사용자 수정 정보가 없습니다.", null, links);
-
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
         }
@@ -458,7 +489,7 @@ public class UserService {
             links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
         try{
             String email = SecurityContextUtil.getCurrentUser().getEmail();
-            User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
+            User user = getUserEntity(email);
             GetUserDto dto = new GetUserDto();
             dto.setNickname(user.getNickname());
             dto.setEmail(user.getEmail());
@@ -502,6 +533,32 @@ public class UserService {
             }
             return patternEmail.matcher(email).matches();
         }
+     //캐싱 메서드
+    @Cacheable(value = "userCache", key = "#email")
+    public User getUserEntity(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+    }
+
+    // 캐싱 수정
+    @CachePut(value = "userCache", key = "#email")
+    public User updateUserEntity(String email, User updatedUser) {
+        User existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        // 엔티티 수정
+        existingUser.setNickname(updatedUser.getNickname());
+        existingUser.setContents(updatedUser.getContents());
+        existingUser.setPassword(updatedUser.getPassword());
+        existingUser.setProfileImage(updatedUser.getProfileImage());
+        userRepository.save(existingUser);
+
+        return existingUser; // 캐시에 저장됨
+    }
+
+
+
+
 }
 
 
