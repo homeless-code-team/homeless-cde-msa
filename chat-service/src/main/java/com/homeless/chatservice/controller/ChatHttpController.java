@@ -4,55 +4,40 @@ import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.service.ChatMessageService;
-import java.util.List;
+import com.homeless.chatservice.service.MessageSenderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/chats")
+@RequestMapping("/api/v1/chats")
 public class ChatController {
 
     private final ChatMessageService chatMessageService;
+    private final MessageSenderService messageSenderService; // RabbitMQ 메시지 전송 서비스
 
-    // WebSocket 메시지 전송 처리
-    @MessageMapping("/{serverId}/{channelId}")
-    @SendTo("/topic/{serverId}/{channelId}")
-    public ChatMessageResponse sendMessageWebSocket(
-        @DestinationVariable Long serverId,
-        @DestinationVariable Long channelId,
-        @Payload ChatMessageRequest chatMessage) {
-        try {
-            // 채팅 메시지 생성
-            ChatMessageCreateCommand chatMessageCreateCommand =
-                new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
-
-            // 메시지 저장
-            String chatId = chatMessageService.createChatMessage(chatMessageCreateCommand);
-
-            // 저장된 메시지 응답
-            return new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp());
-        } catch (Exception e) {
-            throw new RuntimeException("Error handling chat message", e);
-        }
-    }
 
     // HTTP POST 요청을 통한 메시지 전송 처리
     @PostMapping("/{serverId}/{channelId}")
     public ResponseEntity<ChatMessageResponse> sendMessageHttp(
-        @PathVariable Long serverId,
-        @PathVariable Long channelId,
-        @RequestBody ChatMessageRequest chatMessage) {
+            @PathVariable Long serverId,
+            @PathVariable Long channelId,
+            @RequestBody ChatMessageRequest chatMessage) {
         try {
             // 채팅 메시지 생성
             ChatMessageCreateCommand chatMessageCreateCommand =
-                new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
+                    new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
 
             // 메시지 저장
             String chatId = chatMessageService.createChatMessage(chatMessageCreateCommand);
+
+            // 메시지 전송 (RabbitMQ)
+            messageSenderService.sendMessageToQueue(chatMessageCreateCommand);
 
             // 저장된 메시지 응답
             return ResponseEntity.ok(new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp()));
@@ -64,8 +49,8 @@ public class ChatController {
     // 특정 채널의 메시지 조회
     @GetMapping("/{serverId}/{channelId}/messages")
     public ResponseEntity<List<ChatMessageResponse>> getMessages(
-        @PathVariable Long serverId,
-        @PathVariable Long channelId) {
+            @PathVariable Long serverId,
+            @PathVariable Long channelId) {
         try {
             // 메시지 조회
             List<ChatMessageResponse> messages = chatMessageService.getMessagesByChannel(channelId);
