@@ -32,7 +32,6 @@ public class User {
     private String profileImage;
     private String contents;
     private String achievement; // Camel case 수정
-    private String loginMethod; // Camel case 수정
     private LocalDateTime createdAt; // Camel case 수정
     private String refreshToken;
 
