@@ -12,6 +12,9 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,7 +29,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -47,6 +49,7 @@ public class UserService {
     private final RedisTemplate<String, String> checkTemplate;
     private final RedisTemplate<String, String> loginTemplate;
     private final SecurityContextUtil securityContextUtil;
+
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -124,7 +127,7 @@ public class UserService {
             userRepository.save(user);
 
             // 응답 반환 
-            return new CommonResDto(HttpStatus.OK, 201, "회원가입을 환영합니다.", null, links);
+            return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
         } catch (Exception e) {
             //에러 응답 반환
@@ -134,6 +137,7 @@ public class UserService {
     }
 
     // 로그인로직
+    @Cacheable(value = "userCache", key = "#email")
     public CommonResDto userSignIn(@Valid UserLoginReqDto dto) {
 
         // REST API 링크 설정
@@ -148,8 +152,9 @@ public class UserService {
 //            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
 //        }
         // mysql에서 사용자 검색
-        User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + dto.getEmail()));
+        String email = dto.getEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " +email));
         log.info(user.toString());
 
         try {
@@ -159,7 +164,7 @@ public class UserService {
             }
 
             // refreshToken 생성
-            String refreshToken = jwtTokenProvider.refreshToken(dto.getEmail(), user.getId());
+            String refreshToken = jwtTokenProvider.refreshToken(email, user.getId());
 
             // mysql에 refreshToken 저장
             user.setRefreshToken(refreshToken);
@@ -168,8 +173,8 @@ public class UserService {
             userRepository.save(user);
             log.info("user:{} 로그인 성공", user);
 
-            // accesstoken 생성
-            String accessToken = jwtTokenProvider.accessToken(dto.getEmail(), user.getId(), user.getNickname());
+            // accestoken 생성
+            String accessToken = jwtTokenProvider.accessToken(email, user.getId(), user.getNickname());
 
             // accessToken redis에 저장
             loginTemplate.opsForValue().set(dto.getEmail(), accessToken,30, TimeUnit.MINUTES);
@@ -184,6 +189,7 @@ public class UserService {
     }
 
     //로그아웃
+    @CacheEvict(value = "userCache", key = "#email")
     public CommonResDto userSignOut() {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("logout", "api/v1/users/sign-out", "DELETE");
@@ -213,16 +219,17 @@ public class UserService {
     }
 
     //토큰갱신
-    public CommonResDto refreshToken(UserLoginReqDto dto) {
+    public CommonResDto refreshToken() {
 
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh", "POST");
 
         //토큰 유효성 검사
         try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
             // mysql에서 사용자검색
-            User user = userRepository.findByEmail(dto.getEmail())
-                    .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + dto.getEmail()));
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Invalid email: " + email));
             //userId 불러어기
             String userId = user.getId();
             // 리프레쉬 토큰 유효성 검사
@@ -233,12 +240,12 @@ public class UserService {
 
             if (!flag) {
                 //새로운 엑세스 토큰 생성
-                String newAccessToken = jwtTokenProvider.accessToken(dto.getEmail(), userId, user.getNickname());
+                String newAccessToken = jwtTokenProvider.accessToken(email, userId, user.getNickname());
                 log.info(newAccessToken);
                 // 원래있던 access token 삭제
-                loginTemplate.delete(dto.getEmail());
+                loginTemplate.delete(email);
                 // accesstoken 재발급 받은걸로 다시 저장
-                loginTemplate.opsForValue().set(dto.getEmail(), newAccessToken);
+                loginTemplate.opsForValue().set(email, newAccessToken);
 
                 return new CommonResDto(HttpStatus.OK, 200, "Refresh token successfully.", newAccessToken, List.of(Link));
             } else {
@@ -293,13 +300,15 @@ public class UserService {
     }
 
     // 이메일 인증, 비밀번호 회원가입시
-    public CommonResDto confirm(String email, String token) {
+    public CommonResDto confirm(EmailCheckDto dto) {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("sendEmail", "/api/v1/users/confirm", "POST"));
         links.add(new CommonResDto.Link("checkEmail", "/api/v1/users/confrim", "GET"));
         try {
 
+            String token = dto.getToken();
+            String email  = dto.getEmail();
             //redis에 현재 토큰이 있는 지 확인
             String redisEmail = checkTemplate.opsForValue().get(token);
 
@@ -325,7 +334,7 @@ public class UserService {
     }
 
     // 이메일 &닉네임 중복검사
-    public CommonResDto duplicateCheck(String email, String nickname) {
+    public CommonResDto duplicateCheck(DuplicateDto dto) {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("duplicate", "/api/v1/users/duplicate", "GET"));
@@ -333,14 +342,14 @@ public class UserService {
         links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
         try {
             // 이메일 중복 체크
-            if (email != null) {
-                boolean emailExists = userRepository.findByEmail(email).isPresent();
+            if (dto.getEmail() != null) {
+                boolean emailExists = userRepository.findByEmail(dto.getEmail()).isPresent();
                 return emailExists
                         ? new CommonResDto(HttpStatus.OK, 20, "이메일 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "이메일을 사용해도 좋아요.", null, links);
-            } else if (nickname != null) {
+            } else if (dto.getNickname() != null) {
                 //닉네임 중복체크
-                boolean nicknameExists = userRepository.findByNickname(nickname).isPresent();
+                boolean nicknameExists = userRepository.findByNickname(dto.getNickname()).isPresent();
                 return nicknameExists
                         ? new CommonResDto(HttpStatus.OK, 200, "닉네임 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "닉네임을 사용해도 좋아요.", null, links);
@@ -356,6 +365,7 @@ public class UserService {
     }
 
     //회원탈퇴
+    @CacheEvict(value = "userCache", key = "#email")
     public CommonResDto delete() {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("Delete", "api/v1/users", "DELETE");
@@ -375,6 +385,7 @@ public class UserService {
     }
 
     // 회원정보수정
+    @CachePut(value = "userCache", key = "#email")
     public CommonResDto modify(ModifyDto dto) {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
@@ -460,6 +471,8 @@ public class UserService {
         }
     }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 비밀번호 유효성 검사 정규식
     private static final String PASSWORD_PATTERN =
                     "^(?=.*[0-9])" +        // 적어도 1개의 숫자
