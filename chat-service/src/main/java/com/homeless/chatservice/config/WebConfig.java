@@ -12,7 +12,10 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOriginPatterns("*");
+                registry.addMapping("/**").allowedOriginPatterns("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용할 HTTP 메서드
+                        .allowedHeaders("Authorization", "Content-Type") // 허용할 요청 헤더
+                        .allowCredentials(true);
             }
         };
     }

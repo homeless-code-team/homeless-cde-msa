@@ -1,0 +1,99 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]": # 모든 경로에 대한 CORS 설정
+            allowed-origins:
+              - "http://localhost:3000"
+              # - 나중에 도메인
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers:
+              - "Content-Type"
+              - "Authorization"
+              - "X-Requested-With"
+            allow-credentials: true
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: homeless-code Cloud Gateway Global Filter
+            preLogger: true
+            postLogger: true
+        - name: DedupeResponseHeader
+          args:
+            name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            strategy: RETAIN_FIRST
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+
+
+        - id: chat-service
+          uri: lb://CHAT-SERVICE
+          predicates:
+            - Path=/chat-service/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: chat-service
+          uri: lb://CHAT-SERVICE
+          predicates:
+            - Path=/chat-service/actuator/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+
+
+        - id: server-service
+          uri: lb://SERVER-SERVICE
+          predicates:
+            - Path=/server/**
+          filters:
+            - RemoveRequestHeader=Cookie
+#            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+
+        - id: server-service
+          uri: lb://server-service
+          predicates:
+            - Path=/server/actuator
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/server-service/(?<segment>.*), /$\{segment}
+            #- AuthorizationHeaderFilter
+
+jwt:
+  exclude-paths:
+    - /api/v1/users/sign-up
+    - /api/v1/users/confirm
+    - /api/v1/users/sign-in
+    - /api/v1/users/duplicate
+    - /api/v1/users/refresh-token
+  expiration: 3600000
+  secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
+  expirationRt: 1209600000
+  secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
+
+# log level setting

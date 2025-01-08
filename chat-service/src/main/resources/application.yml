@@ -3,16 +3,23 @@ spring:
     name: chat-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/chat
+      uri: mongodb://localhost:27017/chat # 도커 내부에서 MongoDB가 실행 중이라면 IP나 서비스 이름을 사용
   config:
     import: "optional:configserver:"
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  main:
+    allow-bean-definition-overriding: true
 
 server:
-  port: 0
+  port: 0 # 자동 포트 할당
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/ # Eureka 서버 주소
   instance:
     prefer-ip-address: true
