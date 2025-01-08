@@ -6,10 +6,8 @@ import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -22,11 +20,9 @@ import java.util.Map;
 public class ChatHttpController {
 
     private final ChatHttpService chatHttpService;
-    private final RabbitTemplate rabbitTemplate;
-
 
     // 특정 채널의 메시지 조회
-    @GetMapping("/{serverId}/{channelId}/messages")
+    @GetMapping("/{serverId}/{channelId}")
     public ResponseEntity<?> getMessages(
             @PathVariable Long serverId,
             @PathVariable Long channelId) {
@@ -34,22 +30,27 @@ public class ChatHttpController {
             // 메시지 조회
             List<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId);
 
-            Map<String,Object> result = new HashMap<>();
+            Map<String, Object> result = new HashMap<>();
             result.put("messages", messages);
             CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 조회 완료", result);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
-            throw new RuntimeException("Error: Not resolve getMessages() [GET]", e);
+            return handleException(e);
         }
     }
 
     // HTTP POST 요청을 통한 메시지 전송 처리
     @PostMapping("/{serverId}/{channelId}")
-    public ResponseEntity<CommonResDto<?>> sendMessageHttp(
+    public ResponseEntity<?> sendMessageHttp(
             @PathVariable Long serverId,
             @PathVariable Long channelId,
             @RequestBody ChatMessageRequest chatMessage) {
         try {
+            // 유효성 검사 (예시)
+            if (chatMessage.text() == null || chatMessage.text().isEmpty()) {
+                throw new IllegalArgumentException("Message text cannot be empty");
+            }
+
             // 채팅 메시지 생성
             ChatMessageCreateCommand chatMessageCreateCommand =
                     new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
@@ -57,28 +58,30 @@ public class ChatHttpController {
             // 메시지 저장 후 생성된 chatId
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
 
-            rabbitTemplate.convertAndSend("chatQueue", chatMessage);
-
             // 저장된 메시지 응답
-            ChatMessageResponse response = new ChatMessageResponse(chatId,chatMessage.text(),chatMessage.writer(),chatMessage.timestamp());
-            Map<String,Object> result = new HashMap<>();
+            ChatMessageResponse response = new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp());
+            Map<String, Object> result = new HashMap<>();
             result.put("chatMessage", response);
             CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 전송 완료", result);
 
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (Exception e) {
-            throw new RuntimeException("Error: Not resolve sendMessageHttp() [POST]", e);
+            return handleException(e);
         }
-    }
-    // WebSocket 예외 처리
-    @MessageExceptionHandler
-    public void handleMessageException(RuntimeException e) {
-        System.err.println(e.getMessage());
     }
 
     // HTTP 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        // 예외에 따라 다르게 응답할 수 있음
+        String errorMessage = e.getMessage();
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        // 예외에 따른 적절한 처리 (예: 사용자 입력 오류일 경우 BAD_REQUEST)
+        if (e instanceof IllegalArgumentException) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+
+        return new ResponseEntity<>(errorMessage, status);
     }
 }

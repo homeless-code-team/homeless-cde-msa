@@ -31,18 +31,15 @@ public class RabbitConfig {
 
     private final String CHAT_QUEUE_NAME;
     private final String CHAT_EXCHANGE_NAME;
-    private final String CHAT_ROUTING_KEY;
     private final String RABBITMQ_HOST;
 
     public RabbitConfig(
             @Value("${rabbitmq.chat-queue.name}") String CHAT_QUEUE_NAME,
             @Value("${rabbitmq.chat-exchange.name}") String CHAT_EXCHANGE_NAME,
-            @Value("${rabbitmq.chat-routing.key}") String CHAT_ROUTING_KEY,
             @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST
     ) {
         this.CHAT_QUEUE_NAME = CHAT_QUEUE_NAME;
         this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
-        this.CHAT_ROUTING_KEY = CHAT_ROUTING_KEY;
         this.RABBITMQ_HOST = RABBITMQ_HOST;
     }
 
@@ -62,18 +59,6 @@ public class RabbitConfig {
         return new TopicExchange(CHAT_EXCHANGE_NAME);
     }
 
-    // Exchange와 Queue를 연결.
-    // 라우팅 키 패턴을 통해 어떤 메세지가 어떤 큐로 갈 지를 결정하게 된다.
-    // "chat.queue"에 "chat.exchange" 규칙을 Binding
-    @Bean
-    public Binding chatBinding() {
-        log.info("Creating binding between: {} and {}", CHAT_QUEUE_NAME, CHAT_EXCHANGE_NAME);
-        return BindingBuilder
-                .bind(chatQueue())
-                .to(chatExchange())
-                .with(CHAT_ROUTING_KEY);
-    }
-
     // RabbitMQ로 메시지를 주고받는 핵심 클래스
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
@@ -81,6 +66,7 @@ public class RabbitConfig {
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
     }
+
 
 
     // 스프링의 메시지 추상화를 RabbitMQ에 적용. 좀 더 높은 수준의 메시지 기능을 제공.
@@ -135,14 +121,11 @@ public class RabbitConfig {
         log.info("Checking RabbitMQ configuration...");
         log.info("CHAT_QUEUE_NAME: {}", CHAT_QUEUE_NAME);
         log.info("CHAT_EXCHANGE_NAME: {}", CHAT_EXCHANGE_NAME);
-        log.info("CHAT_ROUTING_KEY: {}", CHAT_ROUTING_KEY);
         log.info("RABBITMQ_HOST: {}", RABBITMQ_HOST);
     }
 
 
-    // 스프링 컨텍스트가 완전히 로드가 된 이후 발생하는 이벤트 리스너 메서드.
-    // 모든 컴포넌트를 명시적으로 선언. 이미 존재하는 경우에는 무시하고 존재하지 않을 때에만 생성.
-    // 좀 더 확실하게 RabbitMQ 자원들을 생성하기 위해 추가함.
+    // 컨텍스트 초기화 후 큐와 익스체인지 선언
     @EventListener(ContextRefreshedEvent.class)
     public void initialize(ContextRefreshedEvent event) {
         log.info("Initializing RabbitMQ exchanges and queues...");
@@ -150,24 +133,15 @@ public class RabbitConfig {
         RabbitAdmin admin = event.getApplicationContext().getBean(RabbitAdmin.class);
 
         try {
-            // exchange 선언
+            // Exchange 선언
             TopicExchange exchange = new TopicExchange(CHAT_EXCHANGE_NAME, true, false);
             admin.declareExchange(exchange);
             log.info("Declared exchange: {}", CHAT_EXCHANGE_NAME);
 
-            // queue 선언
+            // Queue 선언
             Queue queue = new Queue(CHAT_QUEUE_NAME, true);
             admin.declareQueue(queue);
             log.info("Declared queue: {}", CHAT_QUEUE_NAME);
-
-            // binding 선언
-            Binding binding = BindingBuilder
-                    .bind(queue)
-                    .to(exchange)
-                    .with(CHAT_ROUTING_KEY);
-            admin.declareBinding(binding);
-            log.info("Declared binding between {} and {} with routing key {}",
-                    CHAT_QUEUE_NAME, CHAT_EXCHANGE_NAME, CHAT_ROUTING_KEY);
 
         } catch (Exception e) {
             log.error("Error during RabbitMQ initialization", e);
@@ -175,6 +149,10 @@ public class RabbitConfig {
         }
     }
 
-
+    // 메시지 전송 메서드
+    public void sendMessageToQueue(String routingKey, Object message, RabbitTemplate rabbitTemplate) {
+        log.info("Sending message to queue with routingKey: {}", routingKey);
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, routingKey, message);
+    }
 
 }
