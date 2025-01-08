@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 public class StompMessageService {
     private final RabbitTemplate rabbitTemplate;
     private final SimpMessagingTemplate messagingTemplate;  // WebSocket 메시지 전송용 추가
-    private final ChatMessageRepository chatMessageRepository;
-    private final StompMessageService stompMessageService;
 
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;

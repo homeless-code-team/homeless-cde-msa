@@ -14,12 +14,14 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
+import javax.validation.Valid;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketController {
-    //    private final SimpMessagingTemplate messagingTemplate;
+    // 전송탬플릿
     private final RabbitTemplate rabbitTemplate;
+    // 메시징 추상화 템플릿
     private final RabbitMessagingTemplate messagingTemplate;
 
     private final StompMessageService messageService;
@@ -31,7 +33,7 @@ public class WebSocketController {
     public void sendMessage(
             @DestinationVariable String serverId,
             @DestinationVariable String channelId,
-            @Payload ChatMessage chatMessage) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
+            @Vaild @Payload ChatMessage chatMessage) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
         log.info("serverID: {},roomId: {}, chatMessage: {}",serverId, channelId, chatMessage);
         // 메시지 저장
         messageService.sendMessage(chatMessage);
@@ -45,7 +47,8 @@ public class WebSocketController {
     @MessageExceptionHandler
     public void handleMessageException(RuntimeException e) {
         log.error("WebSocket error: {}", e.getMessage(), e);
-        // 클라이언트에게 에러 메시지 전송 가능 (필요할 경우)
+        // 클라이언트에게 에러 메시지 전송 가능
+        // todo : 클라이언트가 /topic/errors를 구독하여 에러 메시지를 처리할 수 있도록 확인해야함.
         messagingTemplate.convertAndSend("/topic/errors", e.getMessage());
     }
 }

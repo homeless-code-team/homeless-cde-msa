@@ -9,6 +9,8 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.socket.config.annotation.*;
 import reactor.netty.tcp.TcpClient;
 
+// ReadOnly
+
 @Configuration
 @EnableWebSocketMessageBroker // WebSocket을 통한 메시지 브로커 기능 활성화하기
 @Slf4j
