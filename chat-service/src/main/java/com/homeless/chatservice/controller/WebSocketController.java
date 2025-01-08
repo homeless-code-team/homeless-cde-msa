@@ -2,6 +2,7 @@ package com.homeless.chatservice.controller;
 
 
 import com.homeless.chatservice.config.RabbitConfig;
+import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.service.StompMessageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,28 +38,23 @@ public class WebSocketController {
     public void sendMessage(
             @DestinationVariable  String serverId,
             @DestinationVariable  String channelId,
-            @Valid @Payload ChatMessage chatMessage) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
+            @Valid @Payload ChatMessageRequest chatMessageRequest) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
 
-        log.info("serverId: {},chanelId: {}, chatMessage: {}",serverId, channelId, chatMessage);
+        log.info("serverId: {},chanelId: {}, chatMessage: {}",serverId, channelId, chatMessageRequest);
 
         //동적 라우팅키 생성
         String dynamicRoutingKey = "chat." + serverId + "." + channelId;
         // 메시지 저장
-        messageService.sendMessage(chatMessage,serverId, channelId);
+        messageService.sendMessage(chatMessageRequest,serverId, channelId);
         // 메시지를 RabbitMQ에 전송
-        rabbitConfig.sendMessageToQueue(dynamicRoutingKey, chatMessage, rabbitTemplate);
-
-        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, dynamicRoutingKey, chatMessage);
+//        rabbitConfig.sendMessageToQueue(dynamicRoutingKey, chatMessageRequest, rabbitTemplate);
+//
+//        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, dynamicRoutingKey, chatMessageRequest);
 
         // 전송 후 클라이언트에게 메시지 응답
-        messagingTemplate.convertAndSend("/topic/" + serverId + "." + channelId, chatMessage);
+        messagingTemplate.convertAndSend("/topic/" + serverId + "." + channelId, chatMessageRequest);
     }
 
-
-
-
-
-    // WebSocket 예외 처리
     // WebSocket 예외 처리
     @MessageExceptionHandler
     public void handleMessageException(RuntimeException e) {
