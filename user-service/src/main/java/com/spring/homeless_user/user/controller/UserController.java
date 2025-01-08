@@ -86,11 +86,20 @@ public class UserController {
 
     // 정보수정
     @PatchMapping( "/")
-    public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
+    public CommonResDto modify(@RequestBody ModifyDto dto) throws IOException {
     log.info("profileUpdate");
 
         return userService.modify(dto);
     }
+    
+    // 이미지정보수정
+    @PatchMapping( "/profile-image/")
+    public CommonResDto ImageModify(@ModelAttribute ModifyDto dto) throws IOException {
+        log.info("profileImageUpdate");
+
+        return userService.ImageModify(dto);
+    }
+
 
     // 정보 조회
     @GetMapping("/")
