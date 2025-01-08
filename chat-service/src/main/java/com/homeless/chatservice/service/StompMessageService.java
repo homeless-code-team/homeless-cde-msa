@@ -1,6 +1,8 @@
 package com.homeless.chatservice.service;
 
+import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.entity.ChatMessage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,7 +23,7 @@ public class StompMessageService {
 
 
     // 라우팅 키를 동적으로 처리하는 메서드로 수정
-    public void sendMessage(ChatMessage message, String serverId, String channelId) {
+    public void sendMessage(@Valid ChatMessageRequest message, String serverId, String channelId) {
         // 새로운 라우팅 키로 메시지를 전송
         String routingKey = "chat." + serverId + "." + channelId;
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, routingKey, message);
