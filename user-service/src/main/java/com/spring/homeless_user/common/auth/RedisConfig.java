@@ -32,6 +32,11 @@ public class RedisConfig {
         return createRedisTemplate(3); // Database 3
     }
 
+    @Bean(name = "cache")
+    public RedisTemplate<String, String> cacheTemplate() {
+        return createRedisTemplate(10); // 캐싱 전용 Database 10
+    }
+
     private RedisTemplate<String, String> createRedisTemplate(int dbIndex) {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
         configuration.setHostName("localhost");
