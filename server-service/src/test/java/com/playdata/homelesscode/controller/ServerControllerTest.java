@@ -1,15 +1,9 @@
 package com.playdata.homelesscode.controller;
 
-import com.playdata.homelesscode.dto.server.ServerCreateDto;
-import com.playdata.homelesscode.entity.Server;
-import com.playdata.homelesscode.repository.ServerListRepository;
+import com.playdata.homelesscode.repository.ServerJoinUserListRepository;
 import com.playdata.homelesscode.repository.ServerRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @SpringBootTest
@@ -22,7 +16,7 @@ class ServerControllerTest {
 //    private UserRepository userRepository;
 
     @Autowired
-    private ServerListRepository serverListRepository;
+    private ServerJoinUserListRepository serverListRepository;
 
 
 //    @Test

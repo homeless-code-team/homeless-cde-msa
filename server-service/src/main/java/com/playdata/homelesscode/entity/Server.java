@@ -1,7 +1,6 @@
 package com.playdata.homelesscode.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -54,6 +53,9 @@ public class Server {
     private List<Channel> channels;
 
     @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<ServerList> serverLists;
+    private List<ServerJoinUserList> serverLists;
+
+    @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<BoardList> board;
 
 }

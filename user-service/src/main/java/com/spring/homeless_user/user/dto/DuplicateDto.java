@@ -1,11 +1,14 @@
 package com.spring.homeless_user.user.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter@Setter@ToString
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class DuplicateDto {
+
     private String email;
     private String nickname;
 }
