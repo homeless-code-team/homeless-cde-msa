@@ -6,9 +6,14 @@ import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RestController
@@ -48,11 +53,6 @@ public class UserController {
         return userService.refreshToken();
     }
 
-//    @PostMapping("/git")
-//    public CommonResDto gitLogin(@Valid @RequestBody UserLoginReqDto dto) {
-//
-//        return userService.gitLogin(dto);
-//    }
 
     // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
     @PostMapping("/confirm")
@@ -108,4 +108,29 @@ public class UserController {
         return userService.getUserData();
     }
 
+    // 1. 리다이렉션 URL 반환
+    @GetMapping("/redirect")
+    public ResponseEntity<String> redirectToProvider(@RequestParam String provider) {
+        String redirectUrl = provider.equalsIgnoreCase("google")
+                ? "https://accounts.google.com/o/oauth2/auth?client_id=620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com&redirect_uri=http://localhost:3000/&response_type=code&scope=email"
+                : "https://github.com/login/oauth/authorize?client_id=Ov23liRmQbUUzPUCt2xn&redirect_uri=http://localhost:3000/&scope=user";
+        return ResponseEntity.ok(redirectUrl);
+    }
+
+    // 2. OAuth Callback 처리
+    @PostMapping("/callback")
+    public Mono<ResponseEntity<CommonResDto>> handleOAuthCallback(
+            @RequestParam String code,
+            @RequestParam String provider
+    ) {
+        return userService.getAccessToken(provider, code)
+                .flatMap(accessToken -> userService.getUserInfo(provider, accessToken))
+                .flatMap(userService::processOAuthUser)
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(
+                        new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null)
+                )));
+    }
 }
+
+
