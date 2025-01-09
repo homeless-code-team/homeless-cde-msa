@@ -29,12 +29,8 @@ eureka:
     prefer-ip-address: true
 
 rabbitmq:
-  chat-queue:
-    name: "chat.queue" # 사용할 Queue 이름 지정
   chat-exchange:
     name: "chat.exchange" # 사용할 exchange 이름 (구독할 때 사용)
-  chat-routing:
-    key: "chat.room.*" # routing-key. chat.room.{room_id}를 구독
 
 springdoc:
   api-docs:
