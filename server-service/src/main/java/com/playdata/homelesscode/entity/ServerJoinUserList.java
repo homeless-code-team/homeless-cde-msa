@@ -13,8 +13,11 @@ import lombok.*;
 @EqualsAndHashCode
 @Builder
 @Entity
-@Table(name = "tbl_server_list")
-public class ServerList {
+@Table(
+        name = "tbl_server_join_user_list",
+        indexes = @Index(name = "idx_server_join_user_list_email", columnList = "email")
+)
+public class ServerJoinUserList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,4 +34,7 @@ public class ServerList {
 //    private User user;
 
     private String email;
+
+
+    private String role = "general";
 }

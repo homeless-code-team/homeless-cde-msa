@@ -16,15 +16,20 @@ public class ServerResponseDto {
     private String tag;
     private String title;
     private String serveImg;
-    private String userId;
+    private String email;
+    private String role;
 
 
-    public ServerResponseDto(String id, String tag, String title, String serveImg, String userId) {
+
+
+    public ServerResponseDto(String id, String tag, String title, String serveImg, String email, String role) {
 
         this.id = id;
         this.title = title;
         this.tag = tag;
         this.serveImg = serveImg;
-        this.userId = userId;
+        this.email = email;
+        this.role = role;
+
     }
 }

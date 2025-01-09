@@ -1,9 +1,11 @@
 package com.playdata.homelesscode.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -17,31 +19,29 @@ import java.util.List;
 @EqualsAndHashCode
 @Builder
 @Entity
-@Table(name = "tbl_servers")
-public class Server {
+@Table(name = "tbl_boardList")
+@DynamicUpdate
+public class BoardList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name="user_id")
-//    @JsonIgnore
-//    private User user;
-
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_id")
+    @JsonIgnore
+    private Server server;
 
     @Column
-    private String title;
-
+    private String boardTitle;
+    @Column
+    private String writer;
     @Column
     private String tag;
 
-    @Column
-    private String serverImg;
 
-    @Column
-    private int serverType;
+    @OneToMany(mappedBy = "boardList", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Board> boards;
 
     @Column
     @CreationTimestamp
@@ -49,13 +49,13 @@ public class Server {
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm", timezone="Asia/Seoul") //날짜 포멧 바꾸기
     private LocalDateTime createAt;
 
-    @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Channel> channels;
 
-    @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<ServerJoinUserList> serverLists;
+    public void setBoard(BoardList board){
+        this.boardTitle = board.getBoardTitle();
+        this.writer = board.getWriter();
+        this.tag = board.getTag();
 
-    @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<BoardList> board;
+
+    }
 
 }
