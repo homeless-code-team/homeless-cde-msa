@@ -42,8 +42,7 @@ public class Channel {
     @JsonIgnore
     private Server server;
 
-    @OneToMany(mappedBy = "channel", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Board> board;
+
 
 
 }
