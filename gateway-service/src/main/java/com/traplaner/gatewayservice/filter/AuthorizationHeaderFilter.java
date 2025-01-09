@@ -37,9 +37,12 @@ public class AuthorizationHeaderFilter
             "/api/v1/users/sign-up","/api/v1/users/sign-in",
             "/user-service/api/v1/users/sign-in",
             "/user-service/api/v1/users/confirm",
-            "/user-service/api/v1/users/duplicate"
-            
-
+            "/user-service/api/v1/users/duplicate",
+            "/api/v1/users/swagger-ui/",
+            "/api/v1/friends/swagger-ui/",
+            "/api/v1/users/swagger-ui/index.html",
+            "/api/v1/users/redirect",
+            "/api/v1/users/callback"
     );
 
     public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate) {

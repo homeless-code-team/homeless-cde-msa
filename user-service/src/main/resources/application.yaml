@@ -22,6 +22,7 @@ spring:
     redis:
       host: localhost  # Redis ?? ??
       port: 6379       # Redis ?? ??
+      token-ttl-minutes: 30
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -52,6 +53,8 @@ security:
     - /api/v1/users/sign-in
     - /api/v1/users/duplicate
     - /api/v1/users/refresh-token
+    - /api/v1/users/redirect
+    - /api/v1/users/callback
 
 
 instance:
@@ -74,10 +77,28 @@ jwt:
     - /api/v1/users/refresh-token
     - /api/v1/users/swagger-ui.html
     - /api/v1/users/swagger-ui/**
+    - /api/v1/users/redirect
+    - /api/v1/users/callback
   expiration: 1800000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
   expirationRt: 1209600000
   secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
+oauth:
+  provider:
+  google:
+    token-url: https://oauth2.googleapis.com/token
+    user-info-url: https://openidconnect.googleapis.com/v1/userinfo
+    client-id: 620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com
+    client-secret: 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
+    redirect-uri: http://localhost:3000/
+  github:
+    token-url: https://github.com/login/oauth/access_token
+    user-info-url: https://api.github.com/user
+    client-id: Ov23liRmQbUUzPUCt2xn
+    client-secret: e8b8b26e01e015461d46e25bc81058c6ae9f0398
+    redirect-uri: http://localhost:3000/
+
+
 logging:
   level:
     org.springframework.security : DEBUG
