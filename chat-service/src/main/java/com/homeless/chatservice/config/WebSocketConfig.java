@@ -29,7 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         log.info("registerStompEndpoints called!");
         // 모든 출처 허용
         registry.addEndpoint("/ws") // WebSocket 엔드포인트
-                .setAllowedOrigins("https://jiangxy.github.io") // CORS 설정
+                .setAllowedOriginPatterns("*") // CORS 설정
                 .withSockJS(); // SockJS 활성화
     }
 

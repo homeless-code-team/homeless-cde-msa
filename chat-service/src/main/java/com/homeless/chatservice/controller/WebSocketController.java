@@ -3,7 +3,6 @@ package com.homeless.chatservice.controller;
 
 import com.homeless.chatservice.config.RabbitConfig;
 import com.homeless.chatservice.dto.ChatMessageRequest;
-import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.service.StompMessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -21,38 +20,24 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketController {
-    // 전송탬플릿
-    private final RabbitTemplate rabbitTemplate;
-    // 메시징 추상화 템플릿
+
     private final RabbitMessagingTemplate messagingTemplate;
-
-    private final StompMessageService messageService;
+    private final StompMessageService stompMessageService;
     private final RabbitConfig rabbitConfig;
+    private final RabbitTemplate rabbitTemplate;
 
-    @Value("${rabbitmq.chat-exchange.name}")
-    private String CHAT_EXCHANGE_NAME;
-
-
-    @MessageMapping("/api/v1/chats.{serverId}.{channelId}") // 웹소켓을 통해 들어오는 메시지의 목적지를 정함.
+    @MessageMapping("chats.ch.{channelId}") // 웹소켓을 통해 들어오는 메시지의 목적지를 정함.
     @Operation(summary = "메시지 전송", description = "메시지를 전송합니다.")
     public void sendMessage(
-            @DestinationVariable  String serverId,
             @DestinationVariable  String channelId,
             @Valid @Payload ChatMessageRequest chatMessageRequest) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
+        log.info("channelId: {}, chatMessage: {}", channelId, chatMessageRequest);
 
-        log.info("serverId: {},chanelId: {}, chatMessage: {}",serverId, channelId, chatMessageRequest);
-
-        //동적 라우팅키 생성
-        String dynamicRoutingKey = "chat." + serverId + "." + channelId;
         // 메시지 저장
-        messageService.sendMessage(chatMessageRequest,serverId, channelId);
-        // 메시지를 RabbitMQ에 전송
-//        rabbitConfig.sendMessageToQueue(dynamicRoutingKey, chatMessageRequest, rabbitTemplate);
-//
-//        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, dynamicRoutingKey, chatMessageRequest);
-
+        stompMessageService.sendMessage(chatMessageRequest);
+        rabbitConfig.sendMessageToQueue("/topic/chats.ch." + channelId, chatMessageRequest, rabbitTemplate);
         // 전송 후 클라이언트에게 메시지 응답
-        messagingTemplate.convertAndSend("/topic/" + serverId + "." + channelId, chatMessageRequest);
+        messagingTemplate.convertAndSend("/topic/chats.ch." + channelId, chatMessageRequest);
     }
 
     // WebSocket 예외 처리
