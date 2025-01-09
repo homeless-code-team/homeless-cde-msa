@@ -118,6 +118,4 @@ public class JwtUtil {
             throw new RuntimeException("Error checking token expiration", e);
         }
     }
-//////////////////////////////////////////////////security context Custom/////////////////////////////////////////////////
-
 }

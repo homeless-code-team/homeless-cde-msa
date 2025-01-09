@@ -32,7 +32,7 @@ public class JwtTokenProvider {
 
 
     // JWT AccessToken 생성
-    public String accessToken(String email, Long id, String nickname) {
+    public String accessToken(String email, String  id, String nickname) {
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(email)
@@ -46,7 +46,7 @@ public class JwtTokenProvider {
     }
 
     // JWT RefreshToken 생성
-    public String refreshToken(String email, Long id) {
+    public String refreshToken(String email, String  id) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("user_id",id)

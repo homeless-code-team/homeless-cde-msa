@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class ServerResDto {
-    private String email;
+public class FeignDto {
+    private String userId;
     private String serverId;
 }
