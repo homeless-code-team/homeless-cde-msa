@@ -3,11 +3,10 @@ package com.spring.homeless_user.user.controller;
 
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -44,9 +43,9 @@ public class UserController {
     
     // 토큰 갱신
     @PostMapping("/refresh-token")
-    public CommonResDto reissueAccessToken(@RequestBody UserLoginReqDto dto) {
+    public CommonResDto reissueAccessToken() {
         log.info("refresh token");
-        return userService.refreshToken(dto);
+        return userService.refreshToken();
     }
 
 //    @PostMapping("/git")
@@ -65,18 +64,16 @@ public class UserController {
 
     // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
-    public CommonResDto confirm(@RequestParam @Valid String email, @Valid String  token) {
+    public CommonResDto confirm(@RequestParam EmailCheckDto dto) {
     log.info("confirm");
-        return userService.confirm(email, token);
+        return userService.confirm(dto);
     }
 
     // 이메일 & 닉네임 중복검사
     @GetMapping("/duplicate")
-    public CommonResDto duplicateCheck(
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String nickname) {
-        log.info("duplicateCheck - email: {}, nickname: {}", email, nickname);
-        return userService.duplicateCheck(email, nickname);
+    public CommonResDto duplicateCheck(@RequestParam DuplicateDto dto) throws IOException {
+        log.info("duplicateCheck - email: {}, nickname: {}", dto.getEmail(), dto.getNickname());
+        return userService.duplicateCheck(dto);
     }
 
     // 회원탈퇴
@@ -89,11 +86,20 @@ public class UserController {
 
     // 정보수정
     @PatchMapping( "/")
-    public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
+    public CommonResDto modify(@RequestBody ModifyDto dto) throws IOException {
     log.info("profileUpdate");
 
         return userService.modify(dto);
     }
+    
+    // 이미지정보수정
+    @PatchMapping( "/profile-image/")
+    public CommonResDto ImageModify(@ModelAttribute ModifyDto dto) throws IOException {
+        log.info("profileImageUpdate");
+
+        return userService.ImageModify(dto);
+    }
+
 
     // 정보 조회
     @GetMapping("/")
