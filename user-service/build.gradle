@@ -47,6 +47,13 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.550'
 
+    //feign통신
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    //spring.doc
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+
+
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 
 
@@ -58,6 +65,12 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
+    // ehcache 설정
+    implementation 'org.ehcache:ehcache:3.10.8'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // 디스크 기반 저장소 사용시 필요한 캐시
+    implementation 'javax.cache:cache-api:1.1.1' // JCache API (선택 사항)
 
 }
 
