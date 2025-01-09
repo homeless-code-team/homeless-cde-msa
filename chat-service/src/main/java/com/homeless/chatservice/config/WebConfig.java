@@ -16,8 +16,8 @@ public class WebConfig {
                         .allowedMethods("GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS")
                         .allowedOrigins("https://jiangxy.github.io", "http://localhost:3000")// 허용할 HTTP 메서드
                         //.allowedHeaders("Authorization", "Content-Type") // 허용할 요청 헤더
-                        .allowedHeaders("*") // 모든 요청 헤더 허용
-                        .allowCredentials(true);
+                        .allowedHeaders("*"); // 모든 요청 헤더 허용
+                        //.allowCredentials(true);
             }
         };
     }

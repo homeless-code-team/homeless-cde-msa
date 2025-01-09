@@ -1,6 +1,7 @@
 package com.homeless.chatservice.config;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -21,8 +22,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
-
-// ReadOnly attribute
 
 @Configuration
 @EnableRabbit // Spring에서 RabbitMQ 기능 활성화 하기
@@ -83,7 +82,6 @@ public class RabbitConfig {
     }
 
 
-
     // 스프링의 메시지 추상화를 RabbitMQ에 적용. 좀 더 높은 수준의 메시지 기능을 제공.
     @Bean
     public RabbitMessagingTemplate rabbitMessagingTemplate(RabbitTemplate rabbitTemplate) {
@@ -141,7 +139,9 @@ public class RabbitConfig {
     }
 
 
-    // 컨텍스트 초기화 후 큐와 익스체인지 선언
+    // 스프링 컨텍스트가 완전히 로드가 된 이후 발생하는 이벤트 리스너 메서드.
+    // 모든 컴포넌트를 명시적으로 선언. 이미 존재하는 경우에는 무시하고 존재하지 않을 때에만 생성.
+    // 좀 더 확실하게 RabbitMQ 자원들을 생성하기 위해 추가함.
     @EventListener(ContextRefreshedEvent.class)
     public void initialize(ContextRefreshedEvent event) {
         log.info("Initializing RabbitMQ exchanges and queues...");
@@ -149,16 +149,17 @@ public class RabbitConfig {
         RabbitAdmin admin = event.getApplicationContext().getBean(RabbitAdmin.class);
 
         try {
-            // Exchange 선언
+            // exchange 선언
             TopicExchange exchange = new TopicExchange(CHAT_EXCHANGE_NAME, true, false);
             admin.declareExchange(exchange);
             log.info("Declared exchange: {}", CHAT_EXCHANGE_NAME);
 
-            // Queue 선언
+            // queue 선언
             Queue queue = new Queue(CHAT_QUEUE_NAME, true);
             admin.declareQueue(queue);
             log.info("Declared queue: {}", CHAT_QUEUE_NAME);
 
+            // binding 선언
             Binding binding = BindingBuilder
                     .bind(queue)
                     .to(exchange)
@@ -166,7 +167,6 @@ public class RabbitConfig {
             admin.declareBinding(binding);
             log.info("Declared binding between {} and {} with routing key {}",
                     CHAT_QUEUE_NAME, CHAT_EXCHANGE_NAME, CHAT_ROUTING_KEY);
-
 
         } catch (Exception e) {
             log.error("Error during RabbitMQ initialization", e);
@@ -179,5 +179,7 @@ public class RabbitConfig {
         log.info("Sending message to queue with routingKey: {}", routingKey);
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, routingKey, message);
     }
+
+
 
 }
