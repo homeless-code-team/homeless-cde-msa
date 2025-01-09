@@ -20,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 @Slf4j
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -56,8 +56,8 @@ public class SecurityConfig {
                                     log.error("Unauthorized request: {} from SecurityConfig", authException.getMessage());
                                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized:in SecurityConfig");
                                 })
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
+                );
+                //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
 
         return http.build();
     }

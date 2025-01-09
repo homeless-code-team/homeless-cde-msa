@@ -1,8 +1,6 @@
 package com.homeless.chatservice.service;
 
 import com.homeless.chatservice.dto.ChatMessageRequest;
-import com.homeless.chatservice.entity.ChatMessage;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,12 +19,13 @@ public class StompMessageService {
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;
 
-
-    // 라우팅 키를 동적으로 처리하는 메서드로 수정
-    public void sendMessage(@Valid ChatMessageRequest message) {
-        // 새로운 라우팅 키로 메시지를 전송
+    // 메시지를 RabbitMQ로 전달하는 메서드
+    // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
+    public void sendMessage(ChatMessageRequest message) {
         rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME,
-                "chat.ch." + message.channelId());
+                "chat.room." + message.channelId(),
+                message
+        );
     }
 
     // RabbitMQ로부터 메시지를 수신하여 WebSocket 구독자들에게 전달
@@ -34,7 +33,7 @@ public class StompMessageService {
     public void handleMessage(ChatMessageRequest message) {
         log.info("Received message from queue: {}", message);
         // WebSocket 구독자들에게 메시지 전달
-        // WebSocket 메시지를 "/topic/chat.${serverId}.${channelId}" 형식으로 전송
-        messagingTemplate.convertAndSend("/topic/chat.ch." + message.channelId() , message);
+        messagingTemplate.convertAndSend("/topic/chat.room." + message.channelId(), message);
     }
+
 }

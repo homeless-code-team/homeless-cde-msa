@@ -34,7 +34,7 @@ rabbitmq:
   chat-exchange:
     name: "chat.exchange" # 사용할 exchange 이름 (구독할 때 사용)
   chat-routing:
-    key: "chats.ch.*" # routing-key. chats.ch.{room_id}를 구독
+    key: "chat.room.*" # routing-key. chat.room.{room_id}를 구독
 
 springdoc:
   api-docs:
