@@ -31,15 +31,18 @@ public class RabbitConfig {
 
     private final String CHAT_QUEUE_NAME;
     private final String CHAT_EXCHANGE_NAME;
+    private final String CHAT_ROUTING_KEY;
     private final String RABBITMQ_HOST;
 
     public RabbitConfig(
             @Value("${rabbitmq.chat-queue.name}") String CHAT_QUEUE_NAME,
             @Value("${rabbitmq.chat-exchange.name}") String CHAT_EXCHANGE_NAME,
+            @Value("${rabbitmq.chat-routing.key}") String CHAT_ROUTING_KEY,
             @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST
     ) {
         this.CHAT_QUEUE_NAME = CHAT_QUEUE_NAME;
         this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
+        this.CHAT_ROUTING_KEY = CHAT_ROUTING_KEY;
         this.RABBITMQ_HOST = RABBITMQ_HOST;
     }
 
@@ -57,6 +60,18 @@ public class RabbitConfig {
     public TopicExchange chatExchange() {
         log.info("Creating exchange: {}", CHAT_EXCHANGE_NAME);
         return new TopicExchange(CHAT_EXCHANGE_NAME);
+    }
+
+    // Exchange와 Queue를 연결.
+    // 라우팅 키 패턴을 통해 어떤 메세지가 어떤 큐로 갈 지를 결정하게 된다.
+    // "chat.queue"에 "chat.exchange" 규칙을 Binding
+    @Bean
+    public Binding chatBinding() {
+        log.info("Creating binding between: {} and {}", CHAT_QUEUE_NAME, CHAT_EXCHANGE_NAME);
+        return BindingBuilder
+                .bind(chatQueue())
+                .to(chatExchange())
+                .with(CHAT_ROUTING_KEY);
     }
 
     // RabbitMQ로 메시지를 주고받는 핵심 클래스
@@ -121,6 +136,7 @@ public class RabbitConfig {
         log.info("Checking RabbitMQ configuration...");
         log.info("CHAT_QUEUE_NAME: {}", CHAT_QUEUE_NAME);
         log.info("CHAT_EXCHANGE_NAME: {}", CHAT_EXCHANGE_NAME);
+        log.info("CHAT_ROUTING_KEY: {}", CHAT_ROUTING_KEY);
         log.info("RABBITMQ_HOST: {}", RABBITMQ_HOST);
     }
 
@@ -142,6 +158,15 @@ public class RabbitConfig {
             Queue queue = new Queue(CHAT_QUEUE_NAME, true);
             admin.declareQueue(queue);
             log.info("Declared queue: {}", CHAT_QUEUE_NAME);
+
+            Binding binding = BindingBuilder
+                    .bind(queue)
+                    .to(exchange)
+                    .with(CHAT_ROUTING_KEY);
+            admin.declareBinding(binding);
+            log.info("Declared binding between {} and {} with routing key {}",
+                    CHAT_QUEUE_NAME, CHAT_EXCHANGE_NAME, CHAT_ROUTING_KEY);
+
 
         } catch (Exception e) {
             log.error("Error during RabbitMQ initialization", e);

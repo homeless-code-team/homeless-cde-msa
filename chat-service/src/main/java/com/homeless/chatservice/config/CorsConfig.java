@@ -14,6 +14,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("https://jiangxy.github.io"); // 해당 도메인만 허용
+        config.addAllowedOriginPattern("http://localhost:3000");
         config.addAllowedHeader("*"); // 모든 헤더 허용
         config.addAllowedMethod("*"); // 모든 메서드 허용
 

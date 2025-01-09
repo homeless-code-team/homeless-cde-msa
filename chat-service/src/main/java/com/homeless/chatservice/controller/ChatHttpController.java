@@ -8,6 +8,7 @@ import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -51,6 +52,7 @@ public class ChatHttpController {
                 throw new IllegalArgumentException("Message text cannot be empty");
             }
 
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
             // 채팅 메시지 생성
             ChatMessageCreateCommand chatMessageCreateCommand =
                     new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());

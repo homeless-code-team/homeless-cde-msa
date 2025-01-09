@@ -23,21 +23,18 @@ public class StompMessageService {
 
 
     // 라우팅 키를 동적으로 처리하는 메서드로 수정
-    public void sendMessage(@Valid ChatMessageRequest message, String serverId, String channelId) {
+    public void sendMessage(@Valid ChatMessageRequest message) {
         // 새로운 라우팅 키로 메시지를 전송
-        String routingKey = "chat." + serverId + "." + channelId;
-        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME, routingKey, message);
-        log.info("Sent message to RabbitMQ with routingKey: {}", routingKey);
+        rabbitTemplate.convertAndSend(CHAT_EXCHANGE_NAME,
+                "chat.ch." + message.channelId());
     }
 
     // RabbitMQ로부터 메시지를 수신하여 WebSocket 구독자들에게 전달
     @RabbitListener(queues = "${rabbitmq.chat-queue.name}")
-    public void handleMessage(ChatMessage message) {
+    public void handleMessage(ChatMessageRequest message) {
         log.info("Received message from queue: {}", message);
         // WebSocket 구독자들에게 메시지 전달
         // WebSocket 메시지를 "/topic/chat.${serverId}.${channelId}" 형식으로 전송
-        String routingKey = "chat." + message.getServerId() + "." + message.getChannelId();  // 채팅방 식별자에 맞게
-        messagingTemplate.convertAndSend("/topic/" + routingKey, message);
-        log.info("Sent message to WebSocket: /topic/{}", routingKey);
+        messagingTemplate.convertAndSend("/topic/chat.ch." + message.channelId() , message);
     }
 }
