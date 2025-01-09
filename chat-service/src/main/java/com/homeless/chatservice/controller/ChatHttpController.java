@@ -8,7 +8,6 @@ import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,10 +22,9 @@ public class ChatHttpController {
     private final ChatHttpService chatHttpService;
 
     // 특정 채널의 메시지 조회
-    @GetMapping("/{serverId}/{channelId}")
+    @GetMapping("/{channelId}")
     public ResponseEntity<?> getMessages(
-            @PathVariable Long serverId,
-            @PathVariable Long channelId) {
+            @PathVariable String channelId) {
         try {
             // 메시지 조회
             List<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId);
@@ -41,10 +39,9 @@ public class ChatHttpController {
     }
 
     // HTTP POST 요청을 통한 메시지 전송 처리
-    @PostMapping("/{serverId}/{channelId}")
+    @PostMapping("/{channelId}")
     public ResponseEntity<?> sendMessageHttp(
-            @PathVariable Long serverId,
-            @PathVariable Long channelId,
+            @PathVariable String channelId,
             @RequestBody ChatMessageRequest chatMessage) {
         try {
             // 유효성 검사 (예시)
@@ -52,10 +49,9 @@ public class ChatHttpController {
                 throw new IllegalArgumentException("Message text cannot be empty");
             }
 
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
             // 채팅 메시지 생성
             ChatMessageCreateCommand chatMessageCreateCommand =
-                    new ChatMessageCreateCommand(serverId, channelId, chatMessage.text(), chatMessage.writer());
+                    new ChatMessageCreateCommand("test-server", channelId, chatMessage.text(), chatMessage.writer());
 
             // 메시지 저장 후 생성된 chatId
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);

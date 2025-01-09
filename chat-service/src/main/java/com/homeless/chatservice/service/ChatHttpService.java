@@ -30,7 +30,7 @@ public class ChatHttpService {
         return savedMessage.getId();  // 저장된 메시지의 id 반환
     }
 
-    public List<ChatMessageResponse> getMessagesByChannel(Long channelId) {
+    public List<ChatMessageResponse> getMessagesByChannel(String channelId) {
         // 특정 채팅방의 메시지 조회
         return chatMessageRepository.findByChannelId(channelId).stream()
                 .map(msg -> new ChatMessageResponse(
