@@ -5,6 +5,7 @@
     <file type="web" url="file://$PROJECT_DIR$/chat-service" />
     <file type="web" url="file://$PROJECT_DIR$/config-serivce" />
     <file type="web" url="file://$PROJECT_DIR$/discovery-service" />
+    <file type="web" url="file://$PROJECT_DIR$/friends-server" />
     <file type="web" url="file://$PROJECT_DIR$/gateway-service" />
     <file type="web" url="file://$PROJECT_DIR$/server-service" />
     <file type="web" url="file://$PROJECT_DIR$/user-service" />

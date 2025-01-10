@@ -64,8 +64,8 @@ public class UserController {
 
     // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
-    public CommonResDto confirm(@RequestParam EmailCheckDto dto) {
-    log.info("confirm");
+    public CommonResDto confirm(@ModelAttribute EmailCheckDto dto) {
+    log.info("confirm, dto: {}", dto);
         return userService.confirm(dto);
     }
 
@@ -109,7 +109,7 @@ public class UserController {
     }
 
     // 1. 리다이렉션 URL 반환
-    @GetMapping("/redirect")
+    @GetMapping("/o-auth")
     public ResponseEntity<String> redirectToProvider(@RequestParam String provider) {
         String redirectUrl = provider.equalsIgnoreCase("google")
                 ? "https://accounts.google.com/o/oauth2/auth?client_id=620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com&redirect_uri=http://localhost:3000/&response_type=code&scope=email"

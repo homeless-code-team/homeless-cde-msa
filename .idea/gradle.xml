@@ -28,6 +28,14 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/friends-server" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/friends-server" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/gateway-service" />
         <option name="modules">
           <set>
