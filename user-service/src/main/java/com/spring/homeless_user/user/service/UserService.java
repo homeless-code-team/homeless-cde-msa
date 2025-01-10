@@ -159,12 +159,15 @@ public class UserService {
 
         try {
             // 비밀번호 정규성 검사
-            if (!isValidPassword(dto.getPassword())) {
+            if (isValidPassword(dto.getPassword())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
             }
-            if (!isValidEmail(dto.getEmail())) {
+            if (isValidEmail(dto.getEmail())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
             }
+            log.info(dto.getEmail());
+            log.info(dto.getPassword());
+            log.info(dto.getNickname());
             // user객체 생성 및 dto 정보를 엔티티에 주입 
             User user = new User();
             user.setEmail(dto.getEmail());
@@ -363,22 +366,23 @@ public class UserService {
             String email = dto.getEmail();
             //redis에 현재 토큰이 있는 지 확인
             String redisEmail = checkTemplate.opsForValue().get(token);
-            User user = getUserEntity(email);
-            String email1 = user.getEmail();
+            boolean equals = Boolean.TRUE.equals(checkTemplate.hasKey(token));
+            log.info(redisEmail);
+            boolean flag = userRepository.findByEmail(email).isPresent();
+            log.info(String.valueOf(flag));
             // 비밀번호 찾기 이메일 인증
-            if (!redisEmail.isEmpty() && redisEmail.equals(email1)) {
-                if (redisEmail.equals(email)) {
+            if (equals) {
+                if (flag) {
+                    //비밀번호 수정
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 비밀번호를 수정해주세요", null, links);
-                }
-                //회원가입 미메일 인증
-            } else if (!redisEmail.isEmpty() && !redisEmail.equals(email1)) {
-                if (redisEmail.equals(email)) {
+                }else{
+                    // 회원가입진행
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 회원가입을 계속 진행하세요", null, links);
                 }
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "token 유효하지 않음, 재 인증해주세요", "null", links);
             }
+
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "토큰이 저장되지 않았습니다", null, links);
         } catch (Exception e) {
             e.printStackTrace();
@@ -549,11 +553,11 @@ public class UserService {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 비밀번호 유효성 검사 정규식
     private static final String PASSWORD_PATTERN =
-            "^(?=.*[0-9])" +        // 적어도 1개의 숫자
-                    "(?=.*[a-z])" +         // 적어도 1개의 소문자
-                    "(?=.*[A-Z])" +         // 적어도 1개의 대문자
-                    "(?=.*[!@#$%^&+=])" +    // 적어도 1개의 특수문자
-                    "(?=\\S+$).{8,16}$";    // 8~16자의 공백 없는 문자열
+                    "^(?=.*[0-9])" +                 // 적어도 1개의 숫자
+                    "(?=.*[a-z])" +                  // 적어도 1개의 소문자
+                    "(?=.*[A-Z])" +                  // 적어도 1개의 대문자
+                    "(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~])" + // 적어도 1개의 특수문자
+                    "(?=\\S+$).{8,16}$";             // 8~16자의 공백 없는 문자열
 
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 

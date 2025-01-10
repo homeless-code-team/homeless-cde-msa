@@ -1,0 +1,124 @@
+services:
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8383" # 랜덤 호스트 포트 -> 컨테이너 8383 포트
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - RABBITMQ_HOST=rabbitmq
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=homeless_user
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql
+      - REDIS_HOST=redis
+    depends_on:
+      - rabbitmq
+      - mysql
+      - redis
+
+  friends-service:
+    build:
+      context: ./friends-server
+      dockerfile: Dockerfile
+    ports:
+      - "0:8282" # 랜덤 호스트 포트 -> 컨테이너 8282 포트
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - RABBITMQ_HOST=rabbitmq
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=homeless_friends
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql
+      - REDIS_HOST=redis
+    depends_on:
+      - rabbitmq
+      - mysql
+      - redis
+
+  server-service:
+    build:
+      context: ./server-service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8082" # 랜덤 호스트 포트 -> 컨테이너 8082 포트
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - RABBITMQ_HOST=rabbitmq
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=homeless_server
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql
+      - REDIS_HOST=redis
+    depends_on:
+      - rabbitmq
+      - mysql
+      - redis
+
+  chat-service:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8083" # 랜덤 호스트 포트 -> 컨테이너 8083 포트
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - RABBITMQ_HOST=rabbitmq
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=homeless_chat
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql
+      - REDIS_HOST=redis
+    depends_on:
+      - rabbitmq
+      - mysql
+      - redis
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8181" # 게이트웨이는 고정 포트로 설정
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - user-service
+      - friends-service
+      - server-service
+      - chat-service
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672" # RabbitMQ 관리 콘솔
+      - "5672:5672" # RabbitMQ 기본 포트
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    ports:
+      - "3306:3306" # MySQL 기본 포트
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  mysql_data:
+networks:
+  msa-network:
+    driver: bridge # Docker의 기본 네트워크 드라이버. 동일한 호스트 내에서 통신할 수 있도록 설정.
