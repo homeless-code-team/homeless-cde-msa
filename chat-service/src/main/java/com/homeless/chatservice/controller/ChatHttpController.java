@@ -45,24 +45,47 @@ public class ChatHttpController {
             @RequestBody ChatMessageRequest chatMessage) {
         try {
             // 유효성 검사 (예시)
-            if (chatMessage.text() == null || chatMessage.text().isEmpty()) {
+            if (chatMessage.content() == null || chatMessage.content().isEmpty()) {
                 throw new IllegalArgumentException("Message text cannot be empty");
             }
 
             // 채팅 메시지 생성
             ChatMessageCreateCommand chatMessageCreateCommand =
-                    new ChatMessageCreateCommand("test-server", channelId, chatMessage.text(), chatMessage.writer());
+                    new ChatMessageCreateCommand("test-server", channelId, chatMessage.content(), chatMessage.writer());
 
             // 메시지 저장 후 생성된 chatId
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
 
             // 저장된 메시지 응답
-            ChatMessageResponse response = new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp());
+            //ChatMessageResponse response = new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp());
             Map<String, Object> result = new HashMap<>();
-            result.put("chatMessage", response);
-            CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 전송 완료", result);
+            CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 저장 완료", result);
 
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<?> deleteMessage(@PathVariable String chatId) {
+        try {
+            chatHttpService.deleteMessage(chatId);
+            CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 삭제 성공", null);
+
+            return new ResponseEntity<>(resDto, HttpStatus.OK);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @PatchMapping("/{chatId}")
+    public ResponseEntity<?> updateMessage(@PathVariable String chatId,
+                                           @RequestBody ChatMessageRequest reqMessage) {
+        try {
+            chatHttpService.UpdateMessage(chatId, reqMessage);
+            CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 수정 성공", null);
+            return new ResponseEntity<>(resDto, HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
         }
