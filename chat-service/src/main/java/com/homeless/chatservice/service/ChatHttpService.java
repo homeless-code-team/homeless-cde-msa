@@ -1,5 +1,6 @@
 package com.homeless.chatservice.service;
 
+import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageResponse;
@@ -43,10 +44,12 @@ public class ChatHttpService {
     }
 
 
+    public void deleteMessage(String chatId) {
+        chatMessageRepository.deleteById(chatId);
+    }
 
-
-
-
-
-
+    public void UpdateMessage(String chatId, ChatMessageRequest reqMessage) {
+        ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
+        chatMessage.setContent(reqMessage.content());
+    }
 }
