@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -24,7 +25,9 @@ public class ChatHttpService {
                 .writer(command.writer())
                 .content(command.content())
                 .timestamp(System.currentTimeMillis())
+                .email(command.email())
                 .build();
+        System.out.println("Email: " + command.email());
 
         // MongoDB에 저장
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
@@ -36,6 +39,7 @@ public class ChatHttpService {
         return chatMessageRepository.findByChannelId(channelId).stream()
                 .map(msg -> new ChatMessageResponse(
                         msg.getId(),
+                        msg.getEmail(),
                         msg.getContent(),
                         msg.getWriter(),
                         msg.getTimestamp()
@@ -48,8 +52,16 @@ public class ChatHttpService {
         chatMessageRepository.deleteById(chatId);
     }
 
-    public void UpdateMessage(String chatId, ChatMessageRequest reqMessage) {
+    public void updateMessage(String chatId, ChatMessageRequest reqMessage) {
         ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
-        chatMessage.setContent(reqMessage.content());
+
+        if (!chatMessage.getContent().equals(reqMessage.content())) {
+            chatMessage.setContent(reqMessage.content());
+            chatMessageRepository.save(chatMessage); // 변경된 내용만 저장
+        }
+    }
+
+    public Optional<ChatMessage> getChatMessage(String chatId) {
+        return chatMessageRepository.findById(chatId);
     }
 }
