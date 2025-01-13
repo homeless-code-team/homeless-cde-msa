@@ -1,10 +1,10 @@
 package com.homeless.service;
 
 
-import com.homeless.chatservice.common.entity.ChatMessage;
+import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.repository.ChatMessageRepository;
-import com.homeless.chatservice.service.ChatMessageService;
+import com.homeless.chatservice.service.ChatHttpService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,11 +21,11 @@ public class ChatMessageServiceTest {
     private ChatMessageRepository chatMessageRepository;
 
     @InjectMocks
-    private ChatMessageService chatMessageService;
+    private ChatHttpService chatHttpService;
 
     @Test
     public void testCreateChatMessage() {
-        ChatMessageCreateCommand command = new ChatMessageCreateCommand(1L, "Hello", "user1");
+        ChatMessageCreateCommand command = new ChatMessageCreateCommand(1L, 1L,"안녕" ,"user1");
         ChatMessage savedMessage = ChatMessage.builder()
                 .id("123")
                 .channelId(1L)
@@ -36,7 +36,7 @@ public class ChatMessageServiceTest {
 
         when(chatMessageRepository.save(any(ChatMessage.class))).thenReturn(savedMessage);
 
-        String chatId = chatMessageService.createChatMessage(command);
+        String chatId = chatHttpService.createChatMessage(command);
 
         assertNotNull(chatId);
         assertEquals("123", chatId);

@@ -1,18 +1,50 @@
+server:
+  port: 0 # 자동 포트 할당
+
 spring:
   application:
     name: chat-service
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/chat
   config:
     import: "optional:configserver:"
-
-server:
-  port: 0
+#  data:
+#    mongodb:
+#      uri: mongodb://localhost:27017/chat # 도커 내부에서 MongoDB가 실행 중이라면 IP나 서비스 이름을 사용
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: guest
+#    password: guest
+#    stream:
+#      virtual-host: /
+  main:
+    allow-bean-definition-overriding: true
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/ # Eureka 서버 주소
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+
+rabbitmq:
+  chat-exchange:
+    name: "chat.exchange" # 사용할 exchange 이름 (구독할 때 사용)
+
+springdoc:
+  api-docs:
+    version: openapi_3_1
+    enabled: true
+    #path: /api/mail/v3/api-docs
+    # 게이트웨이 라우팅에서 prefix를 제거하지 않았다면 해당 설정을 추가
+  enable-spring-security: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.amqp: DEBUG
+    org.springframework.amqp.rabbit.core.RabbitAdmin: DEBUG
