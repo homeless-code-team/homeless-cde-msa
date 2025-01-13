@@ -71,7 +71,7 @@ public class ServerService {
         ServerJoinUserList serverList = ServerJoinUserList.builder()
                 .server(server)
                 .email(userEmail)
-                .role("Owner")
+                .role("OWNER")
                 .build();
 
         serverListRepository.save(serverList);

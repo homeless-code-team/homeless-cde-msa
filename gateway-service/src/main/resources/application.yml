@@ -64,7 +64,7 @@ spring:
             - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
 
-            # 채팅 서비스(웹소켓)
+            # 채팅 서비스(웹소켓) STOMP인터셉터가 토큰 검증함.
         - id: chat-service-ws
           predicates:
             - Path=/chat-service/ws/**, /ws/**
@@ -72,7 +72,6 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
-            #- AuthorizationHeaderFilter
 
 
 
