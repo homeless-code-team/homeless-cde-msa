@@ -4,18 +4,18 @@ server:
 spring:
   application:
     name: chat-service
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/chat # 도커 내부에서 MongoDB가 실행 중이라면 IP나 서비스 이름을 사용
   config:
     import: "optional:configserver:"
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    stream:
-      virtual-host: /
+#  data:
+#    mongodb:
+#      uri: mongodb://localhost:27017/chat # 도커 내부에서 MongoDB가 실행 중이라면 IP나 서비스 이름을 사용
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: guest
+#    password: guest
+#    stream:
+#      virtual-host: /
   main:
     allow-bean-definition-overriding: true
 
