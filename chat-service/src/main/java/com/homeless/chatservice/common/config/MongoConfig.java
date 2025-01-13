@@ -1,4 +1,4 @@
-package com.homeless.chatservice.config;
+package com.homeless.chatservice.common.config;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

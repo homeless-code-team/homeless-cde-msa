@@ -52,6 +52,8 @@ public class AuthorizationHeaderFilter
             String path = exchange.getRequest().getURI().getPath();
             AntPathMatcher antPathMatcher = new AntPathMatcher();
 
+
+
             log.info("Request Path: {}", path);
             log.info("Allow URLs: {}", allowUrl);
             log.info("secrets: {}", secretKey);
@@ -71,7 +73,7 @@ public class AuthorizationHeaderFilter
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
                 // 토큰이 존재하지 않거나, Bearer로 시작하지 않는다면
                 return onError(exchange,
-                        "Authorization header is missing or invalid",
+                        "Authorization header is missing or invalid : 토큰없음",
                         HttpStatus.UNAUTHORIZED);
             }
 

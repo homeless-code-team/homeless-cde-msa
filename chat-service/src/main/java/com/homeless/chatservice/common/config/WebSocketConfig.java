@@ -1,4 +1,4 @@
-package com.homeless.chatservice.config;
+package com.homeless.chatservice.common.config;
 
 //import com.homeless.chatservice.interceptor.WebSocketAuthInterceptor;
 import lombok.extern.slf4j.Slf4j;

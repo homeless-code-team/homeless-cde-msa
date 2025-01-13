@@ -16,6 +16,7 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 public class ChatHttpService {
+
     private final ChatMessageRepository chatMessageRepository;
     public String createChatMessage(ChatMessageCreateCommand command) {
         // 채팅 메시지 생성
@@ -63,5 +64,10 @@ public class ChatHttpService {
 
     public Optional<ChatMessage> getChatMessage(String chatId) {
         return chatMessageRepository.findById(chatId);
+    }
+
+    @Transactional
+    public void deleteChatMessageByChannelId(String channelId){
+        chatMessageRepository.deleteChatMessageByChannelId(channelId);
     }
 }

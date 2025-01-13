@@ -1,6 +1,7 @@
 package com.playdata.homelesscode.service;
 
 //import com.playdata.homelesscode.common.config.AwsS3Config;
+import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.client.UserServiceClient;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +40,7 @@ public class ServerService {
     private final SecurityContextUtil securityContextUtil;
 
     private final UserServiceClient userServiceClient;
-
+    private final ChatServiceClient chatServiceClient;
 
 
     public Server createServer(ServerCreateDto dto) throws IOException {
@@ -173,8 +175,6 @@ public class ServerService {
     public void deleteChannel(String id) {
 
         channelRepository.deleteById(id);
-
-
     }
 
     public BoardList createBoardList(BoardListCreateDto dto) {
@@ -258,5 +258,9 @@ public class ServerService {
 
         return result;
 
+    }
+
+    public void deleteChatMessageByChannelId(String channelId, @RequestHeader("Authorization") String authorization) {
+        chatServiceClient.deleteChatMessageByChannelId(channelId, authorization);
     }
 }
