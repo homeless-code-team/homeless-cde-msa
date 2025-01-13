@@ -1,6 +1,6 @@
-package com.spring.homelesscode.friends_server.dto;
+package com.playdata.homelesscode.dto.server;
 
-import com.spring.homelesscode.friends_server.entity.AddStatus;
+import com.playdata.homelesscode.entity.AddStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
