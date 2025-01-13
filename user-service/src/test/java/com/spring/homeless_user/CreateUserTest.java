@@ -28,17 +28,24 @@ class UserCreationTest {
 
         String rawPassword = "1234"; // 원래 비밀번호
         String encodedPassword = passwordEncoder.encode(rawPassword); // 비밀번호 암호화
-        // given: 테스트용 사용자 생성
+        String email = "test@2.com";
+        String nickname = "테슽허";
+        String profileImage = "profile.jpg";
+        String contents = "This is a test user.";
+        String achievement = "";
+        LocalDateTime createdAt = LocalDateTime.now();
+        String refreshToken = "dummyRefreshToken";
+
+        // When: User 객체를 빌더 패턴으로 생성
         User user = User.builder()
-                .email("test@1.com")
+                .email(email)
                 .password(encodedPassword)
-                .nickname("테스트유저입니다.")
-                .profileImage("https://example.com/profile.png")
-                .contents("안녕하세요! 저는 테스트 유저입니다.")
-                .achievement("")
-                .loginMethod("local")
-                .createdAt(LocalDateTime.now())
-                .refreshToken("")
+                .nickname(nickname)
+                .profileImage(profileImage)
+                .contents(contents)
+                .achievement(achievement)
+                .createdAt(createdAt)
+                .refreshToken(refreshToken)
                 .build();
 
         // when: UserRepository를 사용해 사용자 저장
