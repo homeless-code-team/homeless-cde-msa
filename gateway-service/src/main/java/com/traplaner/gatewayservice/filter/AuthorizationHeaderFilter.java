@@ -34,12 +34,11 @@ public class AuthorizationHeaderFilter
 
     private final List<String> allowUrl = Arrays.asList(
             // 회원가입, 로그인, 인증번호 전송, 확인, 중복체크
-            "/api/v1/users/sign-up","/api/v1/users/sign-in",
-            "/user-service/api/v1/users/sign-in",
-            "/user-service/api/v1/users/confirm",
-            "/user-service/api/v1/users/duplicate"
-            
-
+            "/api/v1/users/sign-up",
+            "/api/v1/users/sign-in",
+            "/api/v1/users/confirm",
+            "/api/v1/users/duplicate",
+            "/ws/**"
     );
 
     public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate) {
@@ -52,6 +51,8 @@ public class AuthorizationHeaderFilter
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
             AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+
 
             log.info("Request Path: {}", path);
             log.info("Allow URLs: {}", allowUrl);
@@ -72,7 +73,7 @@ public class AuthorizationHeaderFilter
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
                 // 토큰이 존재하지 않거나, Bearer로 시작하지 않는다면
                 return onError(exchange,
-                        "Authorization header is missing or invalid",
+                        "Authorization header is missing or invalid : 토큰없음",
                         HttpStatus.UNAUTHORIZED);
             }
 

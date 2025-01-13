@@ -10,7 +10,6 @@ spring:
         cors-configurations:
           "[/**]": # 모든 경로에 대한 CORS 설정
             allowed-origins:
-              - "https://jiangxy.github.io"
               - "http://localhost:3000"
               # - 나중에 도메인
             allowed-methods:
@@ -43,7 +42,8 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-            #- AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter
+
 
 
         - id: chat-service
@@ -63,16 +63,6 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
-
-            # 채팅 서비스(웹소켓)
-        - id: chat-service-ws
-          predicates:
-            - Path=/chat-service/ws/**, /ws/**
-          uri: lb://CHAT-SERVICE
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
-            #- AuthorizationHeaderFilter
 
 
 
@@ -101,8 +91,6 @@ jwt:
     - /api/v1/users/sign-in
     - /api/v1/users/duplicate
     - /api/v1/users/refresh-token
-    - /chat-service/ws/info
-    - /chat-service/ws/**
   expiration: 3600000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
   expirationRt: 1209600000
