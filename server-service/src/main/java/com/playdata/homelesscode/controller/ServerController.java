@@ -51,10 +51,10 @@ public class ServerController {
 
     // 서버 조회
     @GetMapping("/servers")
-    public ResponseEntity<?> getServer(Pageable pageable) {
+    public ResponseEntity<?> getServer() {
 
         log.info("/server/servers: GET");
-        List<ServerResponseDto> result = serverService.getServer(pageable);
+        List<ServerResponseDto> result = serverService.getServer();
 
         log.info("result: {}", result);
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "서버 조회 성공", result);
@@ -108,8 +108,7 @@ public class ServerController {
     @DeleteMapping("/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id, @RequestHeader("Authorization") String authorization) {
 
-        serverService.deleteChannel(id);
-        serverService.deleteChatMessageByChannelId(id,authorization);
+        serverService.deleteChannel(id,authorization);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
