@@ -14,6 +14,7 @@ import com.playdata.homelesscode.entity.BoardList;
 import com.playdata.homelesscode.entity.Channel;
 import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.service.ServerService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -99,9 +100,10 @@ public class ServerController {
     }
 
     @DeleteMapping("/channels")
-    public ResponseEntity<?> deleteChannel(@RequestParam String id) {
+    public ResponseEntity<?> deleteChannel(@RequestParam String id, @RequestHeader("Authorization") String authorization) {
 
         serverService.deleteChannel(id);
+        serverService.deleteChatMessageByChannelId(id,authorization);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
