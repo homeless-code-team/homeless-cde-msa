@@ -27,7 +27,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
   mail:
     host: smtp.gmail.com
     port: 587
@@ -64,16 +64,16 @@ instance:
 
 aws:
   s3:
-    bucket-name: your-bucket-name
+    bucket-name: homeless-userprofile-img
   credentials:
-    access-key: your-access-key
-    secret-key: your-secret-key
+    access-key: AKIASDRAMY4MIDADXMOC
+    secret-key: Vm8D4JWRZvzp+Q41DmM3egTRdwLFI/nMzuIoE+5M
   region: ap-northeast-2
 
 jwt:
-  expiration: 1800000
+  expiration: 18000000000000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
-  expirationRt: 1209600000
+  expirationRt: 1209600000000000
   secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
 oauth:
   provider:
