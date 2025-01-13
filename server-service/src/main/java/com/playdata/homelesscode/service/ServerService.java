@@ -1,6 +1,7 @@
 package com.playdata.homelesscode.service;
 
 //import com.playdata.homelesscode.common.config.AwsS3Config;
+import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.client.UserServiceClient;
 import com.playdata.homelesscode.common.config.AwsS3Config;
 import com.playdata.homelesscode.common.dto.CommonResDto;
@@ -20,11 +21,11 @@ import com.playdata.homelesscode.entity.*;
 import com.playdata.homelesscode.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class ServerService {
     private final AwsS3Config s3Config;
     private final SecurityContextUtil securityContextUtil;
     private final UserServiceClient userServiceClient;
+    private final ChatServiceClient chatServiceClient;
 
 
     private final RedisTemplate<String, String> serverTemplate;
@@ -59,7 +61,8 @@ public class ServerService {
                          UserServiceClient userServiceClient,
                          AwsS3Config s3Config,
                          @Qualifier("server")
-                         RedisTemplate<String, String> serverTemplate) {
+                         RedisTemplate<String, String> serverTemplate,
+                         ChatServiceClient chatServiceClient) {
         this.serverRepository = serverRepository;
         this.serverListRepository = serverListRepository;
         this.channelRepository = channelRepository;
@@ -69,6 +72,7 @@ public class ServerService {
         this.userServiceClient = userServiceClient;
         this.serverTemplate = serverTemplate;
         this.s3Config = s3Config;
+        this.chatServiceClient = chatServiceClient;
     }
 
 
@@ -111,7 +115,7 @@ public class ServerService {
         return result;
     }
 
-    public List<ServerResponseDto> getServer(Pageable pageable) {
+    public List<ServerResponseDto> getServer() {
 
         String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
 
@@ -119,7 +123,7 @@ public class ServerService {
 
         List<String> collect = byUserId.stream().map(s -> s.getServer().getId()).collect(Collectors.toList());
 
-        List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByTitle(collect, 0, pageable);
+        List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByTitle(collect, 0);
 
 
 
@@ -215,10 +219,11 @@ public class ServerService {
 
     }
 
-    public void deleteChannel(String id) {
+    public void deleteChannel(String id,
+                              @RequestHeader("Authorization") String authorization) {
 
         channelRepository.deleteById(id);
-
+        chatServiceClient.deleteChatMessageByChannelId(id,authorization);
 
     }
 
@@ -463,7 +468,5 @@ public class ServerService {
 
         return matchingKeys; // 매칭된 키 리스트 반환
     }
-
-
 
 }
