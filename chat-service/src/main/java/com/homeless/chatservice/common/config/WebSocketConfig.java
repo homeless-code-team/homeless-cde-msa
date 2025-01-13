@@ -1,8 +1,11 @@
 package com.homeless.chatservice.config;
 
+//import com.homeless.chatservice.interceptor.WebSocketAuthInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompReactorNettyCodec;
 import org.springframework.messaging.tcp.reactor.ReactorNettyTcpClient;
@@ -21,6 +24,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         WebSocket과 STOMP 메시징을 위한 설정을 추가.
         이 설정은 클라이언트가 서버에 연결할 수 있는 엔드포인트와 메시지 브로커를 설정.
      */
+    //@Autowired
+    //private WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Value("${spring.rabbitmq.host}")
     private String RABBITMQ_HOST;
@@ -32,6 +37,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // setAllowedOrigins("*")는 모든 ip에서 접속 가능하도록 해줌
         registry.addEndpoint("/ws") // 연결될 엔드포인트
                 .setAllowedOriginPatterns("*")
+                //.addInterceptors(webSocketAuthInterceptor)
                 .withSockJS(); // WebSocket을 지원하지 않는 브라우저를 위한 옵션
     }
 
@@ -73,4 +79,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 메시지를 발행(송신)하는 엔드포인트
 //        registry.setApplicationDestinationPrefixes("/pub");
     }
+
 }
