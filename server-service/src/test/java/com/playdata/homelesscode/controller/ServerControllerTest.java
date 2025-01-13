@@ -1,9 +1,13 @@
 package com.playdata.homelesscode.controller;
 
-import com.playdata.homelesscode.repository.ServerJoinUserListRepository;
+import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.repository.ServerRepository;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 
 @SpringBootTest
@@ -12,49 +16,22 @@ class ServerControllerTest {
     @Autowired
     private ServerRepository serverRepository;
 
-//    @Autowired
-//    private UserRepository userRepository;
 
-    @Autowired
-    private ServerJoinUserListRepository serverListRepository;
+    @Test
+    public void createServersTest() {
+        for (int i = 1; i <= 100; i++) {
+            Server server = Server.builder()
+                    .email("maru@naver.com")
+                    .title("Server Title " + i)
+                    .tag("Tag " + i)
+                    .serverImg("Image URL " + i)
+                    .serverType(i % 3) // 0, 1, 2 반복
+                    .build();
 
+            serverRepository.save(server);
+        }
 
-//    @Test
-//    @DisplayName("서버 생성")
-//    @Transactional
-//    @Rollback(false)
-//    void createServer() {
-//        // given
-//        User user = User.builder()
-//                .email("maru@naver.com")
-//                .password("qwer1234")
-//                .nickName("마루")
-//                .loginMethod(null)
-//                .markdown(null)
-//                .achievement(null)
-//                .build();
-//        User saveUser = userRepository.save(user);
-//
-//
-//        ServerCreateDto dto = ServerCreateDto.builder()
-//                .title("테스트 제목2")
-//                .tag("#테스트 태그2")
-//                .serverImg(null)
-//                .build();
-//        Server server = dto.toEntity(saveUser);
-//        // when
-//
-//        Server save = serverRepository.save(server);
-//
-//        // then
-//
-//        System.out.println(save);
-//    }
+        System.out.println("100 servers created successfully!");
+    }
 
 }
-
-//INSERT INTO tb_user (id, email, password, nick_name, profile_img, created_at, markdown, achievement, login_method)
-//VALUES
-//        (UUID(), 't1@0.com', '1234', '테스트유저1', null, NOW(), NULL, NULL, 'local'),
-//        (UUID(), 't2@0.com', '1234', '테스트유저2', null, NOW(), NULL, NULL, 'google'),
-//        (UUID(), 'user789@example.com', 'password789', 'User789', 'https://example.com/user789.png', NOW(), NULL, NULL, 'facebook');

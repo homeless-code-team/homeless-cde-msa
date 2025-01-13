@@ -2,30 +2,39 @@ package com.playdata.homelesscode.service;
 
 //import com.playdata.homelesscode.common.config.AwsS3Config;
 import com.playdata.homelesscode.client.UserServiceClient;
+import com.playdata.homelesscode.common.config.AwsS3Config;
+import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
 import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
+import com.playdata.homelesscode.dto.server.Role;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
+import com.playdata.homelesscode.dto.server.ServerDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
 import com.playdata.homelesscode.entity.*;
 import com.playdata.homelesscode.repository.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class ServerService {
 
@@ -34,11 +43,33 @@ public class ServerService {
     private final ChannelRepository channelRepository;
     private final BoardListRepository boardListRepository;
     private final BoardRepository boardRepository;
-//    private final AwsS3Config awsS3Config;
+    private final AwsS3Config s3Config;
     private final SecurityContextUtil securityContextUtil;
-
     private final UserServiceClient userServiceClient;
 
+
+    private final RedisTemplate<String, String> serverTemplate;
+
+    public ServerService(ServerRepository serverRepository,
+                         ServerJoinUserListRepository serverListRepository,
+                         ChannelRepository channelRepository,
+                         BoardListRepository boardListRepository,
+                         BoardRepository boardRepository,
+                         SecurityContextUtil securityContextUtil,
+                         UserServiceClient userServiceClient,
+                         AwsS3Config s3Config,
+                         @Qualifier("server")
+                         RedisTemplate<String, String> serverTemplate) {
+        this.serverRepository = serverRepository;
+        this.serverListRepository = serverListRepository;
+        this.channelRepository = channelRepository;
+        this.boardListRepository = boardListRepository;
+        this.boardRepository = boardRepository;
+        this.securityContextUtil = securityContextUtil;
+        this.userServiceClient = userServiceClient;
+        this.serverTemplate = serverTemplate;
+        this.s3Config = s3Config;
+    }
 
 
     public Server createServer(ServerCreateDto dto) throws IOException {
@@ -55,8 +86,10 @@ public class ServerService {
         if(dto.getServerImg() != null){
             String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
 
-//        String imageUrl = awsS3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
-            server.setServerImg(fileName);
+        String imageUrl = s3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+
+
+            server.setServerImg(imageUrl);
         }
 
 
@@ -69,7 +102,7 @@ public class ServerService {
         ServerJoinUserList serverList = ServerJoinUserList.builder()
                 .server(server)
                 .email(userEmail)
-                .role("Owner")
+                .role(Role.OWNER)
                 .build();
 
         serverListRepository.save(serverList);
@@ -78,7 +111,7 @@ public class ServerService {
         return result;
     }
 
-    public List<ServerResponseDto> getServer() {
+    public List<ServerResponseDto> getServer(Pageable pageable) {
 
         String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
 
@@ -86,7 +119,7 @@ public class ServerService {
 
         List<String> collect = byUserId.stream().map(s -> s.getServer().getId()).collect(Collectors.toList());
 
-        List<Server> byIdIn = serverRepository.findByIdInOrServerType(collect, 0);
+        List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByTitle(collect, 0, pageable);
 
 
 
@@ -99,7 +132,8 @@ public class ServerService {
                     server.getTag(),
                     server.getTitle(),
                     server.getServerImg(),
-                    server.getEmail(), serverJoinUserList.getRole());
+                    server.getEmail(),
+                    serverJoinUserList.getRole());
         }).collect(Collectors.toList());
 
 
@@ -108,6 +142,17 @@ public class ServerService {
     }
 
     public void deleteServer(String id) {
+        Server server = serverRepository.findById(id).orElseThrow();
+
+        if (server.getServerImg() != null) {
+            try {
+                s3Config.deleteFromS3Bucket(server.getServerImg());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
         serverRepository.deleteById(id);
     }
 
@@ -148,7 +193,7 @@ public class ServerService {
 
         boolean checkRole = false;
         for (ServerJoinUserList server : collect) {
-            String role = server.getRole(); // role 가져오기
+            Role role = server.getRole(); // role 가져오기
             if ("Owner".equals(role) || "Manager".equals(role)) {
                 checkRole = true;
                 break; // 조건을 만족하는 role을 찾으면 더 이상 순회하지 않고 종료
@@ -200,8 +245,9 @@ public class ServerService {
 
         BoardList board = boardListRepository.findById(dto.getId()).orElseThrow();
 
-        board.setBoard(board);
-
+        board.setBoardTitle(dto.getBoardTitle());
+        board.setTag(dto.getTag());
+        
         boardListRepository.save(board);
 
         return board;
@@ -211,6 +257,7 @@ public class ServerService {
     public void deleteBoardList(String id) {
 
         boardListRepository.deleteById(id);
+
 
     }
 
@@ -252,6 +299,7 @@ public class ServerService {
 
     }
 
+
     public List<Board> getBoard(String id) {
 
         List<Board> result = boardRepository.findByBoardListId(id);
@@ -259,4 +307,163 @@ public class ServerService {
         return result;
 
     }
+
+    public void deleteBoard(String id) {
+
+        boardRepository.deleteById(id);
+
+    }
+
+    public void updateBoard(BoardUpdateDto dto) {
+
+        Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
+
+        board.setTitle(dto.getBoardTitle());
+
+        boardRepository.save(board);
+    }
+
+
+    ////////////////////////////////// 서버 관리 ///////////////////////////////////////////////////////////////////////////////
+
+    // 서버 가입 신청
+    public CommonResDto addReqServer(ServerDto dto) {
+
+
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+            // Redis에 서버 ID 추가
+            if (dto.getServerId() == null) {
+                return new CommonResDto(HttpStatus.OK, "유효하지 않은 서버 ID 입니다ㅏ", null);
+            }
+
+            // Redis에 기존 값 확인
+            Set<String> existingServerIds = serverTemplate.opsForSet().members(email);
+            log.info(existingServerIds.toString());
+
+            if (existingServerIds != null && existingServerIds.contains(dto.getServerId())) {
+                return new CommonResDto(HttpStatus.OK, "이미 가입이 진행 중입니다.", null);
+            }
+
+            // Redis에 서버 ID 추가
+            serverTemplate.opsForSet().add(email, dto.getServerId());
+
+            return new CommonResDto(HttpStatus.OK, "서버 가입 요청이 완료되었습니다.", null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 가입 요청 중 오류가 발생했습니다.", e.getMessage());
+        }
+    }
+
+    // 서버 가입 응답
+    public CommonResDto addResServer(ServerDto dto) {
+
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
+            log.info("Requester Email: {}", email);
+
+
+            // 사용자 조회
+//            User user = userRepository.findByEmail(email)
+//                    .orElseThrow(() -> new UsernameNotFoundException("Invalid requestEmail: " + email));
+
+            // AddStatus 검증
+            if (dto.getAddStatus() == null) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST,  "status를 결정해주세요 (APPROVE 또는 REJECT)", null);
+            }
+
+            // Redis에서 serverId 가져오기
+            String serverId = serverTemplate.opsForSet().pop(email);
+            log.info(serverId.toString());
+
+
+            if (serverId == null || serverId.isEmpty()) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST,  "해당 요청에 대한 serverId가 없습니다.", null);
+            }
+
+
+            if (dto.getAddStatus() == AddStatus.ACCEPT) {
+
+                Server server = serverRepository.findById(serverId).orElseThrow();
+
+                ServerJoinUserList serverJoinUserList = ServerJoinUserList.builder()
+                        .server(server)
+                        .email(email)
+                        .role(Role.GENERAL)
+                        .build();
+
+                serverListRepository.save(serverJoinUserList);
+
+                return new CommonResDto(HttpStatus.OK, "서버 가입이 승인되었습니다.", null);
+
+            } else if (dto.getAddStatus() == AddStatus.REJECTED) {
+
+                // 서버 가입 요청 거절
+                deleteRedisServerData(email, serverId.toString());
+
+                return new CommonResDto(HttpStatus.OK,  "서버 가입을 거절하셨습니다.", null);
+            }
+
+            return new CommonResDto(HttpStatus.BAD_REQUEST,  "Invalid AddStatus", null);
+        } catch (Exception e) {
+            log.error("Error in addResServer: {}", e.getMessage(), e);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 응답 처리 중 오류 발생", e.getMessage());
+        }
+    }
+
+
+    // 서버 가입 요청 조회
+    public CommonResDto addServerJoin(String serverId) {
+
+
+        try {
+
+            // Redis에서 모든 요청 서버 ID 조회
+            List<String> keysByValue = findKeysByValue(serverId);
+
+
+            return new CommonResDto(HttpStatus.OK,  "가입 요청 서버 목록 조회 성공", keysByValue);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 요청 조회 중 오류 발생", null);
+        }
+    }
+
+
+    // Redis 데이터 삭제 로직
+    private void deleteRedisServerData(String email, String serverId) {
+        try {
+            serverTemplate.opsForSet().remove(email, serverId);
+            serverTemplate.opsForSet().remove(serverId, email);
+        } catch (Exception e) {
+            // Redis 삭제 실패 시 로그 추가
+            System.err.println("Redis 데이터 삭제 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+
+
+
+    // Redis에서 value로 조회하기 위한 전체 조회
+    public List<String> findKeysByValue(String targetValue) {
+        List<String> matchingKeys = new ArrayList<>(); // 결과를 저장할 리스트
+        Set<String> keys = serverTemplate.keys("*"); // 모든 키 가져오기
+
+        if (keys != null) {
+            for (String key : keys) {
+                Set<String> values = serverTemplate.opsForSet().members(key); // 각 키의 값 가져오기
+                if (values != null && values.contains(targetValue)) {
+                    matchingKeys.add(key); // 일치하는 키를 리스트에 추가
+                }
+            }
+        }
+
+        return matchingKeys; // 매칭된 키 리스트 반환
+    }
+
+
+
 }
