@@ -1,4 +1,4 @@
-package com.homeless.chatservice.config;
+package com.homeless.chatservice.common.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

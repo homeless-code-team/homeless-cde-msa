@@ -1,8 +1,13 @@
-package com.homeless.chatservice.exception;
+package com.homeless.chatservice.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public class UnauthorizedException extends RuntimeException {
 
+    // 오류 코드 가져오기
     private String errorCode;
+    // 오류 메시지 가져오기
     private String errorMessage;
 
     // 생성자
@@ -17,13 +22,4 @@ public class UnauthorizedException extends RuntimeException {
         return new UnauthorizedException(errorCode, errorMessage);
     }
 
-    // 오류 코드 가져오기
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    // 오류 메시지 가져오기
-    public String getErrorMessage() {
-        return errorMessage;
-    }
 }

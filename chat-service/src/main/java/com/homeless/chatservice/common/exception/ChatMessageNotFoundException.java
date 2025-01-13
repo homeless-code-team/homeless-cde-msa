@@ -1,4 +1,4 @@
-package com.homeless.chatservice.exception;
+package com.homeless.chatservice.common.exception;
 
 public class ChatMessageNotFoundException extends RuntimeException {
     public ChatMessageNotFoundException(String message) {

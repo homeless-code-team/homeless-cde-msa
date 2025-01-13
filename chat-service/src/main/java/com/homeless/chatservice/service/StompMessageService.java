@@ -1,12 +1,10 @@
 package com.homeless.chatservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.homeless.chatservice.config.RabbitConfig;
+import com.homeless.chatservice.common.config.RabbitConfig;
 import com.homeless.chatservice.dto.CreateChannelRequest;
 import com.homeless.chatservice.dto.JoinMessage;
 import com.homeless.chatservice.dto.LeaveMessage;
-import com.homeless.chatservice.dto.MessageType;
-import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.entity.MessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

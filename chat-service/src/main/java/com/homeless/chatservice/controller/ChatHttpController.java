@@ -1,13 +1,12 @@
 package com.homeless.chatservice.controller;
 
-import com.homeless.chatservice.auth.JwtTokenProvider;
+import com.homeless.chatservice.common.auth.JwtUtils;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.entity.ChatMessage;
-import com.homeless.chatservice.exception.ChatMessageNotFoundException;
-import com.homeless.chatservice.repository.ChatMessageRepository;
+import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
 import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,10 +24,10 @@ import java.util.Optional;
 public class ChatHttpController {
 
     private final ChatHttpService chatHttpService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
 
     // 특정 채널의 메시지 조회
-    @GetMapping("/{channelId}")
+    @GetMapping("/ch/{channelId}")
     public ResponseEntity<?> getMessages(
             @PathVariable String channelId) {
         try {
@@ -45,11 +44,12 @@ public class ChatHttpController {
     }
 
     // HTTP POST 요청을 통한 메시지 전송 처리
-    @PostMapping("/{channelId}")
+    @PostMapping("/ch/{channelId}")
     public ResponseEntity<?> sendMessageHttp(
             @PathVariable String channelId,
             @RequestBody ChatMessageRequest chatMessage) {
         try {
+
             // 유효성 검사 (예시)
             if (chatMessage.content() == null || chatMessage.content().isEmpty()) {
                 throw new IllegalArgumentException("Message text cannot be empty");
@@ -73,26 +73,14 @@ public class ChatHttpController {
         }
     }
 
-    @DeleteMapping("/{chatId}")
+    @DeleteMapping("/message/{chatId}")
     public ResponseEntity<?> deleteMessage(@PathVariable String chatId,
                                            @RequestHeader("Authorization") String authorizationHeader) {
         try {
-
-            // 1. 헤더 검사
-            if (!authorizationHeader.startsWith("Bearer ")) {
-                return new ResponseEntity<>(new CommonResDto<>(HttpStatus.BAD_REQUEST, "Authorization 헤더 형식이 잘못되었습니다.", null),
-                        HttpStatus.BAD_REQUEST);
-            }
-            // 2. 헤더에서 토큰가져오기
-            String token = authorizationHeader.substring(7);
-
-            // 3. 토큰 유효성 검사
-            if (!jwtTokenProvider.validateToken(token)) {
-                return new ResponseEntity<>(new CommonResDto<>(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰", null),
-                        HttpStatus.UNAUTHORIZED);
-            }
+            //1. 토큰 검사.
+            jwtUtils.validateToken(authorizationHeader);
             // 4. 토큰에서 이메일 가져오기
-            String userEmail = jwtTokenProvider.getEmailFromToken(token);
+            String userEmail = jwtUtils.getEmailFromToken(authorizationHeader);
 
             // 5. chatId로 chatMessageOpt 가져오기
             Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
@@ -118,8 +106,15 @@ public class ChatHttpController {
         }
     }
 
+    @DeleteMapping("/ch/{channelId}")
+    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId,
+                                                    @RequestHeader("Authorization") String authorizationHeader) {
+        chatHttpService.deleteChatMessageByChannelId(channelId);
+        return ResponseEntity.noContent().build();
 
-    @PatchMapping("/{chatId}")
+    }
+
+    @PatchMapping("/message/{chatId}")
     public ResponseEntity<?> updateMessage(@PathVariable String chatId,
                                            @RequestBody ChatMessageRequest reqMessage) {
         try {
