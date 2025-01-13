@@ -61,15 +61,15 @@ security:
 
 instance:
   instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-#cloud:
-#  aws:
-#    s3:
-#      bucket: homeless-bucket
-#    credentials:
-#      access-key:
-#      secret-key:
-#    region:
-#      static:
+
+aws:
+  s3:
+    bucket-name: your-bucket-name
+  credentials:
+    access-key: your-access-key
+    secret-key: your-secret-key
+  region: ap-northeast-2
+
 jwt:
   expiration: 1800000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==

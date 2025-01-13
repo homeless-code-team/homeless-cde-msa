@@ -26,7 +26,7 @@ public class UserController {
     private final UserService userService;
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
     //회원가입
-    @PostMapping(value = "/sign-up")
+    @PostMapping("/sign-up")
     public CommonResDto userSignUp(@ModelAttribute UserSaveReqDto dto) throws IOException {
         log.info("singup");
         return userService.userSignUp(dto);
@@ -42,7 +42,7 @@ public class UserController {
     // 로그아웃
     @DeleteMapping("/sign-out")
     public CommonResDto userSignOut() {
-        log.info("signin");
+        log.info("logout");
         return userService.userSignOut();
     }
     
@@ -91,14 +91,6 @@ public class UserController {
 
         return userService.modify(dto);
     }
-    
-    // 이미지정보수정
-    @PatchMapping( "/profile-image/")
-    public CommonResDto ImageModify(@ModelAttribute ModifyDto dto) throws IOException {
-        log.info("profileImageUpdate");
-
-        return userService.ImageModify(dto);
-    }
 
 
     // 정보 조회
@@ -107,7 +99,7 @@ public class UserController {
         log.info("getUserData");
         return userService.getUserData();
     }
-
+    /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
     // 1. 리다이렉션 URL 반환
     @GetMapping("/o-auth")
     public ResponseEntity<String> redirectToProvider(@RequestParam String provider) {

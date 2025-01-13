@@ -46,7 +46,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.550'
+
+    implementation 'software.amazon.awssdk:s3:2.20.7'
 
     //feign통신
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
