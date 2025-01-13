@@ -36,5 +36,5 @@ public class ServerJoinUserList {
     private String email;
 
 
-    private String role = "general";
+    private String role = "GENERAL";
 }
