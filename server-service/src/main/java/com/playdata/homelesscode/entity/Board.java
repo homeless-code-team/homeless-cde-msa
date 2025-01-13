@@ -23,6 +23,7 @@ public class Board {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+
     private String id;
     private String title;
     private String writer;

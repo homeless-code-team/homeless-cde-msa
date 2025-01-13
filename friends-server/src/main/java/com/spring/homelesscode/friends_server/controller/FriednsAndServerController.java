@@ -66,27 +66,6 @@ public class FriednsAndServerController {
         return friendsAndServerService.reqFriendsDelete(dto);
     }
 
-    ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
-//
-//    // 서버 추가요청
-//    @PostMapping("/servers")
-//    public CommonResDto addReqServer(@RequestBody ServerDto dto){
-//        log.info("addServer");
-//        return friendsAndServerService.addReqServer(dto);
-//    }
-//
-//    //서버 요청 응답
-//    @PostMapping("/servers/response")
-//    public CommonResDto addResServer(@RequestBody ServerDto dto) {
-//        log.info("addServerJoin");
-//        return friendsAndServerService.addResServer(dto);
-//    }
-//
-//    //서버추가 요청 조회
-//    @GetMapping("/servers/response")
-//    public CommonResDto addServerJoin(@RequestParam String serverId) {
-//        log.info("addServerJoin");
-//        return friendsAndServerService.addServerJoin(serverId);
-//    }
+
 
 }
