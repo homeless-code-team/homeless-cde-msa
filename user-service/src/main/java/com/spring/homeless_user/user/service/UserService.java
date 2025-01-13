@@ -1,9 +1,9 @@
 package com.spring.homeless_user.user.service;
 
-
 import com.spring.homeless_user.common.auth.JwtTokenProvider;
 import com.spring.homeless_user.common.utill.JwtUtil;
 import com.spring.homeless_user.common.utill.SecurityContextUtil;
+import com.spring.homeless_user.user.config.S3Upload;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
@@ -27,8 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import software.amazon.awssdk.services.s3.S3Client;
 
 
 import java.io.IOException;
@@ -51,7 +53,6 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final CacheManager cacheManager;
     private final WebClient webClient;
-//    private final AmazonS3 amazonS3;
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ public class UserService {
     private final RedisTemplate<String, String> cacheTemplate;
     private final SecurityContextUtil securityContextUtil;
     private final RedisTemplate login;
-
+    private final S3Upload s3Upload;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -73,7 +74,9 @@ public class UserService {
                        @Qualifier("login") RedisTemplate<String, String> loginTemplate,
                        @Qualifier("cache") RedisTemplate<String, String> cacheTemplate,
                        SecurityContextUtil securityContextUtil,
-                       RefreshAutoConfiguration refreshAutoConfiguration, @Qualifier("login") RedisTemplate login) {
+                       RefreshAutoConfiguration refreshAutoConfiguration,
+                       @Qualifier("login") RedisTemplate login,
+                       S3Upload s3Upload) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -86,6 +89,7 @@ public class UserService {
         this.cacheTemplate = cacheTemplate;
         this.securityContextUtil = securityContextUtil;
         this.login = login;
+        this.s3Upload = s3Upload;
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -128,25 +132,10 @@ public class UserService {
     private String githubRedirectUri;
 
 
-
-//
-//    @Value("${cloud.aws.s3.bucket}")
-//    private String bucketName;
-
-
-//    public String uploadFile(MultipartFile file) throws IOException {
-//        if (!file.isEmpty()) {
-//            String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
-//            amazonS3.putObject(bucketName, fileName, file.getInputStream(), null);
-//            return amazonS3.getUrl(bucketName, fileName).toString(); // 업로드된 파일의 URL 반환
-//        } else {
-//            return null;
-//        }
-//    }
 /////////////////////////////////////////////////////// 사용자 인증 인가///////////////////////////////////////////////////
 
     //회원가입 로직
-    public CommonResDto userSignUp(@Valid UserSaveReqDto dto) throws IOException {
+    public CommonResDto userSignUp(UserSaveReqDto dto) throws IOException {
 
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
@@ -158,33 +147,43 @@ public class UserService {
 
 
         try {
-            // 비밀번호 정규성 검사
-            if (isValidPassword(dto.getPassword())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
-            }
-            if (isValidEmail(dto.getEmail())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
-            }
             log.info(dto.getEmail());
             log.info(dto.getPassword());
             log.info(dto.getNickname());
-            // user객체 생성 및 dto 정보를 엔티티에 주입 
-            User user = new User();
-            user.setEmail(dto.getEmail());
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            user.setNickname(dto.getNickname());
-            user.setProvider(Provider.LOCAL);
-            user.setCreatedAt(LocalDateTime.now());
-//        user.setProfileImage(uploadFile(dto.getProfileImage()));
+            // 비밀번호 정규성 검사
+            if (!isValidPassword(dto.getPassword())) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
+            }
+            if (!isValidEmail(dto.getEmail())) {
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
+            }
+            if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
+                String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
+                log.info("Profile Image Uploaded: {}", profileImageUrl);
 
-            log.info("email:{},nickname:{},password:{},CreatAT:{}", dto.getEmail(), dto.getNickname(), dto.getPassword(), user.getCreatedAt());
 
-            // entity 객체를 mysql에 저장
-            userRepository.save(user);
+                log.info(dto.getEmail());
+                log.info(dto.getPassword());
+                log.info(dto.getNickname());
+                // user객체 생성 및 dto 정보를 엔티티에 주입
+                User user = new User();
+                user.setEmail(dto.getEmail());
+                user.setPassword(passwordEncoder.encode(dto.getPassword()));
+                user.setNickname(dto.getNickname());
+                user.setProvider(Provider.LOCAL);
+                user.setCreatedAt(LocalDateTime.now());
+                user.setProfileImage(profileImageUrl);
 
-            // 응답 반환 
-            return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
+                log.info("email:{},nickname:{},password:{},CreatAT:{}", dto.getEmail(), dto.getNickname(), dto.getPassword(), user.getCreatedAt());
 
+                // entity 객체를 mysql에 저장
+                userRepository.save(user);
+                // 응답 반환
+                return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
+
+
+            }
+return null;
         } catch (Exception e) {
             //에러 응답 반환
             e.printStackTrace();
@@ -475,53 +474,19 @@ public class UserService {
                 updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "페스워드변경성공", null, links);
             } else if (dto.getContent() != null) {
-                // 소개글 수정
                 updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", null, links);
-            }
-
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "사용자 수정 정보가 없습니다.", null, links);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
-        }
-    }
-
-    // 이미지 정보수정
-    public CommonResDto ImageModify(ModifyDto dto) {
-
-        // REST API 링크 설정
-        List<CommonResDto.Link> links = new ArrayList<>();
-        links.add(new CommonResDto.Link("sign-in", "/api/v1/users/sign-in", "POST"));
-        links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
-
-        try {
-            if (dto.getProfileImage() != null) {
-                String email = SecurityContextUtil.getCurrentUser().getEmail();
-                User user = getUserEntity(email);
-                String oldProfileImage = user.getProfileImage(); // 기존 프로필 이미지 URL
-                String bucketName = "your-s3-bucket-name";
-                String newProfileImageUrl;
-
-//                // S3에서 기존 이미지 삭제
-//                if (oldProfileImage != null && !oldProfileImage.isEmpty()) {
-//                    String oldKey = oldProfileImage.replace("https://your-s3-bucket-name.s3.amazonaws.com/", "");
-//                    amazonS3.deleteObject(new DeleteObjectRequest(bucketName, oldKey));
-//                }
-//
-//                // 새 이미지 업로드
-//                newProfileImageUrl = uploadFile(bucketName, img);
-//
-//                user.setProfileImage(newProfileImageUrl);
-//                // DB 업데이트
-//                userRepository.save(user);
-
-                //캐싱 정보 수정
+            } else if (dto.getProfileImage() != null) {
+                String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
+                user.setProfileImage(profileImageUrl);
+                log.info("Profile Image Uploaded: {}", profileImageUrl);
                 updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "이미지변경성공", null, links);
             }
+
+
             return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "사용자 수정 정보가 없습니다.", null, links);
+
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
@@ -675,4 +640,6 @@ public Mono<String> getAccessToken(String provider, String code) {
     }
 
 }
+////////////////////////////////////////////////////////AWS 사진업로드///////////////////////////////////////////////////
+
 
