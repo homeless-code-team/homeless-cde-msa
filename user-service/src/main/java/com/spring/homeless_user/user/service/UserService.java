@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 @Service
 @Transactional
 @Slf4j
-public class UserService {
+public class        UserService {
 
     private final UserRepository userRepository;
 
@@ -157,11 +157,6 @@ public class UserService {
             if (!isValidEmail(dto.getEmail())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
             }
-            if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
-                String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
-                log.info("Profile Image Uploaded: {}", profileImageUrl);
-
-
                 log.info(dto.getEmail());
                 log.info(dto.getPassword());
                 log.info(dto.getNickname());
@@ -172,7 +167,6 @@ public class UserService {
                 user.setNickname(dto.getNickname());
                 user.setProvider(Provider.LOCAL);
                 user.setCreatedAt(LocalDateTime.now());
-                user.setProfileImage(profileImageUrl);
 
                 log.info("email:{},nickname:{},password:{},CreatAT:{}", dto.getEmail(), dto.getNickname(), dto.getPassword(), user.getCreatedAt());
 
@@ -181,9 +175,6 @@ public class UserService {
                 // 응답 반환
                 return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
-
-            }
-return null;
         } catch (Exception e) {
             //에러 응답 반환
             e.printStackTrace();
@@ -201,10 +192,10 @@ return null;
         links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
         links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
         // 레디스에 이미 로그인 중인지 확인
-//        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
-//            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-//            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
-//        }
+        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
+        }
         // mysql에서 사용자 검색
 
 
@@ -463,25 +454,28 @@ return null;
                 if (nicknameExists) {
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "닉네임이 이미 존재합니다.", null, links);
                 }
+                user.setNickname(dto.getNickname());
                 updateUserEntity(email, user);
-                return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", null, links);
+                return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", user.getNickname() , links);
             } else if (dto.getPassword() != null) {
                 if (!isValidPassword(dto.getPassword())) {
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
                 }
                 // 비밀번호 수정
                 String hashedPassword = passwordEncoder.encode(dto.getPassword());
+                user.setPassword(hashedPassword);
                 updateUserEntity(email, user);
-                return new CommonResDto(HttpStatus.OK, 200, "페스워드변경성공", null, links);
+                return new CommonResDto(HttpStatus.OK, 200, "페스워드변경성공", user.getPassword(), links);
             } else if (dto.getContent() != null) {
+                user.setContents(dto.getContent());
                 updateUserEntity(email, user);
-                return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", null, links);
+                return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", user.getContents(), links);
             } else if (dto.getProfileImage() != null) {
                 String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
                 user.setProfileImage(profileImageUrl);
                 log.info("Profile Image Uploaded: {}", profileImageUrl);
                 updateUserEntity(email, user);
-                return new CommonResDto(HttpStatus.OK, 200, "이미지변경성공", null, links);
+                return new CommonResDto(HttpStatus.OK, 200, "이미지변경성공", user.getProfileImage(), links);
             }
 
 
@@ -591,7 +585,7 @@ public Mono<String> getAccessToken(String provider, String code) {
                 log.info("Access Token Response: {}", response);
                 return response; // Extract and return access token from response
             });
-}
+    }
 
     // 2. 사용자 정보 가져오기
     public Mono<OAuthUserInfoDto> getUserInfo(String provider, String accessToken) {

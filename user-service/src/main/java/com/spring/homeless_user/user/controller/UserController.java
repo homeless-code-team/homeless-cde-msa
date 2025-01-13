@@ -69,13 +69,19 @@ public class UserController {
         return userService.confirm(dto);
     }
 
-    // 이메일 & 닉네임 중복검사
+    // 이메일 & 닉네임 중복검사 회원가입시
     @GetMapping("/duplicate")
     public CommonResDto duplicateCheck(@RequestParam DuplicateDto dto) throws IOException {
         log.info("duplicateCheck - email: {}, nickname: {}", dto.getEmail(), dto.getNickname());
         return userService.duplicateCheck(dto);
     }
 
+    // 이메일 & 닉네임 중복검사 회원가입시
+    @GetMapping("/duplicate/mod")
+    public CommonResDto duplicateCheckmodify(@RequestParam DuplicateDto dto) throws IOException {
+        log.info("duplicateCheck - email: {}, nickname: {}", dto.getEmail(), dto.getNickname());
+        return userService.duplicateCheck(dto);
+    }
     // 회원탈퇴
     @DeleteMapping("")
     public CommonResDto delete () {
@@ -85,16 +91,17 @@ public class UserController {
 
 
     // 정보수정
-    @PatchMapping( "/")
-    public CommonResDto modify(@RequestBody ModifyDto dto) throws IOException {
+    @PatchMapping( "")
+    public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
     log.info("profileUpdate");
+    log.info(String.valueOf(dto.getProfileImage()));
 
         return userService.modify(dto);
     }
 
 
     // 정보 조회
-    @GetMapping("/")
+    @GetMapping("")
     public CommonResDto GetUserData(){
         log.info("getUserData");
         return userService.getUserData();
