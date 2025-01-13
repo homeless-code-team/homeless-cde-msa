@@ -2,6 +2,7 @@ package com.playdata.homelesscode.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.playdata.homelesscode.dto.server.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,5 +37,5 @@ public class ServerJoinUserList {
     private String email;
 
 
-    private String role = "general";
+    private Role role;
 }
