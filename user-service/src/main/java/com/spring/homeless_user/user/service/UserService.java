@@ -381,7 +381,7 @@ public class        UserService {
     }
 
     // 이메일 &닉네임 중복검사
-    public CommonResDto duplicateCheck(DuplicateDto dto) {
+    public CommonResDto duplicateCheck(String email, String nickname) {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("duplicate", "/api/v1/users/duplicate", "GET"));
@@ -389,16 +389,16 @@ public class        UserService {
         links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
         try {
             // 이메일 중복 체크
-            if (dto.getEmail() != null) {
-                boolean exists = userRepository.findByEmail(dto.getEmail()).isPresent();
+            if (email!= null) {
+                boolean exists = userRepository.findByEmail(email).isPresent();
                 return exists
-                        ? new CommonResDto(HttpStatus.OK, 20, "이메일 사용 불가", null, links)
+                        ? new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이메일 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "이메일을 사용해도 좋아요.", null, links);
-            } else if (dto.getNickname() != null) {
+            } else if (nickname != null) {
                 //닉네임 중복체크
-                boolean nicknameExists = userRepository.findByNickname(dto.getNickname()).isPresent();
+                boolean nicknameExists = userRepository.findByNickname(nickname).isPresent();
                 return nicknameExists
-                        ? new CommonResDto(HttpStatus.OK, 200, "닉네임 사용 불가", null, links)
+                        ? new CommonResDto(HttpStatus.BAD_REQUEST, 400, "닉네임 사용 불가", null, links)
                         : new CommonResDto(HttpStatus.OK, 200, "닉네임을 사용해도 좋아요.", null, links);
             }
 
