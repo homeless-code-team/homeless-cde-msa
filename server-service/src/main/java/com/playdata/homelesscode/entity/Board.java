@@ -8,8 +8,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
-
 @Setter
 @Getter
 @ToString
@@ -22,35 +20,26 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 public class Board {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+
     private String id;
+    private String title;
+    private String writer;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "channel_id")
+    @JoinColumn(name = "board_list_id", nullable = false)
     @JsonIgnore
-    private Channel channel;
-
-    @Column
-    private String boardTitle;
-    @Column
-    private String writer;
-    @Column
-    private String tag;
+    private BoardList boardList;
 
     @Column
     @CreationTimestamp
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm", timezone="Asia/Seoul") //날짜 포멧 바꾸기
-    private LocalDateTime createAt;
+    private String createAt;
 
 
-    public void setBoard(Board board){
-        this.boardTitle = board.getBoardTitle();
-        this.writer = board.getWriter();
-        this.tag = board.getTag();
-
-
-    }
 
 }
