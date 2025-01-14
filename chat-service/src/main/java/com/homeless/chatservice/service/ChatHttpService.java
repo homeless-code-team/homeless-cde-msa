@@ -1,6 +1,5 @@
 package com.homeless.chatservice.service;
 
-import com.homeless.chatservice.dto.ChatMessageRequest;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageResponse;
