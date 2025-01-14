@@ -3,7 +3,7 @@ package com.spring.homelesscode.friends_server.controller;
 
 import com.spring.homelesscode.friends_server.dto.CommonResDto;
 import com.spring.homelesscode.friends_server.dto.FriendsDto;
-import com.spring.homelesscode.friends_server.service.FriendsAndServerService;
+import com.spring.homelesscode.friends_server.service.FriendsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/friends")
 @RequiredArgsConstructor
 @Slf4j
-public class FriednsAndServerController {
+public class FriednsController {
 
-    private final FriendsAndServerService friendsAndServerService;
+    private final FriendsService friendsAndServerService;
 
     // 친구 요청
     @PostMapping("")
@@ -64,29 +64,6 @@ public class FriednsAndServerController {
     public CommonResDto reqFriendDelete(@RequestBody FriendsDto dto ) {
         log.info("addFriendDelete");
         return friendsAndServerService.reqFriendsDelete(dto);
+
     }
-
-    ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
-//
-//    // 서버 추가요청
-//    @PostMapping("/servers")
-//    public CommonResDto addReqServer(@RequestBody ServerDto dto){
-//        log.info("addServer");
-//        return friendsAndServerService.addReqServer(dto);
-//    }
-//
-//    //서버 요청 응답
-//    @PostMapping("/servers/response")
-//    public CommonResDto addResServer(@RequestBody ServerDto dto) {
-//        log.info("addServerJoin");
-//        return friendsAndServerService.addResServer(dto);
-//    }
-//
-//    //서버추가 요청 조회
-//    @GetMapping("/servers/response")
-//    public CommonResDto addServerJoin(@RequestParam String serverId) {
-//        log.info("addServerJoin");
-//        return friendsAndServerService.addServerJoin(serverId);
-//    }
-
 }
