@@ -109,11 +109,12 @@ public class UserController {
     /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
     // 1. 리다이렉션 URL 반환
     @GetMapping("/o-auth")
-    public ResponseEntity<String> redirectToProvider(@RequestParam String provider) {
+    public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
+        log.info("/o-auth:GET, provider: {}", provider);
         String redirectUrl = provider.equalsIgnoreCase("google")
                 ? "https://accounts.google.com/o/oauth2/auth?client_id=620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com&redirect_uri=http://localhost:3000/&response_type=code&scope=email"
                 : "https://github.com/login/oauth/authorize?client_id=Ov23liRmQbUUzPUCt2xn&redirect_uri=http://localhost:3000/&scope=user";
-        return ResponseEntity.ok(redirectUrl);
+        return ResponseEntity.ok().body(redirectUrl);
     }
 
     // 2. OAuth Callback 처리
@@ -129,6 +130,13 @@ public class UserController {
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(
                         new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null)
                 )));
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    @GetMapping("/exists-refresh-token")
+    public ResponseEntity<Boolean> existsByNicknameAndRefreshToken(@RequestParam("nickname") String nickname) {
+        boolean exists = userService.existsByNicknameAndRefreshToken(nickname);
+        return ResponseEntity.ok(exists);
     }
 }
 
