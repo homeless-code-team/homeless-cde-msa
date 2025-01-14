@@ -43,7 +43,7 @@ public class ChatHttpController {
         }
     }
 
-    // HTTP POST 요청을 통한 메시지 전송 처리
+    // 메시지 전송
     @PostMapping("/ch/{channelId}")
     public ResponseEntity<?> sendMessageHttp(
             @PathVariable String channelId,
@@ -73,19 +73,18 @@ public class ChatHttpController {
         }
     }
 
+    //메시지 삭제
     @DeleteMapping("/message/{chatId}")
     public ResponseEntity<?> deleteMessage(@PathVariable String chatId,
                                            @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            //1. 토큰 검사.
+            // 1. 토큰 검사.
             jwtUtils.validateToken(authorizationHeader);
-            // 4. 토큰에서 이메일 가져오기
+            // 2. 토큰에서 이메일 가져오기
             String userEmail = jwtUtils.getEmailFromToken(authorizationHeader);
-
-            // 5. chatId로 chatMessageOpt 가져오기
+            // 3. chatId로 chatMessageOpt 가져오기
             Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
-
-            // Optional 객체의 값이 존재하는지 확인
+            // 4. Optional 객체의 값이 존재하는지 확인
             if (chatMessageOpt.isPresent()) {
                 ChatMessage chatMessage = chatMessageOpt.get();
 
@@ -106,17 +105,11 @@ public class ChatHttpController {
         }
     }
 
-    @DeleteMapping("/ch/{channelId}")
-    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId,
-                                                    @RequestHeader("Authorization") String authorizationHeader) {
-        chatHttpService.deleteChatMessageByChannelId(channelId);
-        return ResponseEntity.noContent().build();
 
-    }
-
+    // 메시지 수정
     @PatchMapping("/message/{chatId}")
     public ResponseEntity<?> updateMessage(@PathVariable String chatId,
-                                           @RequestBody ChatMessageRequest reqMessage) {
+                                           @RequestBody String reqMessage) {
         try {
             chatHttpService.updateMessage(chatId, reqMessage);
             CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 수정 성공", null);
@@ -124,6 +117,14 @@ public class ChatHttpController {
         } catch (Exception e) {
             return handleException(e);
         }
+    }
+
+    // feign : 채널 삭제
+    @DeleteMapping("/ch/{channelId}")
+    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId) {
+        chatHttpService.deleteChatMessageByChannelId(channelId);
+        return ResponseEntity.noContent().build();
+
     }
 
     // HTTP 예외 처리

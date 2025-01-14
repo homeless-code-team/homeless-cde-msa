@@ -108,7 +108,7 @@ public class ServerController {
     @DeleteMapping("/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id, @RequestHeader("Authorization") String authorization) {
 
-        serverService.deleteChannel(id,authorization);
+        serverService.deleteChannel(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
