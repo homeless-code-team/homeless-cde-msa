@@ -53,12 +53,11 @@ public class ChatHttpService {
         chatMessageRepository.deleteById(chatId);
     }
 
-    public void updateMessage(String chatId, ChatMessageRequest reqMessage) {
+    public void updateMessage(String chatId, String reqMessage) {
         ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
 
-        if (!chatMessage.getContent().equals(reqMessage.content())) {
-            chatMessage.setContent(reqMessage.content());
-            chatMessageRepository.save(chatMessage); // 변경된 내용만 저장
+        if (!chatMessage.getContent().equals(reqMessage)) {
+            chatMessageRepository.updateContent(chatId, reqMessage); // 변경된 내용만 저장
         }
     }
 

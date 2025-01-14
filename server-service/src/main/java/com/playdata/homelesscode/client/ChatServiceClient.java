@@ -10,6 +10,5 @@ public interface ChatServiceClient {
 
     // 채널 메시지 삭제
     @DeleteMapping("/api/v1/chats/ch/{channelId}")
-    void deleteChatMessageByChannelId(@PathVariable("channelId") String channelId,
-                                      @RequestHeader("Authorization") String authorization);
+    void deleteChatMessageByChannelId(@PathVariable("channelId") String channelId);
 }

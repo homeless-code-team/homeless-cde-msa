@@ -219,11 +219,10 @@ public class ServerService {
 
     }
 
-    public void deleteChannel(String id,
-                              @RequestHeader("Authorization") String authorization) {
+    public void deleteChannel(String id) {
 
         channelRepository.deleteById(id);
-        chatServiceClient.deleteChatMessageByChannelId(id,authorization);
+        chatServiceClient.deleteChatMessageByChannelId(id);
 
     }
 
