@@ -1,6 +1,7 @@
 package com.spring.homeless_user.user.controller;
 
 
+import com.spring.homeless_user.user.Oauth.OAuthService;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class UserController {
 
     @Autowired
     private final UserService userService;
+
+    private final OAuthService oAuthService;
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
     //회원가입
     @PostMapping("/sign-up")
@@ -71,16 +74,18 @@ public class UserController {
 
     // 이메일 & 닉네임 중복검사 회원가입시
     @GetMapping("/duplicate")
-    public CommonResDto duplicateCheck(@RequestParam DuplicateDto dto) throws IOException {
-        log.info("duplicateCheck - email: {}, nickname: {}", dto.getEmail(), dto.getNickname());
-        return userService.duplicateCheck(dto);
+    public CommonResDto duplicateCheck(@RequestParam(required = false) String email
+            ,@RequestParam(required = false) String nickname) throws IOException {
+        log.info("duplicateCheck - email: {}, nickname: {}", email, nickname);
+        return userService.duplicateCheck(email, nickname);
     }
 
-    // 이메일 & 닉네임 중복검사 회원가입시
+    // 이메일 & 닉네임 중복검사 수정시
     @GetMapping("/duplicate/mod")
-    public CommonResDto duplicateCheckmodify(@RequestParam DuplicateDto dto) throws IOException {
-        log.info("duplicateCheck - email: {}, nickname: {}", dto.getEmail(), dto.getNickname());
-        return userService.duplicateCheck(dto);
+    public CommonResDto duplicateCheckmodify(@RequestParam(required = false) String email,
+                                             @RequestParam(required = false) String nickname) throws IOException {
+        log.info("duplicateCheck");
+        return userService.duplicateCheck(email, nickname);
     }
     // 회원탈퇴
     @DeleteMapping("")
@@ -111,10 +116,15 @@ public class UserController {
     @GetMapping("/o-auth")
     public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
         log.info("/o-auth:GET, provider: {}", provider);
-        String redirectUrl = provider.equalsIgnoreCase("google")
-                ? "https://accounts.google.com/o/oauth2/auth?client_id=620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com&redirect_uri=http://localhost:3000/&response_type=code&scope=email"
-                : "https://github.com/login/oauth/authorize?client_id=Ov23liRmQbUUzPUCt2xn&redirect_uri=http://localhost:3000/&scope=user";
-        return ResponseEntity.ok().body(redirectUrl);
+        if(provider == "google"){
+            log.info("/o-auth:GET, provider: {}", provider);
+            String redirectUrl = oAuthService.getGoogleRedirectUri();
+        return ResponseEntity.ok().body(redirectUrl);}
+        else{
+            log.info("/o-auth:GET, provider: {}", provider);
+            String redirectUrl = oAuthService.getGithubRedirectUri();
+            return ResponseEntity.ok().body(redirectUrl);
+        }
     }
 
     // 2. OAuth Callback 처리

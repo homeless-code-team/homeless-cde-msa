@@ -80,15 +80,15 @@ oauth:
   google:
     token-url: https://oauth2.googleapis.com/token
     user-info-url: https://openidconnect.googleapis.com/v1/userinfo
-    client-id: 620143532786-83hrncmdlrmcuspccto7tu4qf3g7vge2.apps.googleusercontent.com
-    client-secret: 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
-    redirect-uri: http://localhost:3000/
+    client-id: 620143532786-1ptl8m3dt14imi56eaa4sjh9lv4imjj1.apps.googleusercontent.com
+    client-secret: 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
+    redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
   github:
     token-url: https://github.com/login/oauth/access_token
     user-info-url: https://api.github.com/user
     client-id: Ov23liRmQbUUzPUCt2xn
     client-secret: e8b8b26e01e015461d46e25bc81058c6ae9f0398
-    redirect-uri: http://localhost:3000/
+    redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
 
 
 logging:
