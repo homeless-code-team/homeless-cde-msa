@@ -1,6 +1,7 @@
 package com.spring.homelesscode.friends_server.service;
 
 
+import com.spring.homelesscode.friends_server.cofig.UserServiceClient;
 import com.spring.homelesscode.friends_server.common.utill.SecurityContextUtil;
 import com.spring.homelesscode.friends_server.dto.CommonResDto;
 import com.spring.homelesscode.friends_server.dto.FriendsDto;
@@ -14,29 +15,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
 @Slf4j
-public class FriendsAndServerService {
+public class FriendsService {
 
     private final FriendsRepository friendsRepository;
     private final SecurityContextUtil securityContextUtil;
     private final RedisTemplate<String, String> friendsTemplate;
     private final RedisTemplate<String, String> serverTemplate;
+    private final UserServiceClient userServiceclient;
 
-    public FriendsAndServerService(FriendsRepository friendsRepository,
-                                   SecurityContextUtil securityContextUtil,
-                                   @Qualifier("friends") RedisTemplate<String, String> friendsTemplate,
-                                   @Qualifier("server") RedisTemplate<String, String> serverTemplate) {
+    public FriendsService(FriendsRepository friendsRepository,
+                          SecurityContextUtil securityContextUtil,
+                          @Qualifier("friends") RedisTemplate<String, String> friendsTemplate,
+                          @Qualifier("server") RedisTemplate<String, String> serverTemplate, UserServiceClient userServiceclient) {
         this.friendsRepository = friendsRepository;
         this.securityContextUtil = securityContextUtil;
         this.friendsTemplate = friendsTemplate;
         this.serverTemplate = serverTemplate;
+        this.userServiceclient = userServiceclient;
     }
 
     // 친구요청
@@ -87,16 +87,33 @@ public class FriendsAndServerService {
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/friends", "GET"));
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/friends", "Delete"));
         try {
-            String nickname = securityContextUtil.getCurrentUser().getNickname();
+            String nickname = SecurityContextUtil.getCurrentUser().getNickname();
 
-            List<Friends> friends = friendsRepository.findByNickname(nickname);
+            // JPQL로 친구 목록 조회 (refreshToken 여부 포함)
+            List<Friends> results = friendsRepository.findByNickname(nickname);
+
 
             // 친구 목록이 없을 경우 처리
-            if (friends == null || friends.isEmpty()) {
+            if (results == null || results.isEmpty()) {
                 return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
             }
+            // refreshToken 확인 및 결과 생성
+            // refreshToken 확인 및 결과 생성
+            List<Map<String, Object>> response = new ArrayList<>();
+            for (Friends friend : results) {
+                String friendNickname = friend.getNickname();
+
+                // Feign 클라이언트를 통해 UserService와 통신
+                boolean hasRefreshToken = userServiceclient.existsByNicknameAndRefreshToken(friendNickname);
+
+                Map<String, Object> friendData = new HashMap<>();
+                friendData.put("nickname", friendNickname);
+                friendData.put("refreshToken", hasRefreshToken ? 1 : 0);
+
+                response.add(friendData);
+            }
             //친구목록을 사용자에게 반환
-            return new CommonResDto(HttpStatus.OK, 200, "친구목록 조회 성공", friends, links);
+            return new CommonResDto(HttpStatus.OK, 200, "친구목록 조회 성공", response, links);
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러발생" + e.getMessage(), null, links);

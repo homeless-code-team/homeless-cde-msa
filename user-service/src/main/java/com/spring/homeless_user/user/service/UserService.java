@@ -633,6 +633,9 @@ public Mono<String> getAccessToken(String provider, String code) {
                 .onErrorResume(e -> Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links)));
     }
 
+    public boolean existsByNicknameAndRefreshToken(String nickname) {
+        return false;
+    }
 }
 ////////////////////////////////////////////////////////AWS 사진업로드///////////////////////////////////////////////////
 
