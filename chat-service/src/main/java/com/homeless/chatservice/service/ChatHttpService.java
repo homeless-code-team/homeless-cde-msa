@@ -17,6 +17,8 @@ import java.util.Optional;
 public class ChatHttpService {
 
     private final ChatMessageRepository chatMessageRepository;
+
+    // 채팅 메시지 생성 및 저장
     public String createChatMessage(ChatMessageCreateCommand command) {
         // 채팅 메시지 생성
         ChatMessage chatMessage = ChatMessage.builder()
@@ -34,6 +36,7 @@ public class ChatHttpService {
         return savedMessage.getId();  // 저장된 메시지의 id 반환
     }
 
+    // 메시지 리스트 조회
     public List<ChatMessageResponse> getMessagesByChannel(String channelId) {
         // 특정 채팅방의 메시지 조회
         return chatMessageRepository.findByChannelId(channelId).stream()
@@ -47,11 +50,12 @@ public class ChatHttpService {
                 .toList();
     }
 
-
+    // 메시지 삭제
     public void deleteMessage(String chatId) {
         chatMessageRepository.deleteById(chatId);
     }
 
+    // 메시지 컨텐츠 업데이트
     public void updateMessage(String chatId, String reqMessage) {
         ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
 
@@ -60,10 +64,12 @@ public class ChatHttpService {
         }
     }
 
+    // 메시지 조회
     public Optional<ChatMessage> getChatMessage(String chatId) {
         return chatMessageRepository.findById(chatId);
     }
 
+    // 해당 채널의 모든 메시지 삭제
     @Transactional
     public void deleteChatMessageByChannelId(String channelId){
         chatMessageRepository.deleteChatMessageByChannelId(channelId);

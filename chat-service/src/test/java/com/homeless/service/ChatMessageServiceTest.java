@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,5 +74,30 @@ public class ChatMessageServiceTest {
 
         // 기대하는 업데이트된 내용과 비교
         assertEquals("update", updatedContent, "Message content should be updated");
+    }
+
+    @Test
+    void 통합_채널_내_메시지_전체_삭제_테스트() {
+        // given
+        String testChannelId = "testChannel";
+        // when
+        ChatMessageCreateCommand command1 = new ChatMessageCreateCommand("server-id", testChannelId, "guest1@1.com", "안녕1", "guest1");
+        String chatId1 = chatHttpService.createChatMessage(command1);
+        ChatMessageCreateCommand command2 = new ChatMessageCreateCommand("server-id", testChannelId, "guest2@2.com", "안녕2", "guest2");
+        String chatId2 = chatHttpService.createChatMessage(command1);
+
+        // then
+        // 채널에 해당하는 메시지들이 저장되었는지 확인
+        List<ChatMessage> messagesBeforeDelete = chatMessageRepository.findByChannelId(testChannelId);
+        assertEquals(2, messagesBeforeDelete.size(), "There should be two messages before deletion");
+
+        // when
+        // 해당 채널의 모든 메시지 삭제
+        chatHttpService.deleteChatMessageByChannelId(testChannelId);
+
+        // then
+        // 채널에 해당하는 메시지들이 삭제되었는지 확인
+        List<ChatMessage> messagesAfterDelete = chatMessageRepository.findByChannelId(testChannelId);
+        assertTrue(messagesAfterDelete.isEmpty(), "Messages should be deleted after channel message deletion");
     }
 }
