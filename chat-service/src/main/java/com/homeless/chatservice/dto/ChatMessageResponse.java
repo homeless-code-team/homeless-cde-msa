@@ -6,5 +6,5 @@ import lombok.Builder;
 
 
 @Builder
-public record ChatMessageResponse(String id, String content, String writer, Long timestamp) {
+public record ChatMessageResponse(String id, String email, String content, String writer, Long timestamp) {
 }
