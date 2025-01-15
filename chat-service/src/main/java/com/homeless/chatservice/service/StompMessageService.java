@@ -20,6 +20,7 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,7 @@ public class StompMessageService {
 
     // 메시지를 RabbitMQ로 전달하는 메서드
     // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
+    @Transactional
     public void sendMessage(MessageDto message) {
         String routingKey = "chat.channel." + message.getChannelId();
 
