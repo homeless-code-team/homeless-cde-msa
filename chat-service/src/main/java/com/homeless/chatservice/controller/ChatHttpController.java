@@ -9,6 +9,7 @@ import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
 import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/chats")
+@Slf4j
 public class ChatHttpController {
 
     private final ChatHttpService chatHttpService;
@@ -73,15 +75,19 @@ public class ChatHttpController {
         }
     }
 
-    //메시지 삭제
+    //메시지 삭제 : 토큰에서 이메일 가져오기 위한 헤더
     @DeleteMapping("/message/{chatId}")
     public ResponseEntity<?> deleteMessage(@PathVariable String chatId,
                                            @RequestHeader("Authorization") String authorizationHeader) {
+
+        log.info("DeleteMapping chatId: {}, authorizationHeader: {}", chatId, authorizationHeader);
         try {
-            // 1. 토큰 검사.
-            jwtUtils.validateToken(authorizationHeader);
+            // 1. 토큰 검사. (Bearer 떼고 검사)
+            String tokenWithoutBearer = jwtUtils.validateToken(authorizationHeader);
+            log.info("after validate token...");
             // 2. 토큰에서 이메일 가져오기
-            String userEmail = jwtUtils.getEmailFromToken(authorizationHeader);
+            String userEmail = jwtUtils.getEmailFromToken(tokenWithoutBearer);
+            log.info("userEmail: {}", userEmail);
             // 3. chatId로 chatMessageOpt 가져오기
             Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
             // 4. Optional 객체의 값이 존재하는지 확인
