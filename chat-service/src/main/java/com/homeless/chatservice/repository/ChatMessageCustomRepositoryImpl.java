@@ -1,6 +1,5 @@
 package com.homeless.chatservice.repository;
 
-import com.homeless.chatservice.common.exception.ServerNotFoundException;
 import com.homeless.chatservice.entity.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
