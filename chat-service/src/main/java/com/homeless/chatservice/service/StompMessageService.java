@@ -5,10 +5,7 @@ import com.homeless.chatservice.common.config.RabbitConfig;
 import com.homeless.chatservice.dto.CreateChannelRequest;
 import com.homeless.chatservice.dto.JoinMessage;
 import com.homeless.chatservice.dto.LeaveMessage;
-import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.entity.MessageDto;
-import com.homeless.chatservice.repository.ChatMessageCustomRepository;
-import com.homeless.chatservice.repository.ChatMessageCustomRepositoryImpl;
 import com.homeless.chatservice.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +33,6 @@ public class StompMessageService {
     private final RabbitConfig rabbitConfig;
     private final RabbitAdmin rabbitAdmin;
     private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
-
-    private final ChatMessageRepository chatMessageRepository;
-
 
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;

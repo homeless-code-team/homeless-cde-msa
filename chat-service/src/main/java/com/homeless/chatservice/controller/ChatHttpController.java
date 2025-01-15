@@ -1,12 +1,10 @@
 package com.homeless.chatservice.controller;
 
 import com.homeless.chatservice.common.auth.JwtUtils;
-import com.homeless.chatservice.dto.ChatMessageCreateCommand;
-import com.homeless.chatservice.dto.ChatMessageRequest;
+import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
 import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.entity.ChatMessage;
-import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
 import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
