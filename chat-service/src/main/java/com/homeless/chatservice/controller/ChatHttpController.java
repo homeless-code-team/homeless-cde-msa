@@ -45,40 +45,40 @@ public class ChatHttpController {
 
 
     //메시지 삭제 : 토큰에서 이메일 가져오기 위한 헤더
-    @DeleteMapping("/message/{chatId}")
-    public ResponseEntity<?> deleteMessage(@PathVariable String chatId,
-                                           @RequestHeader("Authorization") String authorizationHeader) {
-
-        log.info("DeleteMapping chatId: {}, authorizationHeader: {}", chatId, authorizationHeader);
-        try {
-            // 1. 토큰 검사. (Bearer 떼고 검사)
-            String tokenWithoutBearer = jwtUtils.validateToken(authorizationHeader);
-            log.info("after validate token...");
-            // 2. 토큰에서 이메일 가져오기
-            String userEmail = jwtUtils.getEmailFromToken(tokenWithoutBearer);
-            log.info("userEmail: {}", userEmail);
-            // 3. chatId로 chatMessageOpt 가져오기
-            Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
-            // 4. Optional 객체의 값이 존재하는지 확인
-            if (chatMessageOpt.isPresent()) {
-                ChatMessage chatMessage = chatMessageOpt.get();
-
-                // 작성자 확인 또는 관리자 권한 확인
-                if (chatMessage.getEmail().equals(userEmail)) {
-                    chatHttpService.deleteMessage(chatId);
-                    CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 삭제 성공: " + chatId, null);
-                    return new ResponseEntity<>(resDto, HttpStatus.OK);
-                } else {
-                    CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다.", null);
-                    return new ResponseEntity<>(resDto, HttpStatus.FORBIDDEN);
-                }
-            } else {
-                throw new ChatMessageNotFoundException("Chat message not found with id: " + chatId);
-            }
-        } catch (Exception e) {
-            return handleException(e);
-        }
-    }
+//    @DeleteMapping("/message/{chatId}")
+//    public ResponseEntity<?> deleteMessage(@PathVariable String chatId,
+//                                           @RequestHeader("Authorization") String authorizationHeader) {
+//
+//        log.info("DeleteMapping chatId: {}, authorizationHeader: {}", chatId, authorizationHeader);
+//        try {
+//            // 1. 토큰 검사. (Bearer 떼고 검사)
+//            String tokenWithoutBearer = jwtUtils.validateToken(authorizationHeader);
+//            log.info("after validate token...");
+//            // 2. 토큰에서 이메일 가져오기
+//            String userEmail = jwtUtils.getEmailFromToken(tokenWithoutBearer);
+//            log.info("userEmail: {}", userEmail);
+//            // 3. chatId로 chatMessageOpt 가져오기
+//            Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
+//            // 4. Optional 객체의 값이 존재하는지 확인
+//            if (chatMessageOpt.isPresent()) {
+//                ChatMessage chatMessage = chatMessageOpt.get();
+//
+//                // 작성자 확인 또는 관리자 권한 확인
+//                if (chatMessage.getEmail().equals(userEmail)) {
+//                    chatHttpService.deleteMessage(chatId);
+//                    CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 삭제 성공: " + chatId, null);
+//                    return new ResponseEntity<>(resDto, HttpStatus.OK);
+//                } else {
+//                    CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다.", null);
+//                    return new ResponseEntity<>(resDto, HttpStatus.FORBIDDEN);
+//                }
+//            } else {
+//                throw new ChatMessageNotFoundException("Chat message not found with id: " + chatId);
+//            }
+//        } catch (Exception e) {
+//            return handleException(e);
+//        }
+//    }
 
 
     // 메시지 수정
