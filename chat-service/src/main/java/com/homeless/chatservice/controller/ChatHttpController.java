@@ -45,35 +45,6 @@ public class ChatHttpController {
         }
     }
 
-    // 메시지 전송
-    @PostMapping("/ch/{channelId}")
-    public ResponseEntity<?> sendMessageHttp(
-            @PathVariable String channelId,
-            @RequestBody ChatMessageRequest chatMessage) {
-        try {
-
-            // 유효성 검사 (예시)
-            if (chatMessage.content() == null || chatMessage.content().isEmpty()) {
-                throw new IllegalArgumentException("Message text cannot be empty");
-            }
-
-            // 채팅 메시지 생성
-            ChatMessageCreateCommand chatMessageCreateCommand =
-                    new ChatMessageCreateCommand("test-server", channelId, chatMessage.email(), chatMessage.content(), chatMessage.writer());
-
-            // 메시지 저장 후 생성된 chatId
-            String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
-
-            // 저장된 메시지 응답
-            //ChatMessageResponse response = new ChatMessageResponse(chatId, chatMessage.text(), chatMessage.writer(), chatMessage.timestamp());
-            Map<String, Object> result = new HashMap<>();
-            CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 저장 완료", result);
-
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (Exception e) {
-            return handleException(e);
-        }
-    }
 
     //메시지 삭제 : 토큰에서 이메일 가져오기 위한 헤더
     @DeleteMapping("/message/{chatId}")
