@@ -63,6 +63,7 @@ public class WebSocketController {
             messageService.sendMessage(messageDto);
             // 성공 응답
             Map<String, Object> result = new HashMap<>();
+            result.put("chatId", chatId);
             CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 저장 완료", result);
 
             // 클라이언트로 응답 전송 (웹소켓을 통해)
