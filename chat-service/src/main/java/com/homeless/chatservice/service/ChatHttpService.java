@@ -26,8 +26,9 @@ public class ChatHttpService {
                 .channelId(command.channelId())
                 .writer(command.writer())
                 .content(command.content())
-                .timestamp(System.currentTimeMillis())
                 .email(command.email())
+                .messageType(command.messageType())
+                .timestamp(System.currentTimeMillis())
                 .build();
         System.out.println("Email: " + command.email());
 

@@ -2,6 +2,7 @@ package com.homeless.service;
 
 import com.homeless.chatservice.ChatServiceApplication;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
+import com.homeless.chatservice.dto.MessageType;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.repository.ChatMessageRepository;
 import com.homeless.chatservice.service.ChatHttpService;
@@ -30,7 +31,7 @@ public class ChatMessageServiceTest {
     @Rollback
     void 통합_메시지_생성_테스트() {
         // given
-        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123@1.com", "안녕", "geustUser");
+        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123@1.com", "geustUser", "hi", MessageType.TALK);
 
         // when
         String chatId = chatHttpService.createChatMessage(command);
@@ -44,7 +45,7 @@ public class ChatMessageServiceTest {
     @Rollback
     void 통합_메시지_삭제_테스트() {
         // given
-        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123", "안녕", "user1");
+        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123@c.com", "user1", "hi", MessageType.TALK);
         String chatId = chatHttpService.createChatMessage(command);
 
         // when
@@ -58,7 +59,7 @@ public class ChatMessageServiceTest {
     @Rollback
     void 통합_메시지_수정_테스트() {
         // given
-        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123", "안녕", "user1");
+        ChatMessageCreateCommand command = new ChatMessageCreateCommand("server-id", "channel-id", "guest123", "user1", "hi", MessageType.TALK);
         String chatId = chatHttpService.createChatMessage(command);
         // when
         chatHttpService.updateMessage(chatId, "update");
@@ -81,10 +82,10 @@ public class ChatMessageServiceTest {
         // given
         String testChannelId = "testChannel";
         // when
-        ChatMessageCreateCommand command1 = new ChatMessageCreateCommand("server-id", testChannelId, "guest1@1.com", "안녕1", "guest1");
+        ChatMessageCreateCommand command1 = new ChatMessageCreateCommand("server-id", testChannelId, "guest1@1.com", "guest1", "안녕1", MessageType.TALK);
         String chatId1 = chatHttpService.createChatMessage(command1);
-        ChatMessageCreateCommand command2 = new ChatMessageCreateCommand("server-id", testChannelId, "guest2@2.com", "안녕2", "guest2");
-        String chatId2 = chatHttpService.createChatMessage(command1);
+        ChatMessageCreateCommand command2 = new ChatMessageCreateCommand("server-id", testChannelId, "guest2@2.com", "안녕1", "안녕2", MessageType.TALK);
+        String chatId2 = chatHttpService.createChatMessage(command2);
 
         // then
         // 채널에 해당하는 메시지들이 저장되었는지 확인
