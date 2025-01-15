@@ -5,7 +5,11 @@ import com.homeless.chatservice.common.config.RabbitConfig;
 import com.homeless.chatservice.dto.CreateChannelRequest;
 import com.homeless.chatservice.dto.JoinMessage;
 import com.homeless.chatservice.dto.LeaveMessage;
+import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.entity.MessageDto;
+import com.homeless.chatservice.repository.ChatMessageCustomRepository;
+import com.homeless.chatservice.repository.ChatMessageCustomRepositoryImpl;
+import com.homeless.chatservice.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;
@@ -17,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +36,7 @@ public class StompMessageService {
     private final RabbitAdmin rabbitAdmin;
     private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
 
+    private final ChatMessageRepository chatMessageRepository;
 
 
     @Value("${rabbitmq.chat-exchange.name}")
@@ -85,8 +91,9 @@ public class StompMessageService {
     // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
     public void sendMessage(MessageDto message) {
         String routingKey = "chat.channel." + message.getChannelId();
-        log.info("Sending message to exchange: {}, routing key: {}",
-                CHAT_EXCHANGE_NAME, routingKey);
+
+        log.info("Sending message to exchange: {}, routing key: {}", CHAT_EXCHANGE_NAME, routingKey);
+
         rabbitTemplate.convertAndSend(
                 CHAT_EXCHANGE_NAME,
                 routingKey,
@@ -173,8 +180,5 @@ public class StompMessageService {
     private String generateChannelId() {
         return UUID.randomUUID().toString();
     }
-
-
-
 
 }
