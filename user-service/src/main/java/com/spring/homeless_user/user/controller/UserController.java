@@ -6,9 +6,10 @@ import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -107,5 +108,20 @@ public class UserController {
         log.info("getUserData");
         return userService.getUserData();
     }
+
+
+
+    /// feign 요청
+    @PostMapping("/userList")
+    public List<UserResponseDto> findByEmailIn(@RequestBody List<String> userEmails){
+
+        List<UserResponseDto> byEmailIn = userService.findByEmailIn(userEmails);
+
+        log.info("여기는 유저 컨트롤러 {}", byEmailIn);
+
+
+        return byEmailIn;
+    }
+
 
 }

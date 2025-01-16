@@ -36,6 +36,6 @@ public class ServerJoinUserList {
 
     private String email;
 
-
+    @Enumerated(EnumType.STRING)
     private Role role;
 }

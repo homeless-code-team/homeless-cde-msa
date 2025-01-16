@@ -12,9 +12,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -557,8 +556,18 @@ public class UserService {
     }
 
 
+    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+
+        List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
+
+        log.info("유저리스트 {}", byEmailIn);
+
+        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
+                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
 
 
+        return collect;
+    }
 }
 
 
