@@ -2,6 +2,6 @@ package com.homeless.chatservice.dto;
 
 public enum MessageType {
 
-    CHAT, JOIN, LEAVE, SYSTEM, TALK
+    JOIN, LEAVE, SYSTEM, TALK, FILE, DELETE
 
 }
