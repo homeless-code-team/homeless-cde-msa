@@ -2,7 +2,7 @@ package com.homeless.chatservice.controller;
 
 
 import com.homeless.chatservice.common.auth.JwtUtils;
-import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
+import com.homeless.chatservice.common.exception.TokenValidationException;
 import com.homeless.chatservice.dto.*;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.entity.MessageDto;
@@ -18,6 +18,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,11 +31,12 @@ public class WebSocketController {
     private final StompMessageService messageService;
     private final ChatHttpService chatHttpService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
     // 채팅 메시지 수신 및 저장
     @MessageMapping("chat.message.{channelId}") // 웹소켓을 통해 들어오는 메시지의 목적지를 정함.
     @Operation(summary = "메시지 전송", description = "메시지를 전송합니다.")
+    @Transactional
     public void sendMessage(@DestinationVariable String channelId,
                             ChatMessageRequest chatReqDto) { // @DestinationVariable로 url의 동적 부분을 파라미터로 받는다.
 
@@ -94,6 +96,7 @@ public class WebSocketController {
 
     @MessageMapping("chat.message.delete.{channelId}")
     @SendTo("/exchange/chat.exchange/chat.channel.{channelId}")
+    @Transactional
     public void deleteMessage(@DestinationVariable String channelId,
                               String chatId,
                               @Header("Authorization") String authorizationHeader) {
@@ -109,9 +112,11 @@ public class WebSocketController {
             String userEmail = jwtUtils.getEmailFromToken(tokenWithoutBearer);
             log.info("User email: {}", userEmail);
 
+
             // 3. chatId로 메시지 가져오기
             Optional<ChatMessage> chatMessageOpt = chatHttpService.getChatMessage(chatId);
-
+            log.info("Chat message: {}", chatId);
+            log.info("chatMessageOpt: {}", chatMessageOpt);
             // 4. 메시지가 존재하는지 확인
             if (chatMessageOpt.isPresent()) {
                 ChatMessage chatMessage = chatMessageOpt.get();
@@ -120,28 +125,39 @@ public class WebSocketController {
                 if (chatMessage.getEmail().equals(userEmail)) {
                     // 메시지 삭제
                     chatHttpService.deleteMessage(chatId);
-                    log.info("Message with chatId {} deleted successfully", chatId);
+                    log.info("Message with chatId {} deleted successfully : 메시지 삭제 성공!!!", chatId);
 
                     // 삭제된 메시지를 클라이언트에게 전송
                     Map<String, Object> result = new HashMap<>();
-                    result.put("deleteChatId", chatId);
-                    result.put("message", "Message deleted");
-
+                    result.put("status", "success");
+                    result.put("message", "Message deleted: 메시지 삭제됨.");
+                    result.put("deletedChatId", chatId);
                     simpMessagingTemplate.convertAndSend("/exchange/chat.exchange/chat.channel." + channelId, result);
                 } else {
                     log.warn("User does not have permission to delete message: {}", chatId);
                     Map<String, Object> errorResult = new HashMap<>();
-                    errorResult.put("error", "Permission denied");
+                    errorResult.put("status", "error");
+                    errorResult.put("message", "Permission denied");
                     simpMessagingTemplate.convertAndSend("/exchange/chat.exchange/chat.channel." + channelId, errorResult);
                 }
             } else {
-                log.error("Chat message not found: {}", chatId);
-                throw new ChatMessageNotFoundException("Chat message not found with id: " + chatId);
+                log.error("Chat message not found: {} : 메시지 객체 찾지못함.", chatId);
+                Map<String, Object> errorResult = new HashMap<>();
+                errorResult.put("status", "error");
+                errorResult.put("message", "Chat message not found");
+                simpMessagingTemplate.convertAndSend("/exchange/chat.exchange/chat.channel." + channelId, errorResult);
             }
+        } catch (TokenValidationException e) {
+            log.error("Token validation failed: {}", e.getMessage(), e);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("status", "error");
+            errorResult.put("message", "Token validation failed");
+            simpMessagingTemplate.convertAndSend("/exchange/chat.exchange/chat.channel." + channelId, errorResult);
         } catch (Exception e) {
             log.error("Error while deleting message: {}", e.getMessage(), e);
             Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("error", "Failed to delete message");
+            errorResult.put("status", "error");
+            errorResult.put("message", "Failed to delete message");
             simpMessagingTemplate.convertAndSend("/exchange/chat.exchange/chat.channel." + channelId, errorResult);
         }
     }

@@ -6,6 +6,8 @@ import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.repository.ChatMessageRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ChatHttpService {
 
     private final ChatMessageRepository chatMessageRepository;
@@ -65,9 +68,15 @@ public class ChatHttpService {
         }
     }
 
-    // 메시지 조회
+    // 메시지 조
     public Optional<ChatMessage> getChatMessage(String chatId) {
-        return chatMessageRepository.findById(chatId);
+        try {
+            ObjectId objectId = new ObjectId(chatId);
+            return chatMessageRepository.findById(objectId);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid chatId format", e);
+            return Optional.empty();
+        }
     }
 
     // 해당 채널의 모든 메시지 삭제
