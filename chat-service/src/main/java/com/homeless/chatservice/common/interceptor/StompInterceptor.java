@@ -67,7 +67,7 @@ public class StompInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
-            log.info("Post-send processing for message: {}", message);
+            //log.info("Post-send processing for message: {}", message);
         }
     }
 }
