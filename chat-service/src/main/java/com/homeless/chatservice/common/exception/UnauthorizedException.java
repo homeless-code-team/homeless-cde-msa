@@ -11,7 +11,7 @@ public class UnauthorizedException extends RuntimeException {
     private String errorMessage;
 
     // 생성자
-    private UnauthorizedException(String errorCode, String errorMessage) {
+    public UnauthorizedException(String errorCode, String errorMessage) {
         super(errorMessage);
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;

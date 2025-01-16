@@ -6,18 +6,12 @@ spring:
     name: chat-service
   config:
     import: "optional:configserver:"
-#  data:
-#    mongodb:
-#      uri: mongodb://localhost:27017/chat # 도커 내부에서 MongoDB가 실행 중이라면 IP나 서비스 이름을 사용
-#  rabbitmq:
-#    host: localhost
-#    port: 5672
-#    username: guest
-#    password: guest
-#    stream:
-#      virtual-host: /
   main:
     allow-bean-definition-overriding: true
+  data:
+    redis:
+      host: localhost
+      port: 6379 # Redis 서버 포트
 
 eureka:
   client:
@@ -41,6 +35,8 @@ springdoc:
   enable-spring-security: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+
 
 logging:
   level:

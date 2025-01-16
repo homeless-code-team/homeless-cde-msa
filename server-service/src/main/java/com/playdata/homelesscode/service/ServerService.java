@@ -29,7 +29,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,8 +48,6 @@ public class ServerService {
     private final BoardListRepository boardListRepository;
     private final BoardRepository boardRepository;
     private final AwsS3Config s3Config;
-    private final SecurityContextUtil securityContextUtil;
-    private final UserServiceClient userServiceClient;
     private final ChatServiceClient chatServiceClient;
 
 
@@ -72,8 +69,6 @@ public class ServerService {
         this.channelRepository = channelRepository;
         this.boardListRepository = boardListRepository;
         this.boardRepository = boardRepository;
-        this.securityContextUtil = securityContextUtil;
-        this.userServiceClient = userServiceClient;
         this.serverTemplate = serverTemplate;
         this.s3Config = s3Config;
         this.chatServiceClient = chatServiceClient;
@@ -211,7 +206,7 @@ public class ServerService {
         boolean checkRole = false;
         for (ServerJoinUserList server : collect) {
             Role role = server.getRole(); // role 가져오기
-            if ("Owner".equals(role) || "Manager".equals(role)) {
+            if ("OWNER".equals(role) || "ROLE".equals(role)) {
                 checkRole = true;
                 break; // 조건을 만족하는 role을 찾으면 더 이상 순회하지 않고 종료
             }
@@ -232,11 +227,10 @@ public class ServerService {
 
     }
 
-    public void deleteChannel(String id,
-                              @RequestHeader("Authorization") String authorization) {
+    public void deleteChannel(String id) {
 
         channelRepository.deleteById(id);
-        chatServiceClient.deleteChatMessageByChannelId(id,authorization);
+        chatServiceClient.deleteChatMessageByChannelId(id);
 
     }
 
