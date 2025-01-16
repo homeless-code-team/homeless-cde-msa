@@ -1,6 +1,8 @@
 package com.homeless.chatservice.common.config;
 
 //import com.homeless.chatservice.interceptor.WebSocketAuthInterceptor;
+import com.homeless.chatservice.common.interceptor.StompInterceptor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +20,10 @@ import reactor.netty.tcp.TcpClient;
 @Configuration
 @EnableWebSocketMessageBroker // WebSocket을 통한 메시지 브로커 기능 활성화하기
 @Slf4j
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final StompInterceptor stompInterceptor;
 
     /*
         WebSocket과 STOMP 메시징을 위한 설정을 추가.
@@ -27,6 +32,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     //@Autowired
     //private WebSocketAuthInterceptor webSocketAuthInterceptor;
 
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        // STOMP 인터셉터 추가
+        registration.interceptors(stompInterceptor);
+    }
     @Value("${spring.rabbitmq.host}")
     private String RABBITMQ_HOST;
 
@@ -37,7 +47,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // setAllowedOrigins("*")는 모든 ip에서 접속 가능하도록 해줌
         registry.addEndpoint("/ws") // 연결될 엔드포인트
                 .setAllowedOriginPatterns("*")
-                //.addInterceptors(webSocketAuthInterceptor)
                 .withSockJS(); // WebSocket을 지원하지 않는 브라우저를 위한 옵션
     }
 
