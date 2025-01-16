@@ -18,19 +18,33 @@ public class JwtUtils {
     private final Key jwtSecretKey;
 
     public JwtUtils(@Value("${jwt.secret-key}") String secretKey) {
+        log.info("secret key: {}", secretKey);
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         jwtSecretKey = Keys.hmacShaKeyFor(keyBytes);
+        log.info("jwtSecret: {}", jwtSecretKey);
     }
 
     public String extractJwt(final StompHeaderAccessor accessor) {
-        return accessor.getFirstNativeHeader("Authorization");
+        String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);  // "Bearer " 부분을 제거하고 토큰만 반환
+        }
+        return null;  // 올바른 형식의 토큰이 아니면 null 반환
     }
 
     // jwt 인증
-    public void validateToken(final String token) {
+    public String validateToken(final String token) {
+        String tokenWithoutBearer;
+        if (token != null && token.startsWith("Bearer ")) {
+            tokenWithoutBearer = token.substring(7);
+            log.info("tokenWithoutBearer: {}", tokenWithoutBearer);
+        } else {
+            log.warn("Invalid token");
+            return null;
+        }
+
         try {
-            String cleanToken = token.replace("Bearer ", "");
-            Jwts.parserBuilder().setSigningKey(jwtSecretKey).build().parseClaimsJws(cleanToken);
+            Jwts.parserBuilder().setSigningKey(jwtSecretKey).build().parseClaimsJws(tokenWithoutBearer);
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             throw UnauthorizedException.of(e.getClass().getName(), "잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
@@ -40,6 +54,8 @@ public class JwtUtils {
         } catch (IllegalArgumentException e) {
             throw UnauthorizedException.of(e.getClass().getName(), "JWT 토큰이 잘못되었습니다.");
         }
+
+        return tokenWithoutBearer;
     }
 
     public String getEmailFromToken(String token) {
