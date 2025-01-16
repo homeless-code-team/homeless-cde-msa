@@ -16,16 +16,13 @@ import com.playdata.homelesscode.entity.BoardList;
 import com.playdata.homelesscode.entity.Channel;
 import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.service.ServerService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -106,9 +103,9 @@ public class ServerController {
 
     // 채널 삭제
     @DeleteMapping("/channels")
-    public ResponseEntity<?> deleteChannel(@RequestParam String id, @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<?> deleteChannel(@RequestParam String id) {
 
-        serverService.deleteChannel(id,authorization);
+        serverService.deleteChannel(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
