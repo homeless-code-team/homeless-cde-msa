@@ -8,7 +8,8 @@ import lombok.Builder;
 public record ChatMessageCreateCommand(String serverId,
                                        String channelId,
                                        String email,
+                                       String writer,
                                        String content,
-                                       String writer) {
+                                       MessageType messageType) {
 
 }
