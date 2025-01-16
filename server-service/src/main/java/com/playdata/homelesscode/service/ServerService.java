@@ -9,6 +9,7 @@ import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
@@ -17,10 +18,13 @@ import com.playdata.homelesscode.dto.server.Role;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
 import com.playdata.homelesscode.dto.server.ServerDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
+import com.playdata.homelesscode.dto.user.UserResponseDto;
 import com.playdata.homelesscode.entity.*;
 import com.playdata.homelesscode.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -104,8 +108,11 @@ public class ServerService {
                 .role(Role.OWNER)
                 .build();
 
-        serverListRepository.save(serverList);
 
+        ServerJoinUserList save = serverListRepository.save(serverList);
+
+
+        log.info("여기는 서비스 롤은  {}", save.getRole());
 
         return result;
     }
@@ -118,7 +125,7 @@ public class ServerService {
 
         List<String> collect = byUserId.stream().map(s -> s.getServer().getId()).collect(Collectors.toList());
 
-        List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByTitle(collect, 0);
+        List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByServerTypeAsc(collect, 0);
 
 
 
@@ -127,13 +134,19 @@ public class ServerService {
         List<ServerResponseDto> collect1 = byIdIn.stream().map(server -> {
             ServerJoinUserList serverJoinUserList = byUserId.stream().filter(s -> s.getServer().getId().equals(server.getId()))
                     .findFirst().orElse(null);
-            return new ServerResponseDto(server.getId(),
-                    server.getTag(),
-                    server.getTitle(),
-                    server.getServerImg(),
-                    server.getEmail(),
-                    serverJoinUserList.getRole());
+
+            Role role = (serverJoinUserList != null) ? serverJoinUserList.getRole() : Role.GENERAL;
+
+                return new ServerResponseDto(server.getId(),
+                        server.getTag(),
+                        server.getTitle(),
+                        server.getServerImg(),
+                        server.getEmail(),
+                        server.getServerType(),
+                        role);
+
         }).collect(Collectors.toList());
+
 
 
         return collect1;
@@ -299,11 +312,22 @@ public class ServerService {
     }
 
 
-    public List<Board> getBoard(String id) {
+    public Page<Board> getBoard(BoardSearchDto dto, Pageable pageable) {
 
-        List<Board> result = boardRepository.findByBoardListId(id);
+//        List<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
+//        return result;
 
-        return result;
+        if(dto.getSearchName() != null){
+            log.info("아이디 {}", dto.getId());
+            log.info("검색 {}", dto.getSearchName());
+            Page<Board> result = boardRepository.findByBoardListIdAndTitleContainingOrderByCreateAtDesc(dto.getId(),dto.getSearchName(), pageable);
+            return result;
+        }else {
+            log.info("널인데?");
+            Page<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
+            return result;
+        }
+
 
     }
 
@@ -463,4 +487,18 @@ public class ServerService {
         return matchingKeys; // 매칭된 키 리스트 반환
     }
 
+    public List<UserResponseDto> getUserList(String id) {
+
+        List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
+
+        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
+
+        log.info("이메일 {}", userEmails);
+
+        List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails);
+
+
+
+        return byEmailIn;
+    }
 }
