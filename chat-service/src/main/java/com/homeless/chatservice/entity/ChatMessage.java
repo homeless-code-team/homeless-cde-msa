@@ -1,8 +1,10 @@
 package com.homeless.chatservice.entity;
 
+import com.homeless.chatservice.dto.MessageType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,5 +31,9 @@ public class ChatMessage {
     @NotNull(message = "Message content cannot be null")
     @Size(min = 1, max = 1000, message = "Message content must be between 1 and 1000 characters")
     private String content;
+    @NotNull
+    private MessageType messageType;
+    @CreatedDate
     private Long timestamp;
+
 }
