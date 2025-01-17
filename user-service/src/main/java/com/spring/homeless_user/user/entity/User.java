@@ -7,8 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+
 @Entity
 @Data
 @Builder
@@ -37,7 +36,7 @@ public class User {
     private String refreshToken;
 
 
-    public User(String email, String id, Provider provider, String nickname) {
+    public User(String email, String id, String nickname) {
 
     }
 }

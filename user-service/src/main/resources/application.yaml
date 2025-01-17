@@ -57,6 +57,8 @@ security:
     - /api/v1/users/swagger-ui/**
     - /api/v1/users/o-auth
     - /api/v1/users/callback
+    - /api/v1/users/details-by-email
+    - /api/v1/users/getemail
 
 
 instance:
@@ -77,18 +79,18 @@ jwt:
   secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
 oauth:
   provider:
-  google:
-    token-url: https://oauth2.googleapis.com/token
-    user-info-url: https://openidconnect.googleapis.com/v1/userinfo
-    client-id: 620143532786-1ptl8m3dt14imi56eaa4sjh9lv4imjj1.apps.googleusercontent.com
-    client-secret: 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
-    redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
-  github:
-    token-url: https://github.com/login/oauth/access_token
-    user-info-url: https://api.github.com/user
-    client-id: Ov23liRmQbUUzPUCt2xn
-    client-secret: e8b8b26e01e015461d46e25bc81058c6ae9f0398
-    redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
+    google:
+      token-url: https://oauth2.googleapis.com/token
+      user-info-url: https://openidconnect.googleapis.com/v1/userinfo
+      client-id: 620143532786-1ptl8m3dt14imi56eaa4sjh9lv4imjj1.apps.googleusercontent.com
+      client-secret: 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
+      redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
+    github:
+      token-url: https://github.com/login/oauth/access_token
+      user-info-url: https://api.github.com/user
+      client-id: Ov23liRmQbUUzPUCt2xn
+      client-secret: e8b8b26e01e015461d46e25bc81058c6ae9f0398
+      redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
 
 
 logging:

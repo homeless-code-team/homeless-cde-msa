@@ -1,25 +1,22 @@
 package com.spring.homeless_user.user.dto;
 
 import com.spring.homeless_user.user.entity.Provider;
+import lombok.*;
 
+@Getter@Setter@ToString
+@NoArgsConstructor
 public class OAuthUserInfoDto {
 
     private String id;
     private String email;        // OAuth 사용자 이메일
     private String name;         // 사용자 이름
-    private Provider provider;     // OAuth 제공자(Google, GitHub 등)
-    private String providerId;   // OAuth 제공자의 고유 사용자 ID
+
 
     // 생성자
-    public OAuthUserInfoDto(String id,String email, String name, Provider provider, String providerId) {
+    public OAuthUserInfoDto(String id,String email, String name) {
         this.id = id;
         this.email = email;
         this.name = name;
-        this.provider = provider;
-        this.providerId = providerId;
-    }
-
-    public OAuthUserInfoDto(String id, String email, String name, String id1) {
 
     }
 
@@ -45,14 +42,6 @@ public class OAuthUserInfoDto {
         this.name = name;
     }
 
-    public Provider getProvider() {
-        return this.provider;
-    }
-
-    // Setter 메서드
-    public void setProvider(Provider provider) {
-        this.provider = provider;
-    }
 
 }
 

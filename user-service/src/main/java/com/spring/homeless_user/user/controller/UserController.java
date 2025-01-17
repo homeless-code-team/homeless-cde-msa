@@ -6,6 +6,7 @@ import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -48,7 +48,7 @@ public class UserController {
         log.info("logout");
         return userService.userSignOut();
     }
-    
+
     // 토큰 갱신
     @PostMapping("/refresh-token")
     public CommonResDto reissueAccessToken() {
@@ -99,7 +99,7 @@ public class UserController {
     @PatchMapping( "")
     public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
     log.info("profileUpdate");
-    log.info(String.valueOf(dto.getProfileImage()));
+    log.info(String.valueOf(dto));
 
         return userService.modify(dto);
     }
@@ -111,41 +111,68 @@ public class UserController {
         log.info("getUserData");
         return userService.getUserData();
     }
+
+    // 유저데이터 모두 조회
+    @GetMapping("/all")
+    public CommonResDto allUser(){
+        log.info("allUser");
+        return userService.alluser();
+    }
+
     /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
-    // 1. 리다이렉션 URL 반환
+    // 1. 인증 URL 반환
     @GetMapping("/o-auth")
     public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
         log.info("/o-auth:GET, provider: {}", provider);
-        if(provider == "google"){
+        if ("google".equals(provider)) {
             log.info("/o-auth:GET, provider: {}", provider);
-            String redirectUrl = oAuthService.getGoogleRedirectUri();
-        return ResponseEntity.ok().body(redirectUrl);}
-        else{
+            String googleAuthUrl = oAuthService.getGoogleAuthUrl();
+            return ResponseEntity.ok().body(googleAuthUrl);
+        } else {
             log.info("/o-auth:GET, provider: {}", provider);
             String redirectUrl = oAuthService.getGithubRedirectUri();
             return ResponseEntity.ok().body(redirectUrl);
         }
+
     }
 
     // 2. OAuth Callback 처리
-    @PostMapping("/callback")
-    public Mono<ResponseEntity<CommonResDto>> handleOAuthCallback(
-            @RequestParam String code,
-            @RequestParam String provider
-    ) {
-        return userService.getAccessToken(provider, code)
-                .flatMap(accessToken -> userService.getUserInfo(provider, accessToken))
-                .flatMap(userService::processOAuthUser)
-                .map(ResponseEntity::ok)
+    @GetMapping("/callback")
+    public Mono<ResponseEntity<CommonResDto>> handleOAuthCallback(@RequestParam String code) {
+        // AccessTokenResponse는 액세스 토큰과 리프레시 토큰을 포함한 DTO입니다.
+        return userService.getAccessToken(code)
+                .flatMap(tokenResponse -> {
+                    log.info("tokenResponse: {}", tokenResponse);
+                    // 액세스 토큰과 리프레시 토큰을 각각 처리
+                    String accessToken = tokenResponse.getAccessToken();
+//                    String refreshToken = tokenResponse.getRefreshToken();
+
+                    log.info("accessToken: {}", accessToken);
+
+                    // 사용자 정보 가져오기 및 OAuth 사용자 처리
+                    return userService.getUserInfo(accessToken)
+                            .flatMap(userInfo -> userService.processOAuthUser(userInfo))
+                            .map(ResponseEntity::ok);
+                })
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(
                         new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null)
                 )));
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    @GetMapping("/exists-refresh-token")
-    public ResponseEntity<Boolean> existsByNicknameAndRefreshToken(@RequestParam("nickname") String nickname) {
-        boolean exists = userService.existsByNicknameAndRefreshToken(nickname);
+
+
+    ////////////////////////////////////////////////geign통신//////////////////////////////////////////////////////////
+    @PostMapping("/details-by-email")
+    public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
+        log.info(result.toString());
+        List<FeignResDto> dto1 = userService.existsByEmailAndRefreshToken(result);
+        return ResponseEntity.ok(dto1);
+    }
+
+    @GetMapping("/getemail")
+    public ResponseEntity<String> changetoEamil(@RequestParam("nickname") String nickname) {
+        log.info("feignemail");
+        String exists = userService.changeEmail(nickname);
         return ResponseEntity.ok(exists);
     }
 }
