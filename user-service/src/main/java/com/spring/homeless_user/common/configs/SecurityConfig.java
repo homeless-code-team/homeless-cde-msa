@@ -41,12 +41,14 @@ public class SecurityConfig {
 //                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
+
                     // excludedPaths를 permitAll()로 설정
                     securityPropertiesUtil.getExcludedPaths().forEach(path ->
                             auth.requestMatchers(path).permitAll()
                     );
                     // 나머지 경로는 인증 필요
                     auth.anyRequest().authenticated();
+
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(errorEntryPoint));
