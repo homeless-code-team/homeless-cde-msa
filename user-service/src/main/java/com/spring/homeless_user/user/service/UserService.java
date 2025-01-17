@@ -3,6 +3,7 @@ package com.spring.homeless_user.user.service;
 import com.spring.homeless_user.common.auth.JwtTokenProvider;
 import com.spring.homeless_user.common.utill.JwtUtil;
 import com.spring.homeless_user.common.utill.SecurityContextUtil;
+import com.spring.homeless_user.user.Oauth.GoogleOAuthProperties;
 import com.spring.homeless_user.user.config.S3Upload;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
@@ -25,12 +26,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.services.s3.S3Client;
 
 
 import java.io.IOException;
@@ -39,11 +37,12 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @Slf4j
-public class        UserService {
+public class UserService {
 
     private final UserRepository userRepository;
 
@@ -63,6 +62,7 @@ public class        UserService {
     private final SecurityContextUtil securityContextUtil;
     private final RedisTemplate login;
     private final S3Upload s3Upload;
+    private final GoogleOAuthProperties googleOAuthProperties;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -76,7 +76,7 @@ public class        UserService {
                        SecurityContextUtil securityContextUtil,
                        RefreshAutoConfiguration refreshAutoConfiguration,
                        @Qualifier("login") RedisTemplate login,
-                       S3Upload s3Upload) {
+                       S3Upload s3Upload, GoogleOAuthProperties googleOAuthProperties) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -90,6 +90,7 @@ public class        UserService {
         this.securityContextUtil = securityContextUtil;
         this.login = login;
         this.s3Upload = s3Upload;
+        this.googleOAuthProperties = googleOAuthProperties;
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -100,35 +101,34 @@ public class        UserService {
     private long expirationTimeRt;
 
 
-
-    @Value("${oauth.google.token-url}")
+    @Value("${oauth.provider.google.token-url}")
     private String googleTokenUrl;
 
-    @Value("${oauth.google.user-info-url}")
+    @Value("${oauth.provider.google.user-info-url}")
     private String googleUserInfoUrl;
 
-    @Value("${oauth.google.client-id}")
+    @Value("${oauth.provider.google.client-id}")
     private String googleClientId;
 
-    @Value("${oauth.google.client-secret}")
+    @Value("${oauth.provider.google.client-secret}")
     private String googleClientSecret;
 
-    @Value("${oauth.google.redirect-uri}")
+    @Value("${oauth.provider.google.redirect-uri}")
     private String googleRedirectUri;
 
-    @Value("${oauth.github.token-url}")
+    @Value("${oauth.provider.github.token-url}")
     private String githubTokenUrl;
 
-    @Value("${oauth.github.user-info-url}")
+    @Value("${oauth.provider.github.user-info-url}")
     private String githubUserInfoUrl;
 
-    @Value("${oauth.github.client-id}")
+    @Value("${oauth.provider.github.client-id}")
     private String githubClientId;
 
-    @Value("${oauth.github.client-secret}")
+    @Value("${oauth.provider.github.client-secret}")
     private String githubClientSecret;
 
-    @Value("${oauth.github.redirect-uri}")
+    @Value("${oauth.provider.github.redirect-uri}")
     private String githubRedirectUri;
 
 
@@ -157,23 +157,23 @@ public class        UserService {
             if (!isValidEmail(dto.getEmail())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
             }
-                log.info(dto.getEmail());
-                log.info(dto.getPassword());
-                log.info(dto.getNickname());
-                // user객체 생성 및 dto 정보를 엔티티에 주입
-                User user = new User();
-                user.setEmail(dto.getEmail());
-                user.setPassword(passwordEncoder.encode(dto.getPassword()));
-                user.setNickname(dto.getNickname());
-                user.setProvider(Provider.LOCAL);
-                user.setCreatedAt(LocalDateTime.now());
+            log.info(dto.getEmail());
+            log.info(dto.getPassword());
+            log.info(dto.getNickname());
+            // user객체 생성 및 dto 정보를 엔티티에 주입
+            User user = new User();
+            user.setEmail(dto.getEmail());
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            user.setNickname(dto.getNickname());
+            user.setProvider(Provider.LOCAL);
+            user.setCreatedAt(LocalDateTime.now());
 
-                log.info("email:{},nickname:{},password:{},CreatAT:{}", dto.getEmail(), dto.getNickname(), dto.getPassword(), user.getCreatedAt());
+            log.info("email:{},nickname:{},password:{},CreatAT:{}", dto.getEmail(), dto.getNickname(), dto.getPassword(), user.getCreatedAt());
 
-                // entity 객체를 mysql에 저장
-                userRepository.save(user);
-                // 응답 반환
-                return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
+            // entity 객체를 mysql에 저장
+            userRepository.save(user);
+            // 응답 반환
+            return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
         } catch (Exception e) {
             //에러 응답 반환
@@ -192,9 +192,9 @@ public class        UserService {
         links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
         links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
         // 레디스에 이미 로그인 중인지 확인
-        if (loginTemplate.opsForValue().get(dto.getEmail())!=null){
-            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in","POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 401,"이미 로그인 중입니다.",null,List.of(Link));
+        if (loginTemplate.opsForValue().get(dto.getEmail()) != null) {
+            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in", "POST");
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이미 로그인 중입니다.", null, List.of(Link));
         }
         // mysql에서 사용자 검색
 
@@ -354,6 +354,8 @@ public class        UserService {
 
             String token = dto.getToken();
             String email = dto.getEmail();
+            log.info(token);
+            log.info(email);
             //redis에 현재 토큰이 있는 지 확인
             String redisEmail = checkTemplate.opsForValue().get(token);
             boolean equals = Boolean.TRUE.equals(checkTemplate.hasKey(token));
@@ -366,7 +368,7 @@ public class        UserService {
                     //비밀번호 수정
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 비밀번호를 수정해주세요", null, links);
-                }else{
+                } else {
                     // 회원가입진행
                     checkTemplate.delete(token);
                     return new CommonResDto(HttpStatus.OK, 200, "token 유효, 회원가입을 계속 진행하세요", null, links);
@@ -389,7 +391,7 @@ public class        UserService {
         links.add(new CommonResDto.Link("modify", "/api/v1/users", "PATCH"));
         try {
             // 이메일 중복 체크
-            if (email!= null) {
+            if (email != null) {
                 boolean exists = userRepository.findByEmail(email).isPresent();
                 return exists
                         ? new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이메일 사용 불가", null, links)
@@ -448,15 +450,18 @@ public class        UserService {
             // 사용자 검색
             User user = getUserEntity(email);
 
+            log.info(String.valueOf(user));
+
             // 닉네임 변경
             if (dto.getNickname() != null) {
                 boolean nicknameExists = userRepository.findByNickname(dto.getNickname()).isPresent();
+                log.info(String.valueOf(nicknameExists));
                 if (nicknameExists) {
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "닉네임이 이미 존재합니다.", null, links);
                 }
                 user.setNickname(dto.getNickname());
                 updateUserEntity(email, user);
-                return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", user.getNickname() , links);
+                return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", user.getNickname(), links);
             } else if (dto.getPassword() != null) {
                 if (!isValidPassword(dto.getPassword())) {
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
@@ -508,11 +513,13 @@ public class        UserService {
         }
     }
 
+    // 사용자 검색
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 비밀번호 유효성 검사 정규식
     private static final String PASSWORD_PATTERN =
-                    "^(?=.*[0-9])" +                 // 적어도 1개의 숫자
+            "^(?=.*[0-9])" +                 // 적어도 1개의 숫자
                     "(?=.*[a-z])" +                  // 적어도 1개의 소문자
                     "(?=.*[A-Z])" +                  // 적어도 1개의 대문자
                     "(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~])" + // 적어도 1개의 특수문자
@@ -540,7 +547,8 @@ public class        UserService {
         }
         return patternEmail.matcher(email).matches();
     }
-//////////////////////////////////////////////////Cahe//////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////Cahe//////////////////////////////////////////////////////////////////
     //캐싱 메서드
     @Cacheable(value = "userCache", key = "#email")
     public User getUserEntity(String email) {
@@ -564,79 +572,162 @@ public class        UserService {
         return existingUser; // 캐시에 저장됨
     }
 
-///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
-    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
-// 1. Access Token 요청
-public Mono<String> getAccessToken(String provider, String code) {
-    String tokenUrl = provider.equalsIgnoreCase("google") ? googleTokenUrl : githubTokenUrl;
-    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-    params.add("client_id", provider.equalsIgnoreCase("google") ? googleClientId : githubClientId);
-    params.add("client_secret", provider.equalsIgnoreCase("google") ? googleClientSecret : githubClientSecret);
-    params.add("redirect_uri", provider.equalsIgnoreCase("google") ? googleRedirectUri : githubRedirectUri);
-    params.add("code", code);
-    params.add("grant_type", "authorization_code");
+    public CommonResDto alluser() {
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
 
-    return webClient.post()
-            .uri(tokenUrl)
-            .bodyValue(params)
-            .retrieve()
-            .bodyToMono(String.class)
-            .map(response -> {
-                log.info("Access Token Response: {}", response);
-                return response; // Extract and return access token from response
-            });
+            // User 엔티티 리스트를 가져옴
+            List<User> users = userRepository.findAll();
+            // User 엔티티 리스트를 가져오고, 현재 사용자 이메일은 제외
+            List<User> users1 = userRepository.findAll().stream()
+                    .filter(user -> !user.getEmail().equals(email)) // 현재 유저 제외
+                    .toList();
+            // DTO 리스트로 변환
+            List<AllDto> allDtos = users1.stream()
+                    .map(user -> new AllDto(user.getNickname(), user.getProfileImage())) // 필요한 필드만 DTO에 매핑
+                    .collect(Collectors.toList());
+
+            // CommonResDto에 담아 반환
+            return new CommonResDto(HttpStatus.OK, 200, "유저 리스트 조회 성공", allDtos, null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
-    // 2. 사용자 정보 가져오기
-    public Mono<OAuthUserInfoDto> getUserInfo(String provider, String accessToken) {
-        String userInfoUrl = provider.equalsIgnoreCase("google") ? googleUserInfoUrl : githubUserInfoUrl;
 
+    ///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
+    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
+// 1. Access Token 요청
+    public Mono<AccessTokenResponse> getAccessToken(String code) {
+        log.info(code);
+        // 요청 파라미터 설정
+        return webClient.post()
+                .uri(googleOAuthProperties.getTokenUrl())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData("code", code)
+                        .with("user_info", googleOAuthProperties.getUserInfoUrl())
+                        .with("token_uri ", googleOAuthProperties.getTokenUrl())
+                        .with("client_id", googleOAuthProperties.getClientId())
+                        .with("client_secret", googleOAuthProperties.getClientSecret())
+                        .with("redirect_uri", googleOAuthProperties.getRedirectUri())
+                        .with("grant_type", "authorization_code"))
+                .retrieve()
+                .bodyToMono(AccessTokenResponse.class) // JSON 매핑
+//                .doOnNext(response -> log.info("Access Token Response: {}", response))
+                .doOnError(e -> log.error("Failed to retrieve access token: {}", e.getMessage()))
+
+                .map(response -> {
+                    log.info("Access Token Response: {}", response.toString());
+                    log.info("리턴된 Access Token: {}", response.getAccessToken());
+                    return response;
+                });
+    }
+
+
+    // 2. 사용자 정보 가져오기
+    public Mono<OAuthUserInfoDto> getUserInfo(String accessToken) {
+        log.info(accessToken);
         return webClient.get()
-                .uri(userInfoUrl)
                 .headers(headers -> headers.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(OAuthUserInfoDto.class)
-                .doOnNext(userInfo -> log.info("Fetched User Info: {}", userInfo));
+                .map(userInfo -> {
+                    log.info("User info: {}", userInfo);
+                    return userInfo;
+                });
+
+
     }
+
 
     // 3. 회원가입 및 로그인 처리
     public Mono<CommonResDto> processOAuthUser(OAuthUserInfoDto userInfo) {
-        List<CommonResDto.Link> links = new ArrayList<>();
-        links.add(new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"));
-        links.add(new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST"));
-
+        log.info(userInfo.toString());
+        List<CommonResDto.Link> links = List.of(
+                new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"),
+                new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST")
+        );
+        log.info(userInfo.toString());
+        log.info(userInfo.getEmail());
+        log.info(userInfo.getName());
+        log.info(userInfo.getId());
         return Mono.fromCallable(() -> userRepository.findByEmail(userInfo.getEmail()))
-                .flatMap(existingUser -> {
-                    if (existingUser != null) {
-                        User user = userRepository.findByEmail(userInfo.getEmail()).orElseThrow(()-> new UsernameNotFoundException("사용자를 찾을 수없습니다."));
-
-                        String accesstoken = jwtTokenProvider.accessToken(user.getEmail(),user.getId(),user.getNickname());
-                        loginTemplate.opsForValue().set(user.getEmail(),accesstoken);
-
-                        String refreshToken = jwtTokenProvider.refreshToken(user.getEmail(),user.getId());
-                        user.setRefreshToken(refreshToken);
-                        userRepository.save(user);
-                        return Mono.just(new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accesstoken, links));
+                .flatMap(optionalUser -> optionalUser.map(Mono::just).orElseGet(Mono::empty))
+                .flatMap(user -> {
+                    if (user != null) {
+                        log.info(user.toString());
+                        return handleLogin(user, links);
                     } else {
-                        String nickName = UUID.randomUUID().toString();
-                        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(),userInfo.getId());
-                        User newUser = new User(userInfo.getEmail(), userInfo.getId(),userInfo.getProvider(),nickName);
-                        newUser.setRefreshToken(refreshToken);
-                        userRepository.save(newUser);
-
-                        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(),newUser.getId(),newUser.getNickname());
-                        loginTemplate.opsForValue().set(newUser.getEmail(),accessToken);
-
-                        return Mono.just(new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links));
+                        log.info(userInfo.toString());
+                        return handleSignUp(userInfo, links);
                     }
                 })
-                .onErrorResume(e -> Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links)));
+                .onErrorResume(e -> {
+                    log.error("OAuth user processing failed: {}", e.getMessage());
+                    return Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links));
+                });
     }
 
-    public boolean existsByNicknameAndRefreshToken(String nickname) {
-        return false;
+
+    private Mono<CommonResDto> handleLogin(User existingUser, List<CommonResDto.Link> links) {
+        String accessToken = jwtTokenProvider.accessToken(existingUser.getEmail(), existingUser.getId(), existingUser.getNickname());
+        String refreshToken = jwtTokenProvider.refreshToken(existingUser.getEmail(), existingUser.getId());
+        log.info(accessToken);
+        log.info(refreshToken);
+        loginTemplate.opsForValue().set(existingUser.getEmail(), accessToken);
+        existingUser.setRefreshToken(refreshToken);
+        userRepository.save(existingUser);
+
+        return Mono.just(new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accessToken, links));
     }
+
+    private Mono<CommonResDto> handleSignUp(OAuthUserInfoDto userInfo, List<CommonResDto.Link> links) {
+        String nickName = UUID.randomUUID().toString();
+        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(), userInfo.getId());
+
+        User newUser = new User(userInfo.getEmail(), userInfo.getId(), nickName);
+        newUser.setRefreshToken(refreshToken);
+        userRepository.save(newUser);
+
+        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(), newUser.getId(), newUser.getNickname());
+        loginTemplate.opsForValue().set(newUser.getEmail(), accessToken);
+
+        return Mono.just(new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links));
+    }
+
+
+    ////////////////////////////////////////////////////////feign 통신///////////////////////////////////////////////////////
+    public List<FeignResDto> existsByEmailAndRefreshToken(List<String> result) {
+        List<FeignResDto> friendsList = new ArrayList<>(); // 최종 반환할 리스트
+
+        try {
+            for (String email : result) { // 각 이메일에 대해 반복 처리
+                // 이메일로 사용자 정보 조회
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+                // FriendsDto 객체 생성 및 데이터 설정
+                FeignResDto friendsDto = new FeignResDto();
+                friendsDto.setReceiverNickname(user.getNickname()); // 닉네임 설정
+                friendsDto.setProfileImage(user.getProfileImage()); // RefreshToken 상태 설정
+
+                // 리스트에 추가
+                friendsList.add(friendsDto);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 에러 로그 출력
+        }
+
+        return friendsList; // 최종 결과 반환
+    }
+
+    public String changeEmail(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UsernameNotFoundException(nickname));
+        return user.getEmail();
+    }
+
+
 }
-////////////////////////////////////////////////////////AWS 사진업로드///////////////////////////////////////////////////
-
-
