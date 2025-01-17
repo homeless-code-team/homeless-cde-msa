@@ -4,6 +4,7 @@ import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
@@ -11,6 +12,7 @@ import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.ServerCreateDto;
 import com.playdata.homelesscode.dto.server.ServerDto;
 import com.playdata.homelesscode.dto.server.ServerResponseDto;
+import com.playdata.homelesscode.dto.user.UserResponseDto;
 import com.playdata.homelesscode.entity.Board;
 import com.playdata.homelesscode.entity.BoardList;
 import com.playdata.homelesscode.entity.Channel;
@@ -18,6 +20,10 @@ import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -176,9 +182,9 @@ public class ServerController {
 
     // 게시글 조회
     @GetMapping("/boards")
-    public ResponseEntity<?> getBoards(@RequestParam String id) {
+    public ResponseEntity<?> getBoards(BoardSearchDto dto, Pageable pageable) {
 
-        List<Board> result = serverService.getBoard(id);
+        Page<Board> result = serverService.getBoard(dto,pageable);
 
         CommonResDto resDto = new CommonResDto<>(HttpStatus.OK, "조회 성공", result);
 
@@ -202,6 +208,21 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+
+    @GetMapping("/userList")
+    public CommonResDto<List<UserResponseDto>> getUserList(@RequestParam String id) {
+
+
+        List<UserResponseDto> userList = serverService.getUserList(id);
+        log.info("여기는 서버 컨트롤러 {}", userList);
+
+        CommonResDto<List<UserResponseDto>> List = new CommonResDto<>(HttpStatus.OK, "조회성공", userList);
+
+
+
+        return List;
+
+    }
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
     // 서버 추가요청
@@ -224,5 +245,7 @@ public class ServerController {
         log.info("addServerJoin");
         return serverService.addServerJoin(serverId);
     }
+
+
 
 }

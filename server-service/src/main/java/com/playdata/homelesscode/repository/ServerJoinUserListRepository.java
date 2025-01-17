@@ -13,4 +13,5 @@ public interface ServerJoinUserListRepository extends JpaRepository<ServerJoinUs
 
     void deleteByServerIdAndEmail(String id, String userEmail);
 
+    List<ServerJoinUserList> findByServerId(String id);
 }

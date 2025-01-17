@@ -1,4 +1,4 @@
-package com.playdata.homelesscode.dto.user;
+package com.spring.homeless_user.user.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -15,4 +15,10 @@ public class UserResponseDto {
     private String nickname;
     private String profileImage;
 
+
+    public UserResponseDto(String id, String nickName, String profileImg) {
+        this.id = id;
+        this.nickname = nickName;
+        this.profileImage = profileImg;
+    }
 }
