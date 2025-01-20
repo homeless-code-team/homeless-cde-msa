@@ -595,6 +595,8 @@ public class UserService {
 
     }
 
+    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+
 
     ///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
     // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
@@ -737,6 +739,19 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException(nickname));
         return user.getEmail();
     }
+
+        List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
+
+        log.info("유저리스트 {}", byEmailIn);
+
+        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
+                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
+
+
+        return collect;
+    }
+}
+
 
 
 }
