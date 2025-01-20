@@ -595,9 +595,6 @@ public class UserService {
 
     }
 
-    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
-
-
     ///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
     // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
     // 1. Access Token 요청
@@ -735,23 +732,27 @@ public class UserService {
     }
 
     public String changeEmail(String nickname) {
-        User user = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new UsernameNotFoundException(nickname));
-        return user.getEmail();
+        return null;
     }
 
-        List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
-
-        log.info("유저리스트 {}", byEmailIn);
-
-        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
-                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
-
-
-        return collect;
+    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+        return null;
     }
-}
 
-
-
+//    public String changeEmail(String nickname) {
+//        User user = userRepository.findByNickname(nickname)
+//                .orElseThrow(() -> new UsernameNotFoundException(nickname));
+//        return user.getEmail();
+//
+//
+//        List<User> byEmailIn = userRepository.findByEmailIn(user.getEmail());
+//
+//        log.info("유저리스트 {}", byEmailIn);
+//
+//        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
+//                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
+//
+//
+//        return collect;
+//    }
 }
