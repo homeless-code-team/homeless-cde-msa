@@ -149,7 +149,7 @@ public class UserController {
                     log.info("tokenResponse: {}", tokenResponse);
                     // 액세스 토큰과 리프레시 토큰을 각각 처리
                     String accessToken = tokenResponse.getAccessToken();
-//                    String refreshToken = tokenResponse.getRefreshToken();
+                   String refreshToken = tokenResponse.getRefreshToken();
 
                     log.info("accessToken: {}", accessToken);
 
