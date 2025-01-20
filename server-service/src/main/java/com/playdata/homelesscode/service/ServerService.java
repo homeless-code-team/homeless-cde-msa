@@ -14,10 +14,8 @@ import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
 import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
-import com.playdata.homelesscode.dto.server.Role;
-import com.playdata.homelesscode.dto.server.ServerCreateDto;
-import com.playdata.homelesscode.dto.server.ServerDto;
-import com.playdata.homelesscode.dto.server.ServerResponseDto;
+import com.playdata.homelesscode.dto.server.*;
+import com.playdata.homelesscode.dto.user.UserReponseInRoleDto;
 import com.playdata.homelesscode.dto.user.UserResponseDto;
 import com.playdata.homelesscode.entity.*;
 import com.playdata.homelesscode.repository.*;
@@ -32,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -301,12 +296,13 @@ public class ServerService {
     }
 
 
-    public void createBoard(BoardCreateDto dto) {
+    public Board createBoard(BoardCreateDto dto) {
 
         String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
 
-        BoardList boardList = boardListRepository.findById(dto.getBoardListId()).orElseThrow();
-        //여기 이메일로 바꿔야됨
+        BoardList boardList = boardListRepository.findById(dto.getBoardListId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 게시판이 존재하지 않습니다."));
+
         Board board = Board.builder()
                 .title(dto.getTitle())
                 .writer(userEmail)
@@ -314,7 +310,7 @@ public class ServerService {
                 .build();
 
         boardRepository.save(board);
-
+        return board;
     }
 
 
@@ -493,18 +489,90 @@ public class ServerService {
         return matchingKeys; // 매칭된 키 리스트 반환
     }
 
-    public List<UserResponseDto> getUserList(String id) {
+//    public Page<UserReponseInRoleDto> getUserList(String id, Pageable pageable) {
+//
+//        List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
+//
+//        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
+//
+//        int start = (int) pageable.getOffset();
+//        int end = Math.min((start + pageable.getPageSize()), userEmails.size());
+//
+//
+//        List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails, pageable);
+//
+//
+//
+//        List<UserReponseInRoleDto> userList = byEmailIn.stream().map(dto -> {
+//            ServerJoinUserList serverJoinUserList
+//                    = byServerId.stream().filter(user -> user
+//                            .getEmail().equals(dto.getEmail()))
+//                    .findFirst().orElseThrow(null);
+//
+//            return new UserReponseInRoleDto(dto.getId(), dto.getNickname(), dto.getEmail(), dto.getProfileImage(), serverJoinUserList.getRole());
+//        }).collect(Collectors.toList());
+//
+//
+//        List<UserReponseInRoleDto> pagedUserList = userList.subList(start, end);
+//        return new PageImpl<>(pagedUserList, pageable, userList.size());
+//    }
+
+
+    public List<UserReponseInRoleDto> getUserList(String id) {
 
         List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
-
-        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
-
-        log.info("이메일 {}", userEmails);
+        List<String> userEmails = byServerId.stream().map(ServerJoinUserList::getEmail).collect(Collectors.toList());
 
         List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails);
 
+        List<UserReponseInRoleDto> userList = byEmailIn.stream().map(dto -> {
+            ServerJoinUserList serverJoinUserList = byServerId.stream()
+                    .filter(user -> user.getEmail().equals(dto.getEmail()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("User not found for email: " + dto.getEmail()));
+
+            return new UserReponseInRoleDto(
+                    dto.getId(),
+                    dto.getNickname(),
+                    dto.getEmail(),
+                    dto.getProfileImage(),
+                    serverJoinUserList.getRole()
+            );
+        }).collect(Collectors.toList());
 
 
-        return byEmailIn;
+
+
+
+
+        return userList;
+
+    }
+
+    public void changeRole(ChangeRoleDto dto) {
+        log.info(dto.getEmail());
+        log.info(String.valueOf(dto.getRole()));
+
+
+        ServerJoinUserList byEmail = serverListRepository.findByEmailAndServerId(dto.getEmail(), dto.getId());
+
+
+
+
+
+
+        log.info("헤헿 {}",byEmail.getEmail());
+        byEmail.setRole(dto.getRole());
+
+
+        ServerJoinUserList save = serverListRepository.save(byEmail);
+
+        log.info("롤은 , {}", save.getRole());
+    }
+
+    public void resignUser(ResignUserDto dto) {
+
+        serverListRepository.deleteByServerIdAndEmail(dto.getServerId(), dto.getEmail());
+
     }
 }
