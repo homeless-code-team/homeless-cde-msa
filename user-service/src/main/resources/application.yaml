@@ -22,11 +22,12 @@ spring:
     redis:
       host: localhost  # Redis ?? ??
       port: 6379       # Redis ?? ??
+      token-ttl-minutes: 30
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
   mail:
     host: smtp.gmail.com
     port: 587
@@ -52,32 +53,46 @@ security:
     - /api/v1/users/sign-in
     - /api/v1/users/duplicate
     - /api/v1/users/refresh-token
+    - /api/v1/users/swagger-ui.html
+    - /api/v1/users/swagger-ui/**
+    - /api/v1/users/o-auth
+    - /api/v1/users/callback
+    - /api/v1/users/details-by-email
+    - /api/v1/users/getemail
 
 
 instance:
   instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-#cloud:
-#  aws:
-#    s3:
-#      bucket: homeless-bucket
-#    credentials:
-#      access-key:
-#      secret-key:
-#    region:
-#      static:
+
+aws:
+  s3:
+    bucket-name: homeless-userprofile-img
+  credentials:
+    access-key: AKIASDRAMY4MIDADXMOC
+    secret-key: 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
+  region: ap-northeast-2
+
 jwt:
-  exclude-paths:
-    - /api/v1/users/sign-up
-    - /api/v1/users/confirm
-    - /api/v1/users/sign-in
-    - /api/v1/users/duplicate
-    - /api/v1/users/refresh-token
-    - /api/v1/users/swagger-ui.html
-    - /api/v1/users/swagger-ui/**
-  expiration: 1800000
+  expiration: 18000000000000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
-  expirationRt: 1209600000
+  expirationRt: 1209600000000000
   secretKeyRt: lGBm6kwqJoKjLioZfyYJ+OTstjyczTbf7tJXar1pQ2PDSeg5LZQ30DXDlLbM7zKiysBfPkdv6KTVOJ+UcL5C6g==
+oauth:
+  provider:
+    google:
+      token-url: https://oauth2.googleapis.com/token
+      user-info-url: https://openidconnect.googleapis.com/v1/userinfo
+      client-id: 620143532786-1ptl8m3dt14imi56eaa4sjh9lv4imjj1.apps.googleusercontent.com
+      client-secret: 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
+      redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
+    github:
+      token-url: https://github.com/login/oauth/access_token
+      user-info-url: https://api.github.com/user
+      client-id: Ov23liRmQbUUzPUCt2xn
+      client-secret: e8b8b26e01e015461d46e25bc81058c6ae9f0398
+      redirect-uri: http://localhost:8181/user-service/api/v1/users/callback
+
+
 logging:
   level:
     org.springframework.security : DEBUG
