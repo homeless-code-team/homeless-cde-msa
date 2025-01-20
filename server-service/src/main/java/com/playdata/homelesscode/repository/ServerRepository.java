@@ -10,4 +10,5 @@ public interface ServerRepository extends JpaRepository<Server, String> {
 
     List<Server> findByIdInOrServerTypeOrderByTitle(List<String> collect, int i);
 
+    List<Server> findByIdInOrServerTypeOrderByServerTypeAsc(List<String> collect, int i);
 }

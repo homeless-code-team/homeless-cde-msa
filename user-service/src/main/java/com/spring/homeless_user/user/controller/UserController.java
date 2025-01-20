@@ -9,10 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -115,6 +118,7 @@ public class UserController {
         return userService.getUserData();
     }
 
+
     // 유저데이터 모두 조회
     @GetMapping("/all")
     public CommonResDto allUser() {
@@ -166,8 +170,9 @@ public class UserController {
 
 
 
-    ////////////////////////////////////////////////geign통신//////////////////////////////////////////////////////////
-    @PostMapping("/details-by-email")
+    ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
+    
+  @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
         log.info(result.toString());
         List<FeignResDto> dto1 = userService.existsByEmailAndRefreshToken(result);
@@ -180,6 +185,21 @@ public class UserController {
         String exists = userService.changeEmail(nickname);
         return ResponseEntity.ok(exists);
     }
+
+    /// feign 요청
+    @PostMapping("/userList")
+    public List<UserResponseDto> findByEmailIn(@RequestBody List<String> userEmails){
+
+        List<UserResponseDto> byEmailIn = userService.findByEmailIn(userEmails);
+
+        log.info("여기는 유저 컨트롤러 {}", byEmailIn);
+
+
+        return byEmailIn;
+    }
+
+
+
 }
 
 
