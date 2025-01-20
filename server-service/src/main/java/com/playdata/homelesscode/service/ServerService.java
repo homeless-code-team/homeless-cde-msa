@@ -4,11 +4,13 @@ package com.playdata.homelesscode.service;
 import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.client.UserServiceClient;
 import com.playdata.homelesscode.common.config.AwsS3Config;
+import com.playdata.homelesscode.common.custom.CustomThrowException;
 import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
 import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
@@ -44,6 +46,7 @@ public class ServerService {
     private final BoardRepository boardRepository;
     private final AwsS3Config s3Config;
     private final ChatServiceClient chatServiceClient;
+    private final UserServiceClient userServiceClient;
 
 
     private final RedisTemplate<String, String> serverTemplate;
@@ -60,6 +63,7 @@ public class ServerService {
                          RedisTemplate<String, String> serverTemplate,
                          ChatServiceClient chatServiceClient) {
         this.serverRepository = serverRepository;
+        this.userServiceClient = userServiceClient;
         this.serverListRepository = serverListRepository;
         this.channelRepository = channelRepository;
         this.boardListRepository = boardListRepository;
@@ -149,18 +153,27 @@ public class ServerService {
     }
 
     public void deleteServer(String id) {
-        Server server = serverRepository.findById(id).orElseThrow();
 
-        if (server.getServerImg() != null) {
-            try {
-                s3Config.deleteFromS3Bucket(server.getServerImg());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
+
+        ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(userEmail, id);
+
+
+            Server server = serverRepository.findById(id).orElseThrow();
+
+            if (server.getServerImg() != null) {
+                try {
+                    s3Config.deleteFromS3Bucket(server.getServerImg());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
             }
+            serverRepository.deleteById(id);
 
-        }
 
-        serverRepository.deleteById(id);
+
+
     }
 
 
@@ -224,8 +237,23 @@ public class ServerService {
 
     public void deleteChannel(String id) {
 
-        channelRepository.deleteById(id);
-        chatServiceClient.deleteChatMessageByChannelId(id);
+        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
+
+        Channel channel = channelRepository.findById(id).orElseThrow();
+
+        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(userEmail, channel.getServer().getId());
+
+        log.info("롤은 ? {}", byEmailAndServerId.getRole());
+
+        if(byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+            channelRepository.deleteById(id);
+            chatServiceClient.deleteChatMessageByChannelId(id);
+        }else {
+            throw new CustomThrowException("권한이 없습니다.");
+        }
+
+
+
 
     }
 
@@ -263,7 +291,21 @@ public class ServerService {
 
     public void deleteBoardList(String id) {
 
-        boardListRepository.deleteById(id);
+        String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+        BoardList boardList = boardListRepository.findById(id).orElseThrow();
+
+        ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(email, boardList.getServer().getId());
+
+        
+        if (serverList.getRole() == Role.OWNER || serverList.getRole() == Role.MANAGER) {
+            boardListRepository.deleteById(id);    
+        }else {
+            throw new CustomThrowException("권한 부족");
+        }
+
+        
+        
 
 
     }
@@ -327,9 +369,19 @@ public class ServerService {
 
     }
 
-    public void deleteBoard(String id) {
+    public void deleteBoard(BoardDeleteDto dto) {
 
-        boardRepository.deleteById(id);
+        String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(email, dto.getServeId());
+
+        Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
+
+        if(board.getWriter().equals(email) ||byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+            boardRepository.deleteById(dto.getBoardId());
+        }
+
+
 
     }
 

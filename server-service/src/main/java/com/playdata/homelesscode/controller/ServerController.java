@@ -4,6 +4,7 @@ import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
 import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
@@ -196,9 +197,9 @@ public class ServerController {
     }
 
     @DeleteMapping("/boards")
-    public ResponseEntity<?> deleteBoards(@RequestParam String id) {
+    public ResponseEntity<?> deleteBoards(BoardDeleteDto dto) {
 
-        serverService.deleteBoard(id);
+        serverService.deleteBoard(dto);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
