@@ -18,7 +18,7 @@ public class ServerResponseDto {
     private String serverImg;
     private String email;
     private int serverType;
-    private  Role role;
+    private Role role;
 
 
 

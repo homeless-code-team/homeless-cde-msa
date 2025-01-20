@@ -9,10 +9,8 @@ import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
 import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
-import com.playdata.homelesscode.dto.server.ServerCreateDto;
-import com.playdata.homelesscode.dto.server.ServerDto;
-import com.playdata.homelesscode.dto.server.ServerResponseDto;
-import com.playdata.homelesscode.dto.user.UserResponseDto;
+import com.playdata.homelesscode.dto.server.*;
+import com.playdata.homelesscode.dto.user.UserReponseInRoleDto;
 import com.playdata.homelesscode.entity.Board;
 import com.playdata.homelesscode.entity.BoardList;
 import com.playdata.homelesscode.entity.Channel;
@@ -116,7 +114,7 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // 새널 수정
+    // 채널 수정
     @PutMapping("/channels")
     public ResponseEntity<?> updateChannel(ChannelUpdateDto dto) {
         Channel result = serverService.updateChannel(dto);
@@ -174,10 +172,16 @@ public class ServerController {
     // 게시글 생성
     @PostMapping("/boards")
     public ResponseEntity<?> createBoards(BoardCreateDto dto) {
-
-        serverService.createBoard(dto);
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            serverService.createBoard(dto);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            // 이미 삭제된 게시판인 경우
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            // 기타 에러 처리
+            return new ResponseEntity<>("게시판 생성 중 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // 게시글 조회
@@ -209,20 +213,55 @@ public class ServerController {
     }
 
 
+
+    /*
+
+       // 게시글 조회
+    @GetMapping("/boards")
+    public ResponseEntity<?> getBoards(BoardSearchDto dto, Pageable pageable) {
+
+        Page<Board> result = serverService.getBoard(dto,pageable);
+
+        CommonResDto resDto = new CommonResDto<>(HttpStatus.OK, "조회 성공", result);
+
+        return new ResponseEntity<>(resDto, HttpStatus.OK);
+    }
+
+
+    * */
+
     @GetMapping("/userList")
-    public CommonResDto<List<UserResponseDto>> getUserList(@RequestParam String id) {
+    public CommonResDto<List<UserReponseInRoleDto>> getUserList(@RequestParam String id ) {
 
 
-        List<UserResponseDto> userList = serverService.getUserList(id);
-        log.info("여기는 서버 컨트롤러 {}", userList);
+        List<UserReponseInRoleDto> userList = serverService.getUserList(id);
 
-        CommonResDto<List<UserResponseDto>> List = new CommonResDto<>(HttpStatus.OK, "조회성공", userList);
+
+        CommonResDto<List<UserReponseInRoleDto>> List = new CommonResDto<>(HttpStatus.OK, "조회성공", userList);
 
 
 
         return List;
 
     }
+
+    // 서버 권한 변경
+    @PutMapping("/userRole")
+    public ResponseEntity<?> changeRole(@RequestBody ChangeRoleDto dto){
+        serverService.changeRole(dto);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/resign")
+    public ResponseEntity<?> resignUser(@RequestBody ResignUserDto dto){
+        serverService.resignUser(dto);
+        
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
     // 서버 추가요청
