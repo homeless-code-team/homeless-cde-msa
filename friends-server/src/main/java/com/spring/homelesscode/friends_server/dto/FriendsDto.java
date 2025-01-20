@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FriendsDto {
-    private String resNickname;
+    private String receiverNickname;
     private AddStatus addStatus;
 }

@@ -1,10 +1,10 @@
-package com.homeless.chatservice;
+package com.spring.homelesscode.friends_server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ChatServiceApplicationTests {
+class FriendsServerApplicationTests {
 
     @Test
     void contextLoads() {
