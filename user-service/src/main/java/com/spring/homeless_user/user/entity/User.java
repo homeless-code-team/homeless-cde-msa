@@ -7,8 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+
 @Entity
 @Data
 @Builder
@@ -27,6 +26,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    private Provider provider;
     private String password;
     private String nickname;
     private String profileImage;
@@ -36,5 +36,7 @@ public class User {
     private String refreshToken;
 
 
+    public User(String email, String id, String nickname) {
 
+    }
 }
