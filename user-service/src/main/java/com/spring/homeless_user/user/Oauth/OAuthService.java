@@ -31,10 +31,13 @@ public class OAuthService {
                 .queryParam("access_type", "offline")
                 .build().toUriString();
     }
-
-
-
-    public String getGithubRedirectUri() {
-        return githubOAuthProperties.getRedirectUri();
+    public String getGithubAuthUrl() {
+        return UriComponentsBuilder.fromHttpUrl("https://github.com/login/oauth/authorize")
+                .queryParam("client_id", githubOAuthProperties.getClientId())
+                .queryParam("redirect_uri", githubOAuthProperties.getRedirectUri())
+                .queryParam("scope", "read:user user:email") // 올바른 스코프
+                .queryParam("state", "your_state_value")    // CSRF 방지를 위한 state 값
+                .build().toUriString();
     }
+
 }
