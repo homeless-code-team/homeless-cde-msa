@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ServerResDto {
-    private String email;
+    private String receiver;
     private String serverId;
 }

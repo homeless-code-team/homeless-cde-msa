@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.joda.time.DateTime;
+
 import java.util.List;
 
 @Entity
@@ -11,7 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tbl_friends", indexes = {
-        @Index(name = "idx_user_nickname", columnList = "user_nickname"),
+        @Index(name = "idx_user_email", columnList = "user_email"),
+        @Index(name = "idx_friend_email", columnList = "friend_email"),
 })
 public class Friends {
 
@@ -19,11 +22,15 @@ public class Friends {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
-    @Column(name = "user_nickname")
-    private String nickname;
+    @Column(name = "user_email")
+    private String senderEmail;
 
-    @Column(name = "friends_nickname")
-    private String nicknames;
+    @Column(name = "friend_email")
+    private String receiverEmail;
 
-    private AddStatus addStatus;
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "createAt")
+    private DateTime createAt;
 }
