@@ -6,9 +6,11 @@ spring:
     name: config-service
   cloud:
     config:
+      server:
+        native:
+          search-locations: file://C:/home/homeless-code-config
         git:
-          uri: https://github.com/homeless-code-team/homeless-code-config.git
-          private-key: file:\\C:\Users\playdata\.ssh\id_rsa.pub
+          uri: file://C:/home/homeless-code-config
 
 management:
   endpoints:

@@ -699,6 +699,7 @@ public class UserService {
 //    }
 
 
+
     ////////////////////////////////////////////////////////feign 통신///////////////////////////////////////////////////////
     public List<FeignResDto> existsByEmailAndRefreshToken(List<String> result) {
         List<FeignResDto> friendsList = new ArrayList<>(); // 최종 반환할 리스트
@@ -746,6 +747,5 @@ public class UserService {
 
     }
 }
-
 
 

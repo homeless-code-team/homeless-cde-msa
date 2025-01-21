@@ -5,6 +5,7 @@ import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
 import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.entity.Channel;
+import com.playdata.homelesscode.service.ChannelService;
 import com.playdata.homelesscode.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +23,13 @@ public class ChannelController {
 
 
     private final ServerService serverService;
+    private final ChannelService channelService;
 
     // 채널 생성
     @PostMapping("/channels")
     public ResponseEntity<?> createChannel(ChannelCreateDto dto) {
 
-        Channel result = serverService.createChannel(dto);
+        Channel result = channelService.createChannel(dto);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "채널 생성 성공", result);
 
@@ -38,7 +40,7 @@ public class ChannelController {
     @GetMapping("/channels")
     public ResponseEntity<?> getChannel(@RequestParam String id) {
 
-        List<ChannelResponseDto> result = serverService.getChannel(id);
+        List<ChannelResponseDto> result = channelService.getChannel(id);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "조회 성공", result);
 
@@ -49,7 +51,7 @@ public class ChannelController {
     @DeleteMapping("/channels")
     public ResponseEntity<?> deleteChannel(@RequestParam String id) {
 
-        serverService.deleteChannel(id);
+        channelService.deleteChannel(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -57,7 +59,7 @@ public class ChannelController {
     // 채널 수정
     @PutMapping("/channels")
     public ResponseEntity<?> updateChannel(ChannelUpdateDto dto) {
-        Channel result = serverService.updateChannel(dto);
+        Channel result = channelService.updateChannel(dto);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "수정성공", result);
 
