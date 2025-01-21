@@ -476,6 +476,11 @@ public class UserService {
                 updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", user.getContents(), links);
             } else if (dto.getProfileImage() != null) {
+                String contentType = dto.getProfileImage().getContentType();
+                    if (contentType == null || !contentType.startsWith("image/")) {
+                        log.warn("Invalid file type: {}", contentType);
+                        return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이미지 파일이 아닙니다", null, links);
+                    }
                 String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
                 user.setProfileImage(profileImageUrl);
                 log.info("Profile Image Uploaded: {}", profileImageUrl);
