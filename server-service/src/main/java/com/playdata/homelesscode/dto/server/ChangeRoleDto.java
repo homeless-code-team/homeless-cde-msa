@@ -1,4 +1,4 @@
-package com.playdata.homelesscode.dto.user;
+package com.playdata.homelesscode.dto.server;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,11 +9,9 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class UserResponseDto {
+public class ChangeRoleDto {
 
     private String id;
     private String email;
-    private String nickname;
-    private String profileImage;
-
+    private Role role;
 }
