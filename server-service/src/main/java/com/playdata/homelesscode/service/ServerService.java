@@ -1,23 +1,24 @@
 package com.playdata.homelesscode.service;
 
 //import com.playdata.homelesscode.common.config.AwsS3Config;
+
 import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.client.UserServiceClient;
 import com.playdata.homelesscode.common.config.AwsS3Config;
+import com.playdata.homelesscode.common.custom.CustomThrowException;
 import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
+import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
 import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
 import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
 import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
-import com.playdata.homelesscode.dto.server.Role;
-import com.playdata.homelesscode.dto.server.ServerCreateDto;
-import com.playdata.homelesscode.dto.server.ServerDto;
-import com.playdata.homelesscode.dto.server.ServerResponseDto;
+import com.playdata.homelesscode.dto.server.*;
+import com.playdata.homelesscode.dto.user.UserReponseInRoleDto;
 import com.playdata.homelesscode.dto.user.UserResponseDto;
 import com.playdata.homelesscode.entity.*;
 import com.playdata.homelesscode.repository.*;
@@ -49,6 +50,7 @@ public class ServerService {
     private final BoardRepository boardRepository;
     private final AwsS3Config s3Config;
     private final ChatServiceClient chatServiceClient;
+    private final UserServiceClient userServiceClient;
 
 
     private final RedisTemplate<String, String> serverTemplate;
@@ -65,6 +67,7 @@ public class ServerService {
                          RedisTemplate<String, String> serverTemplate,
                          ChatServiceClient chatServiceClient) {
         this.serverRepository = serverRepository;
+        this.userServiceClient = userServiceClient;
         this.serverListRepository = serverListRepository;
         this.channelRepository = channelRepository;
         this.boardListRepository = boardListRepository;
@@ -154,18 +157,27 @@ public class ServerService {
     }
 
     public void deleteServer(String id) {
-        Server server = serverRepository.findById(id).orElseThrow();
 
-        if (server.getServerImg() != null) {
-            try {
-                s3Config.deleteFromS3Bucket(server.getServerImg());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
+
+        ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(userEmail, id);
+
+
+            Server server = serverRepository.findById(id).orElseThrow();
+
+            if (server.getServerImg() != null) {
+                try {
+                    s3Config.deleteFromS3Bucket(server.getServerImg());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
             }
+            serverRepository.deleteById(id);
 
-        }
 
-        serverRepository.deleteById(id);
+
+
     }
 
 
@@ -229,8 +241,23 @@ public class ServerService {
 
     public void deleteChannel(String id) {
 
-        channelRepository.deleteById(id);
-        chatServiceClient.deleteChatMessageByChannelId(id);
+        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
+
+        Channel channel = channelRepository.findById(id).orElseThrow();
+
+        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(userEmail, channel.getServer().getId());
+
+        log.info("롤은 ? {}", byEmailAndServerId.getRole());
+
+        if(byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+            channelRepository.deleteById(id);
+            chatServiceClient.deleteChatMessageByChannelId(id);
+        }else {
+            throw new CustomThrowException("권한이 없습니다.");
+        }
+
+
+
 
     }
 
@@ -268,7 +295,21 @@ public class ServerService {
 
     public void deleteBoardList(String id) {
 
-        boardListRepository.deleteById(id);
+        String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+        BoardList boardList = boardListRepository.findById(id).orElseThrow();
+
+        ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(email, boardList.getServer().getId());
+
+        
+        if (serverList.getRole() == Role.OWNER || serverList.getRole() == Role.MANAGER) {
+            boardListRepository.deleteById(id);    
+        }else {
+            throw new CustomThrowException("권한 부족");
+        }
+
+        
+        
 
 
     }
@@ -295,12 +336,13 @@ public class ServerService {
     }
 
 
-    public void createBoard(BoardCreateDto dto) {
+    public Board createBoard(BoardCreateDto dto) {
 
         String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
 
-        BoardList boardList = boardListRepository.findById(dto.getBoardListId()).orElseThrow();
-        //여기 이메일로 바꿔야됨
+        BoardList boardList = boardListRepository.findById(dto.getBoardListId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 게시판이 존재하지 않습니다."));
+
         Board board = Board.builder()
                 .title(dto.getTitle())
                 .writer(userEmail)
@@ -308,7 +350,7 @@ public class ServerService {
                 .build();
 
         boardRepository.save(board);
-
+        return board;
     }
 
 
@@ -331,9 +373,19 @@ public class ServerService {
 
     }
 
-    public void deleteBoard(String id) {
+    public void deleteBoard(BoardDeleteDto dto) {
 
-        boardRepository.deleteById(id);
+        String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(email, dto.getServeId());
+
+        Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
+
+        if(board.getWriter().equals(email) ||byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+            boardRepository.deleteById(dto.getBoardId());
+        }
+
+
 
     }
 
@@ -487,18 +539,90 @@ public class ServerService {
         return matchingKeys; // 매칭된 키 리스트 반환
     }
 
-    public List<UserResponseDto> getUserList(String id) {
+//    public Page<UserReponseInRoleDto> getUserList(String id, Pageable pageable) {
+//
+//        List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
+//
+//        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
+//
+//        int start = (int) pageable.getOffset();
+//        int end = Math.min((start + pageable.getPageSize()), userEmails.size());
+//
+//
+//        List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails, pageable);
+//
+//
+//
+//        List<UserReponseInRoleDto> userList = byEmailIn.stream().map(dto -> {
+//            ServerJoinUserList serverJoinUserList
+//                    = byServerId.stream().filter(user -> user
+//                            .getEmail().equals(dto.getEmail()))
+//                    .findFirst().orElseThrow(null);
+//
+//            return new UserReponseInRoleDto(dto.getId(), dto.getNickname(), dto.getEmail(), dto.getProfileImage(), serverJoinUserList.getRole());
+//        }).collect(Collectors.toList());
+//
+//
+//        List<UserReponseInRoleDto> pagedUserList = userList.subList(start, end);
+//        return new PageImpl<>(pagedUserList, pageable, userList.size());
+//    }
+
+
+    public List<UserReponseInRoleDto> getUserList(String id) {
 
         List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
-
-        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
-
-        log.info("이메일 {}", userEmails);
+        List<String> userEmails = byServerId.stream().map(ServerJoinUserList::getEmail).collect(Collectors.toList());
 
         List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails);
 
+        List<UserReponseInRoleDto> userList = byEmailIn.stream().map(dto -> {
+            ServerJoinUserList serverJoinUserList = byServerId.stream()
+                    .filter(user -> user.getEmail().equals(dto.getEmail()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("User not found for email: " + dto.getEmail()));
+
+            return new UserReponseInRoleDto(
+                    dto.getId(),
+                    dto.getNickname(),
+                    dto.getEmail(),
+                    dto.getProfileImage(),
+                    serverJoinUserList.getRole()
+            );
+        }).collect(Collectors.toList());
 
 
-        return byEmailIn;
+
+
+
+
+        return userList;
+
+    }
+
+    public void changeRole(ChangeRoleDto dto) {
+        log.info(dto.getEmail());
+        log.info(String.valueOf(dto.getRole()));
+
+
+        ServerJoinUserList byEmail = serverListRepository.findByEmailAndServerId(dto.getEmail(), dto.getId());
+
+
+
+
+
+
+        log.info("헤헿 {}",byEmail.getEmail());
+        byEmail.setRole(dto.getRole());
+
+
+        ServerJoinUserList save = serverListRepository.save(byEmail);
+
+        log.info("롤은 , {}", save.getRole());
+    }
+
+    public void resignUser(ResignUserDto dto) {
+
+        serverListRepository.deleteByServerIdAndEmail(dto.getServerId(), dto.getEmail());
+
     }
 }

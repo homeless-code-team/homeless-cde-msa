@@ -476,11 +476,6 @@ public class UserService {
                 updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "소개글변경성공", user.getContents(), links);
             } else if (dto.getProfileImage() != null) {
-                String contentType = dto.getProfileImage().getContentType();
-                    if (contentType == null || !contentType.startsWith("image/")) {
-                        log.warn("Invalid file type: {}", contentType);
-                        return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이미지 파일이 아닙니다", null, links);
-                    }
                 String profileImageUrl = s3Upload.uploadFile(dto.getProfileImage());
                 user.setProfileImage(profileImageUrl);
                 log.info("Profile Image Uploaded: {}", profileImageUrl);
@@ -600,115 +595,109 @@ public class UserService {
 
     }
 
+
+
+
     ///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
-    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
-    // 1. Access Token 요청
-    public AccessTokenResponse getAccessTokenSync(String code) {
-        log.info(code);
-        try {
-            // 요청 파라미터 설정
-            return webClient.post()
-                    .uri(googleOAuthProperties.getTokenUrl())
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(BodyInserters.fromFormData("code", code)
-                            .with("user_info", googleOAuthProperties.getUserInfoUrl())
-                            .with("token_uri ", googleOAuthProperties.getTokenUrl())
-                            .with("client_id", googleOAuthProperties.getClientId())
-                            .with("client_secret", googleOAuthProperties.getClientSecret())
-                            .with("redirect_uri", googleOAuthProperties.getRedirectUri())
-                            .with("grant_type", "authorization_code"))
-                    .retrieve()
-                    .bodyToMono(AccessTokenResponse.class)
-                    .block(); // 동기 방식으로 변경
-        } catch (Exception e) {
-            log.error("Failed to retrieve access token: {}", e.getMessage());
-            throw new RuntimeException("Failed to retrieve access token", e);
-        }
-    }
+//    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
+//// 1. Access Token 요청
+//    public Mono<AccessTokenResponse> getAccessToken(String code) {
+//        log.info(code);
+//        // 요청 파라미터 설정
+//        return webClient.post()
+//                .uri(googleOAuthProperties.getTokenUrl())
+//                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                .body(BodyInserters.fromFormData("code", code)
+//                        .with("user_info", googleOAuthProperties.getUserInfoUrl())
+//                        .with("token_uri ", googleOAuthProperties.getTokenUrl())
+//                        .with("client_id", googleOAuthProperties.getClientId())
+//                        .with("client_secret", googleOAuthProperties.getClientSecret())
+//                        .with("redirect_uri", googleOAuthProperties.getRedirectUri())
+//                        .with("grant_type", "authorization_code"))
+//                .retrieve()
+//                .bodyToMono(AccessTokenResponse.class) // JSON 매핑
+////                .doOnNext(response -> log.info("Access Token Response: {}", response))
+//                .doOnError(e -> log.error("Failed to retrieve access token: {}", e.getMessage()))
+//
+//                .map(response -> {
+//                    log.info("Access Token Response: {}", response.toString());
+//                    log.info("리턴된 Access Token: {}", response.getAccessToken());
+//                    return response;
+//                });
+//    }
+//
+//
+//    // 2. 사용자 정보 가져오기
+//    public Mono<OAuthUserInfoDto> getUserInfo(String accessToken) {
+//        log.info(accessToken);
+//        return webClient.get()
+//                .headers(headers -> headers.setBearerAuth(accessToken))
+//                .retrieve()
+//                .bodyToMono(OAuthUserInfoDto.class)
+//                .map(userInfo -> {
+//                    log.info("User info: {}", userInfo);
+//                    return userInfo;
+//                });
+//
+//
+//    }
+//
+//
+//    // 3. 회원가입 및 로그인 처리
+//    public Mono<CommonResDto> processOAuthUser(OAuthUserInfoDto userInfo) {
+//        log.info(userInfo.toString());
+//        List<CommonResDto.Link> links = List.of(
+//                new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"),
+//                new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST")
+//        );
+//        log.info(userInfo.toString());
+//        log.info(userInfo.getEmail());
+//        log.info(userInfo.getName());
+//        log.info(userInfo.getId());
+//        return Mono.fromCallable(() -> userRepository.findByEmail(userInfo.getEmail()))
+//                .flatMap(optionalUser -> optionalUser.map(Mono::just).orElseGet(Mono::empty))
+//                .flatMap(user -> {
+//                    if (user != null) {
+//                        log.info(user.toString());
+//                        return handleLogin(user, links);
+//                    } else {
+//                        log.info(userInfo.toString());
+//                        return handleSignUp(userInfo, links);
+//                    }
+//                })
+//                .onErrorResume(e -> {
+//                    log.error("OAuth user processing failed: {}", e.getMessage());
+//                    return Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links));
+//                });
+//    }
+//
+//
+//    private Mono<CommonResDto> handleLogin(User existingUser, List<CommonResDto.Link> links) {
+//        String accessToken = jwtTokenProvider.accessToken(existingUser.getEmail(), existingUser.getId(), existingUser.getNickname());
+//        String refreshToken = jwtTokenProvider.refreshToken(existingUser.getEmail(), existingUser.getId());
+//        log.info(accessToken);
+//        log.info(refreshToken);
+//        loginTemplate.opsForValue().set(existingUser.getEmail(), accessToken);
+//        existingUser.setRefreshToken(refreshToken);
+//        userRepository.save(existingUser);
+//
+//        return Mono.just(new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accessToken, links));
+//    }
+//
+//    private Mono<CommonResDto> handleSignUp(OAuthUserInfoDto userInfo, List<CommonResDto.Link> links) {
+//        String nickName = UUID.randomUUID().toString();
+//        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(), userInfo.getId());
+//
+//        User newUser = new User(userInfo.getEmail(), userInfo.getId(), nickName);
+//        newUser.setRefreshToken(refreshToken);
+//        userRepository.save(newUser);
+//
+//        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(), newUser.getId(), newUser.getNickname());
+//        loginTemplate.opsForValue().set(newUser.getEmail(), accessToken);
+//
+//        return Mono.just(new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links));
+//    }
 
-    // 2. 사용자 정보 가져오기
-    public GoogleUserInfo getUserInfoSync(String accessToken) {
-        if (googleOAuthProperties.getUserInfoUrl() == null || googleOAuthProperties.getUserInfoUrl().isEmpty()) {
-            throw new IllegalStateException("Google UserInfo URL is not configured");
-        }
-
-        log.info("Fetching user info from URL: {}", googleOAuthProperties.getUserInfoUrl());
-
-        try {
-            return webClient.get()
-                    .uri(googleOAuthProperties.getUserInfoUrl())
-                    .header("Authorization", "Bearer " + accessToken)
-                    .retrieve()
-                    .bodyToMono(GoogleUserInfo.class)
-                    .block(); // 동기 방식으로 변경
-        } catch (Exception e) {
-            log.error("Failed to fetch user info: {}", e.getMessage());
-            throw new RuntimeException("Failed to fetch user info", e);
-        }
-    }
-
-    // 3. 회원가입 및 로그인 처리
-    public CommonResDto processOAuthUserSync(GoogleUserInfo userInfo) {
-        List<CommonResDto.Link> links = List.of(
-                new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"),
-                new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST")
-        );
-        log.info(userInfo.toString());
-        log.info(userInfo.getEmail());
-        log.info(userInfo.getName());
-
-        try {
-            Optional<User> optionalUser = userRepository.findByEmail(userInfo.getEmail());
-            if (optionalUser.isPresent()) {
-                User user = optionalUser.get();
-                log.info("조회된 user: {}", user);
-                return handleLoginSync(user, links);
-            } else {
-                log.info("user is null. call handleSignUp");
-                return handleSignUpSync(userInfo, links);
-            }
-        } catch (Exception e) {
-            log.error("OAuth user processing failed: {}", e.getMessage());
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links);
-        }
-    }
-
-    private CommonResDto handleLoginSync(User existingUser, List<CommonResDto.Link> links) {
-        String accessToken = jwtTokenProvider.accessToken(existingUser.getEmail(), existingUser.getId(), existingUser.getNickname());
-        String refreshToken = jwtTokenProvider.refreshToken(existingUser.getEmail(), existingUser.getId());
-        log.info(accessToken);
-        log.info(refreshToken);
-        loginTemplate.opsForValue().set(existingUser.getEmail(), accessToken);
-        existingUser.setRefreshToken(refreshToken);
-        userRepository.save(existingUser);
-
-        return new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accessToken, links);
-    }
-
-    private CommonResDto handleSignUpSync(GoogleUserInfo userInfo, List<CommonResDto.Link> links) {
-
-        String profilImage = userInfo.getPicture();
-        String nickName = UUID.randomUUID().toString();
-        String id = UUID.randomUUID().toString();
-
-        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(), id);
-
-        User newUser = new User();
-        newUser.setId(id);
-        newUser.setEmail(userInfo.getEmail());
-        newUser.setProfileImage(profilImage);
-        newUser.setProvider(Provider.GOOGLE);
-        newUser.setNickname(nickName);
-        newUser.setRefreshToken(refreshToken);
-        newUser.setNickname(nickName);
-        newUser.setId(id);
-        userRepository.save(newUser);
-
-        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(), newUser.getId(), newUser.getNickname());
-        loginTemplate.opsForValue().set(newUser.getEmail(), accessToken);
-
-        return new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links);
-    }
 
     ////////////////////////////////////////////////////////feign 통신///////////////////////////////////////////////////////
     public List<FeignResDto> existsByEmailAndRefreshToken(List<String> result) {
@@ -737,20 +726,15 @@ public class UserService {
     }
 
     public String changeEmail(String nickname) {
-        return null;
-    }
-
-    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
-        return null;
-    }
-
-    public String changeEmail(String nickname) {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UsernameNotFoundException(nickname));
         return user.getEmail();
+    }
 
 
-        List<User> byEmailIn = userRepository.findByEmailIn(user.getEmail());
+    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+
+        List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
 
         log.info("유저리스트 {}", byEmailIn);
 
@@ -759,5 +743,9 @@ public class UserService {
 
 
         return collect;
+
     }
 }
+
+
+
