@@ -8,7 +8,7 @@ spring:
     config:
         git:
           uri: https://github.com/homeless-code-team/homeless-code-config.git
-          private-key: file:///C:\Users\playdata\.ssh
+          private-key: file:\\C:\Users\playdata\.ssh\id_rsa.pub
 
 management:
   endpoints:
