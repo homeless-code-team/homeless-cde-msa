@@ -6,6 +6,7 @@ import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
 import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
 import com.playdata.homelesscode.entity.Board;
+import com.playdata.homelesscode.service.BoardService;
 import com.playdata.homelesscode.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +23,13 @@ import org.springframework.web.bind.annotation.*;
 public class BoardController {
 
     private final ServerService serverService;
+    private final BoardService boardService;
+
     // 게시글 생성
     @PostMapping("/boards")
     public ResponseEntity<?> createBoards(BoardCreateDto dto) {
         try {
-            serverService.createBoard(dto);
+            boardService.createBoard(dto);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (IllegalStateException e) {
             // 이미 삭제된 게시판인 경우
@@ -41,7 +44,7 @@ public class BoardController {
     @GetMapping("/boards")
     public ResponseEntity<?> getBoards(BoardSearchDto dto, Pageable pageable) {
 
-        Page<Board> result = serverService.getBoard(dto,pageable);
+        Page<Board> result = boardService.getBoard(dto,pageable);
 
         CommonResDto resDto = new CommonResDto<>(HttpStatus.OK, "조회 성공", result);
 
@@ -52,7 +55,7 @@ public class BoardController {
     @DeleteMapping("/boards")
     public ResponseEntity<?> deleteBoards(BoardDeleteDto dto) {
 
-        serverService.deleteBoard(dto);
+        boardService.deleteBoard(dto);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -61,7 +64,7 @@ public class BoardController {
     @PutMapping("/boards")
     public ResponseEntity<?> updateBoards(BoardUpdateDto dto) {
 
-        serverService.updateBoard(dto);
+        boardService.updateBoard(dto);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

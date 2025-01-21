@@ -4,6 +4,7 @@ import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.entity.BoardList;
+import com.playdata.homelesscode.service.BoardListService;
 import com.playdata.homelesscode.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +20,12 @@ import java.util.List;
 @RequestMapping("/server")
 public class BoardListController {
 
-    private final ServerService serverService;
+    private BoardListService boardListService;
 
     // 게시판 생성
     @PostMapping("/boardList")
     public ResponseEntity<?> createBoardList(BoardListCreateDto dto) {
-        BoardList result = serverService.createBoardList(dto);
+        BoardList result = boardListService.createBoardList(dto);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "생성 성공", result);
 
@@ -36,7 +37,7 @@ public class BoardListController {
     @GetMapping("/boardList")
     public ResponseEntity<?> getBoardList(@RequestParam String id) {
 
-        List<BoardList> result = serverService.getBoardList(id);
+        List<BoardList> result = boardListService.getBoardList(id);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "조회 성공", result);
 
@@ -47,7 +48,7 @@ public class BoardListController {
     @PutMapping("/boardList")
     public ResponseEntity<?> updateBoardList(BoardListUpdateDto dto) {
 
-        BoardList board = serverService.updateBoardList(dto);
+        BoardList board = boardListService.updateBoardList(dto);
 
         CommonResDto resDto = new CommonResDto(HttpStatus.OK, "수정 성공", board);
 
@@ -60,7 +61,7 @@ public class BoardListController {
 
         log.info("삭제 컨트롤러에여 {} ,", id);
 
-        serverService.deleteBoardList(id);
+        boardListService.deleteBoardList(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
