@@ -744,20 +744,20 @@ public class UserService {
         return null;
     }
 
-//    public String changeEmail(String nickname) {
-//        User user = userRepository.findByNickname(nickname)
-//                .orElseThrow(() -> new UsernameNotFoundException(nickname));
-//        return user.getEmail();
-//
-//
-//        List<User> byEmailIn = userRepository.findByEmailIn(user.getEmail());
-//
-//        log.info("유저리스트 {}", byEmailIn);
-//
-//        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
-//                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
-//
-//
-//        return collect;
-//    }
+    public String changeEmail(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UsernameNotFoundException(nickname));
+        return user.getEmail();
+
+
+        List<User> byEmailIn = userRepository.findByEmailIn(user.getEmail());
+
+        log.info("유저리스트 {}", byEmailIn);
+
+        List<UserResponseDto> collect = byEmailIn.stream().map(user ->
+                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
+
+
+        return collect;
+    }
 }
