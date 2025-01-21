@@ -2,10 +2,25 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/chat-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/chat-service.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/gateway-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/gateway-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Homeless_User.iml" filepath="$PROJECT_DIR$/.idea/modules/Homeless_User.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Homeless_User.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Homeless_User.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Homeless_User.test.iml" filepath="$PROJECT_DIR$/.idea/modules/Homeless_User.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/chat-service.iml" filepath="$PROJECT_DIR$/.idea/modules/chat-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/chat-service.test.iml" filepath="$PROJECT_DIR$/.idea/modules/chat-service.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-serivce.iml" filepath="$PROJECT_DIR$/.idea/modules/config-serivce.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-serivce.main.iml" filepath="$PROJECT_DIR$/.idea/modules/config-serivce.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-serivce.test.iml" filepath="$PROJECT_DIR$/.idea/modules/config-serivce.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/discovery-service.iml" filepath="$PROJECT_DIR$/.idea/modules/discovery-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/discovery-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/discovery-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/discovery-service.test.iml" filepath="$PROJECT_DIR$/.idea/modules/discovery-service.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/friends-server.iml" filepath="$PROJECT_DIR$/.idea/modules/friends-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/friends-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/friends-server.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/friends-server.test.iml" filepath="$PROJECT_DIR$/.idea/modules/friends-server.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/gateway-service.iml" filepath="$PROJECT_DIR$/.idea/modules/gateway-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/gateway-service.test.iml" filepath="$PROJECT_DIR$/.idea/modules/gateway-service.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/homeless-code.iml" filepath="$PROJECT_DIR$/.idea/modules/homeless-code.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/homeless-code-msa.iml" filepath="$PROJECT_DIR$/.idea/homeless-code-msa.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/homeless-code.main.iml" filepath="$PROJECT_DIR$/.idea/modules/homeless-code.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/homeless-code.test.iml" filepath="$PROJECT_DIR$/.idea/modules/homeless-code.test.iml" />
     </modules>
   </component>
 </project>

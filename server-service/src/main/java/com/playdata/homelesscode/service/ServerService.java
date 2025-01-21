@@ -45,11 +45,7 @@ public class ServerService {
 
     private final ServerRepository serverRepository;
     private final ServerJoinUserListRepository serverListRepository;
-    private final ChannelRepository channelRepository;
-    private final BoardListRepository boardListRepository;
-    private final BoardRepository boardRepository;
     private final AwsS3Config s3Config;
-    private final ChatServiceClient chatServiceClient;
     private final UserServiceClient userServiceClient;
 
 
@@ -57,24 +53,18 @@ public class ServerService {
 
     public ServerService(ServerRepository serverRepository,
                          ServerJoinUserListRepository serverListRepository,
-                         ChannelRepository channelRepository,
-                         BoardListRepository boardListRepository,
-                         BoardRepository boardRepository,
-                         SecurityContextUtil securityContextUtil,
                          UserServiceClient userServiceClient,
                          AwsS3Config s3Config,
                          @Qualifier("server")
-                         RedisTemplate<String, String> serverTemplate,
-                         ChatServiceClient chatServiceClient) {
+                         RedisTemplate<String, String> serverTemplate
+                         ) {
         this.serverRepository = serverRepository;
         this.userServiceClient = userServiceClient;
         this.serverListRepository = serverListRepository;
-        this.channelRepository = channelRepository;
-        this.boardListRepository = boardListRepository;
-        this.boardRepository = boardRepository;
+
         this.serverTemplate = serverTemplate;
         this.s3Config = s3Config;
-        this.chatServiceClient = chatServiceClient;
+
     }
 
 
@@ -195,208 +185,7 @@ public class ServerService {
     }
 
 
-    public Channel createChannel(ChannelCreateDto dto) {
 
-        String serverId = dto.getServerId();
-
-        Server server = serverRepository.findById(serverId).orElseThrow(() -> new NullPointerException("Server not found"));
-
-        Channel channel = dto.toEntity(server);
-
-
-        return channelRepository.save(channel);
-
-    }
-
-    public List<ChannelResponseDto> getChannel(String id) {
-
-        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
-        List<ServerJoinUserList> byEmail = serverListRepository.findByEmail(userEmail);
-
-        List<ServerJoinUserList> collect = byEmail.stream().filter(s -> s.getServer().getId().equals(id)).collect(Collectors.toList());
-
-        boolean checkRole = false;
-        for (ServerJoinUserList server : collect) {
-            Role role = server.getRole(); // role 가져오기
-            if ("OWNER".equals(role) || "ROLE".equals(role)) {
-                checkRole = true;
-                break; // 조건을 만족하는 role을 찾으면 더 이상 순회하지 않고 종료
-            }
-        }
-
-
-
-        List<Channel> byServerId = channelRepository.findByServerId(id);
-        List<ChannelResponseDto> list = byServerId.stream().map(c ->
-                new ChannelResponseDto(
-                        c.getId(),
-                        c.getName(),
-                        ChannelResponseDto.makeDateStringFomatter(c.getCreateAt()))
-        ).toList();
-
-
-        return list;
-
-    }
-
-    public void deleteChannel(String id) {
-
-        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
-
-        Channel channel = channelRepository.findById(id).orElseThrow();
-
-        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(userEmail, channel.getServer().getId());
-
-        log.info("롤은 ? {}", byEmailAndServerId.getRole());
-
-        if(byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
-            channelRepository.deleteById(id);
-            chatServiceClient.deleteChatMessageByChannelId(id);
-        }else {
-            throw new CustomThrowException("권한이 없습니다.");
-        }
-
-
-
-
-    }
-
-    public BoardList createBoardList(BoardListCreateDto dto) {
-        System.out.println(dto.getServerId());
-
-        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
-
-        Server server = serverRepository.findById(dto.getServerId()).orElseThrow();
-
-        BoardList board = dto.toEntity(server);
-        
-        
-        //여기 이메일로 바꿔야됨
-        board.setWriter(userEmail);
-
-        return boardListRepository.save(board);
-
-    }
-
-    public BoardList updateBoardList(BoardListUpdateDto dto) {
-
-        Server server = serverRepository.findById(dto.getServerId()).orElseThrow(() -> new NullPointerException("server not found"));
-
-        BoardList board = boardListRepository.findById(dto.getId()).orElseThrow();
-
-        board.setBoardTitle(dto.getBoardTitle());
-        board.setTag(dto.getTag());
-        
-        boardListRepository.save(board);
-
-        return board;
-
-    }
-
-    public void deleteBoardList(String id) {
-
-        String email = SecurityContextUtil.getCurrentUser().getEmail();
-
-        BoardList boardList = boardListRepository.findById(id).orElseThrow();
-
-        ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(email, boardList.getServer().getId());
-
-        
-        if (serverList.getRole() == Role.OWNER || serverList.getRole() == Role.MANAGER) {
-            boardListRepository.deleteById(id);    
-        }else {
-            throw new CustomThrowException("권한 부족");
-        }
-
-        
-        
-
-
-    }
-
-    public List<BoardList> getBoardList(String id) {
-
-        List<BoardList> board = boardListRepository.findByServerId(id);
-
-        return board;
-
-    }
-
-    public Channel updateChannel(ChannelUpdateDto dto) {
-
-        Channel channel = channelRepository.findById(dto.getChannelId()).orElseThrow();
-
-        channel.setName(dto.getName());
-
-
-        Channel save = channelRepository.save(channel);
-
-        return save;
-
-    }
-
-
-    public Board createBoard(BoardCreateDto dto) {
-
-        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
-
-        BoardList boardList = boardListRepository.findById(dto.getBoardListId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 게시판이 존재하지 않습니다."));
-
-        Board board = Board.builder()
-                .title(dto.getTitle())
-                .writer(userEmail)
-                .boardList(boardList)
-                .build();
-
-        boardRepository.save(board);
-        return board;
-    }
-
-
-    public Page<Board> getBoard(BoardSearchDto dto, Pageable pageable) {
-
-//        List<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
-//        return result;
-
-        if(dto.getSearchName() != null){
-            log.info("아이디 {}", dto.getId());
-            log.info("검색 {}", dto.getSearchName());
-            Page<Board> result = boardRepository.findByBoardListIdAndTitleContainingOrderByCreateAtDesc(dto.getId(),dto.getSearchName(), pageable);
-            return result;
-        }else {
-            log.info("널인데?");
-            Page<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
-            return result;
-        }
-
-
-    }
-
-    public void deleteBoard(BoardDeleteDto dto) {
-
-        String email = SecurityContextUtil.getCurrentUser().getEmail();
-
-        ServerJoinUserList byEmailAndServerId = serverListRepository.findByEmailAndServerId(email, dto.getServeId());
-
-        Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
-
-        if(board.getWriter().equals(email) ||byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
-            boardRepository.deleteById(dto.getBoardId());
-        }
-
-
-
-    }
-
-    public void updateBoard(BoardUpdateDto dto) {
-
-        Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
-
-        board.setTitle(dto.getBoardTitle());
-
-        boardRepository.save(board);
-    }
 
 
     ////////////////////////////////// 서버 관리 ///////////////////////////////////////////////////////////////////////////////
