@@ -124,44 +124,44 @@ public class UserController {
     }
 
     /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
-    // 1. 인증 URL 반환
-    @GetMapping("/o-auth")
-    public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
-        log.info("/o-auth:GET, provider: {}", provider);
-        if ("google".equals(provider)) {
-            log.info("/o-auth:GET, provider: {}", provider);
-            String googleAuthUrl = oAuthService.getGoogleAuthUrl();
-            return ResponseEntity.ok().body(googleAuthUrl);
-        } else {
-            log.info("/o-auth:GET, provider: {}", provider);
-            String redirectUrl = oAuthService.getGithubRedirectUri();
-            return ResponseEntity.ok().body(redirectUrl);
-        }
-
-    }
-
-    // 2. OAuth Callback 처리
-    @GetMapping("/callback")
-    public Mono<ResponseEntity<CommonResDto>> handleOAuthCallback(@RequestParam String code) {
-        // AccessTokenResponse는 액세스 토큰과 리프레시 토큰을 포함한 DTO입니다.
-        return userService.getAccessToken(code)
-                .flatMap(tokenResponse -> {
-                    log.info("tokenResponse: {}", tokenResponse);
-                    // 액세스 토큰과 리프레시 토큰을 각각 처리
-                    String accessToken = tokenResponse.getAccessToken();
-//                    String refreshToken = tokenResponse.getRefreshToken();
-
-                    log.info("accessToken: {}", accessToken);
-
-                    // 사용자 정보 가져오기 및 OAuth 사용자 처리
-                    return userService.getUserInfo(accessToken)
-                            .flatMap(userInfo -> userService.processOAuthUser(userInfo))
-                            .map(ResponseEntity::ok);
-                })
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(
-                        new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null)
-                )));
-    }
+//    // 1. 인증 URL 반환
+//    @GetMapping("/o-auth")
+//    public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
+//        log.info("/o-auth:GET, provider: {}", provider);
+//        if ("google".equals(provider)) {
+//            log.info("/o-auth:GET, provider: {}", provider);
+//            String googleAuthUrl = oAuthService.getGoogleAuthUrl();
+//            return ResponseEntity.ok().body(googleAuthUrl);
+//        } else {
+//            log.info("/o-auth:GET, provider: {}", provider);
+//            String redirectUrl = oAuthService.getGithubRedirectUri();
+//            return ResponseEntity.ok().body(redirectUrl);
+//        }
+//
+//    }
+//
+//    // 2. OAuth Callback 처리
+//    @GetMapping("/callback")
+//    public Mono<ResponseEntity<CommonResDto>> handleOAuthCallback(@RequestParam String code) {
+//        // AccessTokenResponse는 액세스 토큰과 리프레시 토큰을 포함한 DTO입니다.
+//        return userService.getAccessToken(code)
+//                .flatMap(tokenResponse -> {
+//                    log.info("tokenResponse: {}", tokenResponse);
+//                    // 액세스 토큰과 리프레시 토큰을 각각 처리
+//                    String accessToken = tokenResponse.getAccessToken();
+////                    String refreshToken = tokenResponse.getRefreshToken();
+//
+//                    log.info("accessToken: {}", accessToken);
+//
+//                    // 사용자 정보 가져오기 및 OAuth 사용자 처리
+//                    return userService.getUserInfo(accessToken)
+//                            .flatMap(userInfo -> userService.processOAuthUser(userInfo))
+//                            .map(ResponseEntity::ok);
+//                })
+//                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(
+//                        new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null)
+//                )));
+//    }
 
 
 
@@ -171,7 +171,9 @@ public class UserController {
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
         log.info(result.toString());
         List<FeignResDto> dto1 = userService.existsByEmailAndRefreshToken(result);
+
         return ResponseEntity.ok(dto1);
+
     }
 
     @GetMapping("/getemail")

@@ -595,108 +595,108 @@ public class UserService {
 
     }
 
-    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+
 
 
     ///////////////////////////////////////////////////OAuth///////////////////////////////////////////////////////////////////////
-    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
-// 1. Access Token 요청
-    public Mono<AccessTokenResponse> getAccessToken(String code) {
-        log.info(code);
-        // 요청 파라미터 설정
-        return webClient.post()
-                .uri(googleOAuthProperties.getTokenUrl())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("code", code)
-                        .with("user_info", googleOAuthProperties.getUserInfoUrl())
-                        .with("token_uri ", googleOAuthProperties.getTokenUrl())
-                        .with("client_id", googleOAuthProperties.getClientId())
-                        .with("client_secret", googleOAuthProperties.getClientSecret())
-                        .with("redirect_uri", googleOAuthProperties.getRedirectUri())
-                        .with("grant_type", "authorization_code"))
-                .retrieve()
-                .bodyToMono(AccessTokenResponse.class) // JSON 매핑
-//                .doOnNext(response -> log.info("Access Token Response: {}", response))
-                .doOnError(e -> log.error("Failed to retrieve access token: {}", e.getMessage()))
-
-                .map(response -> {
-                    log.info("Access Token Response: {}", response.toString());
-                    log.info("리턴된 Access Token: {}", response.getAccessToken());
-                    return response;
-                });
-    }
-
-
-    // 2. 사용자 정보 가져오기
-    public Mono<OAuthUserInfoDto> getUserInfo(String accessToken) {
-        log.info(accessToken);
-        return webClient.get()
-                .headers(headers -> headers.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToMono(OAuthUserInfoDto.class)
-                .map(userInfo -> {
-                    log.info("User info: {}", userInfo);
-                    return userInfo;
-                });
-
-
-    }
-
-
-    // 3. 회원가입 및 로그인 처리
-    public Mono<CommonResDto> processOAuthUser(OAuthUserInfoDto userInfo) {
-        log.info(userInfo.toString());
-        List<CommonResDto.Link> links = List.of(
-                new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"),
-                new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST")
-        );
-        log.info(userInfo.toString());
-        log.info(userInfo.getEmail());
-        log.info(userInfo.getName());
-        log.info(userInfo.getId());
-        return Mono.fromCallable(() -> userRepository.findByEmail(userInfo.getEmail()))
-                .flatMap(optionalUser -> optionalUser.map(Mono::just).orElseGet(Mono::empty))
-                .flatMap(user -> {
-                    if (user != null) {
-                        log.info(user.toString());
-                        return handleLogin(user, links);
-                    } else {
-                        log.info(userInfo.toString());
-                        return handleSignUp(userInfo, links);
-                    }
-                })
-                .onErrorResume(e -> {
-                    log.error("OAuth user processing failed: {}", e.getMessage());
-                    return Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links));
-                });
-    }
-
-
-    private Mono<CommonResDto> handleLogin(User existingUser, List<CommonResDto.Link> links) {
-        String accessToken = jwtTokenProvider.accessToken(existingUser.getEmail(), existingUser.getId(), existingUser.getNickname());
-        String refreshToken = jwtTokenProvider.refreshToken(existingUser.getEmail(), existingUser.getId());
-        log.info(accessToken);
-        log.info(refreshToken);
-        loginTemplate.opsForValue().set(existingUser.getEmail(), accessToken);
-        existingUser.setRefreshToken(refreshToken);
-        userRepository.save(existingUser);
-
-        return Mono.just(new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accessToken, links));
-    }
-
-    private Mono<CommonResDto> handleSignUp(OAuthUserInfoDto userInfo, List<CommonResDto.Link> links) {
-        String nickName = UUID.randomUUID().toString();
-        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(), userInfo.getId());
-
-        User newUser = new User(userInfo.getEmail(), userInfo.getId(), nickName);
-        newUser.setRefreshToken(refreshToken);
-        userRepository.save(newUser);
-
-        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(), newUser.getId(), newUser.getNickname());
-        loginTemplate.opsForValue().set(newUser.getEmail(), accessToken);
-
-        return Mono.just(new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links));
-    }
+//    // 프론트단에서 처음으로 소셜 로그인 버튼 누르면 받는 로직
+//// 1. Access Token 요청
+//    public Mono<AccessTokenResponse> getAccessToken(String code) {
+//        log.info(code);
+//        // 요청 파라미터 설정
+//        return webClient.post()
+//                .uri(googleOAuthProperties.getTokenUrl())
+//                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                .body(BodyInserters.fromFormData("code", code)
+//                        .with("user_info", googleOAuthProperties.getUserInfoUrl())
+//                        .with("token_uri ", googleOAuthProperties.getTokenUrl())
+//                        .with("client_id", googleOAuthProperties.getClientId())
+//                        .with("client_secret", googleOAuthProperties.getClientSecret())
+//                        .with("redirect_uri", googleOAuthProperties.getRedirectUri())
+//                        .with("grant_type", "authorization_code"))
+//                .retrieve()
+//                .bodyToMono(AccessTokenResponse.class) // JSON 매핑
+////                .doOnNext(response -> log.info("Access Token Response: {}", response))
+//                .doOnError(e -> log.error("Failed to retrieve access token: {}", e.getMessage()))
+//
+//                .map(response -> {
+//                    log.info("Access Token Response: {}", response.toString());
+//                    log.info("리턴된 Access Token: {}", response.getAccessToken());
+//                    return response;
+//                });
+//    }
+//
+//
+//    // 2. 사용자 정보 가져오기
+//    public Mono<OAuthUserInfoDto> getUserInfo(String accessToken) {
+//        log.info(accessToken);
+//        return webClient.get()
+//                .headers(headers -> headers.setBearerAuth(accessToken))
+//                .retrieve()
+//                .bodyToMono(OAuthUserInfoDto.class)
+//                .map(userInfo -> {
+//                    log.info("User info: {}", userInfo);
+//                    return userInfo;
+//                });
+//
+//
+//    }
+//
+//
+//    // 3. 회원가입 및 로그인 처리
+//    public Mono<CommonResDto> processOAuthUser(OAuthUserInfoDto userInfo) {
+//        log.info(userInfo.toString());
+//        List<CommonResDto.Link> links = List.of(
+//                new CommonResDto.Link("sign-up", "/api/v1/users/sign-up", "POST"),
+//                new CommonResDto.Link("login", "/api/v1/users/sign-in", "POST")
+//        );
+//        log.info(userInfo.toString());
+//        log.info(userInfo.getEmail());
+//        log.info(userInfo.getName());
+//        log.info(userInfo.getId());
+//        return Mono.fromCallable(() -> userRepository.findByEmail(userInfo.getEmail()))
+//                .flatMap(optionalUser -> optionalUser.map(Mono::just).orElseGet(Mono::empty))
+//                .flatMap(user -> {
+//                    if (user != null) {
+//                        log.info(user.toString());
+//                        return handleLogin(user, links);
+//                    } else {
+//                        log.info(userInfo.toString());
+//                        return handleSignUp(userInfo, links);
+//                    }
+//                })
+//                .onErrorResume(e -> {
+//                    log.error("OAuth user processing failed: {}", e.getMessage());
+//                    return Mono.just(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links));
+//                });
+//    }
+//
+//
+//    private Mono<CommonResDto> handleLogin(User existingUser, List<CommonResDto.Link> links) {
+//        String accessToken = jwtTokenProvider.accessToken(existingUser.getEmail(), existingUser.getId(), existingUser.getNickname());
+//        String refreshToken = jwtTokenProvider.refreshToken(existingUser.getEmail(), existingUser.getId());
+//        log.info(accessToken);
+//        log.info(refreshToken);
+//        loginTemplate.opsForValue().set(existingUser.getEmail(), accessToken);
+//        existingUser.setRefreshToken(refreshToken);
+//        userRepository.save(existingUser);
+//
+//        return Mono.just(new CommonResDto(HttpStatus.OK, 200, "로그인 성공", accessToken, links));
+//    }
+//
+//    private Mono<CommonResDto> handleSignUp(OAuthUserInfoDto userInfo, List<CommonResDto.Link> links) {
+//        String nickName = UUID.randomUUID().toString();
+//        String refreshToken = jwtTokenProvider.refreshToken(userInfo.getEmail(), userInfo.getId());
+//
+//        User newUser = new User(userInfo.getEmail(), userInfo.getId(), nickName);
+//        newUser.setRefreshToken(refreshToken);
+//        userRepository.save(newUser);
+//
+//        String accessToken = jwtTokenProvider.accessToken(newUser.getEmail(), newUser.getId(), newUser.getNickname());
+//        loginTemplate.opsForValue().set(newUser.getEmail(), accessToken);
+//
+//        return Mono.just(new CommonResDto(HttpStatus.CREATED, 201, "회원가입 성공", accessToken, links));
+//    }
 
 
     ////////////////////////////////////////////////////////feign 통신///////////////////////////////////////////////////////
@@ -731,6 +731,9 @@ public class UserService {
         return user.getEmail();
     }
 
+
+    public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
+
         List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
 
         log.info("유저리스트 {}", byEmailIn);
@@ -740,9 +743,9 @@ public class UserService {
 
 
         return collect;
+
     }
 }
 
 
 
-}
