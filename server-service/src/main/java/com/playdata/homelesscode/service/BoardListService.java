@@ -30,7 +30,6 @@ public class BoardListService {
     private final ServerJoinUserListRepository serverListRepository;
 
 
-
     public BoardList createBoardList(BoardListCreateDto dto) {
         System.out.println(dto.getServerId());
 
@@ -74,12 +73,9 @@ public class BoardListService {
 
         if (serverList.getRole() == Role.OWNER || serverList.getRole() == Role.MANAGER) {
             boardListRepository.deleteById(id);
-        }else {
+        } else {
             throw new CustomThrowException("권한 부족");
         }
-
-
-
 
 
     }
