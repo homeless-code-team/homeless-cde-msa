@@ -309,6 +309,8 @@ public class UserService {
         links.add(new CommonResDto.Link("sendEmail", "/api/v1/users/confirm", "POST"));
         links.add(new CommonResDto.Link("checkEmail", "/api/v1/users/confrim", "GET"));
 
+        log.info(dto.toString());
+
         //  이메일 인증 임시토큰 발급
         String token = jwtTokenProvider.emailToken(dto.getEmail());
 
