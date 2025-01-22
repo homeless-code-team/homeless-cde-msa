@@ -21,7 +21,7 @@ public class ErrorEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        log.warn("필터 시작! 여기는 이미 에러가 발생해서 온것입니다. 수정하세요!" );
+        log.warn("필터 시작! 여기는 이미 에러가 발생해서 온것입니다. 수정하세요!");
         log.warn(authException.getMessage());
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

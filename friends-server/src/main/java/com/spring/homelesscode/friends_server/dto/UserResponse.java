@@ -2,7 +2,8 @@ package com.spring.homelesscode.friends_server.dto;
 
 import lombok.*;
 
-@Getter@Setter
+@Getter
+@Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor

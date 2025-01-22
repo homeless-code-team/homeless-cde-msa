@@ -1,6 +1,8 @@
 package com.spring.homeless_user.common.dto;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter@Setter@ToString
 public  class CustomUserPrincipal {

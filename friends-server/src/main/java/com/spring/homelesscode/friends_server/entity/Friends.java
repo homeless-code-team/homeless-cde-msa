@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.joda.time.DateTime;
 
-import java.util.List;
-
 @Entity
 @Data
 @AllArgsConstructor
@@ -21,7 +19,7 @@ public class Friends {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    
+
     @Column(name = "user_email")
     private String senderEmail;
 

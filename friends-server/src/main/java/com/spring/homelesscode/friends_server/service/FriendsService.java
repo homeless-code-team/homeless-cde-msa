@@ -17,7 +17,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -77,8 +80,6 @@ public class FriendsService {
     }
 
 
-
-
     // 친구목록 조회
     public CommonResDto UserFriends() {
         // REST API 링크 설정
@@ -90,7 +91,7 @@ public class FriendsService {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
             // JPQL로 친구 목록 조회 (refreshToken 여부 포함)
-            List<Friends> results1 = friendsRepository.findByReceiverEmailAndStatus(email,AddStatus.ACCEPT.name());
+            List<Friends> results1 = friendsRepository.findByReceiverEmailAndStatus(email, AddStatus.ACCEPT.name());
             List<Friends> results2 = friendsRepository.findBySenderEmailAndStatus(email, AddStatus.ACCEPT.name());
             log.info(String.valueOf(results1));
             log.info(String.valueOf(results2));
@@ -129,7 +130,7 @@ public class FriendsService {
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/friends", "Delete"));
         try {
             // 현재 사용자 정보 가져오기
-            String email = securityContextUtil.getCurrentUser().getEmail();
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
             String friendEmail = userServiceclient.getEmail(receiverNickname);
 
             Friends byReceiverEmailAAndSenderEmail = friendsRepository.findByReceiverEmailAndSenderEmail(friendEmail, email)
@@ -157,34 +158,34 @@ public class FriendsService {
 
         try {
             String senderEmail = SecurityContextUtil.getCurrentUser().getEmail();
-            log.info("senderEmail:{}",senderEmail);
+            log.info("senderEmail:{}", senderEmail);
             String receiverEmail = userServiceclient.getEmail(dto.getReceiverNickname());
-            log.info("receiverNickname:{}",dto.getReceiverNickname());
-            log.info("receiverEmail:{}",receiverEmail);
+            log.info("receiverNickname:{}", dto.getReceiverNickname());
+            log.info("receiverEmail:{}", receiverEmail);
 
 
             // 이미 친구 관계 또는 요청 상태인지 확인
-            Optional<Friends> friends = friendsRepository.findByReceiverEmailAndSenderEmail(senderEmail,receiverEmail);
+            Optional<Friends> friends = friendsRepository.findByReceiverEmailAndSenderEmail(senderEmail, receiverEmail);
             // 사용자 객체 로드
             boolean present = friends.isPresent();
             log.info(String.valueOf(present));
-            if (present){
-                if(friends.get().getStatus().equalsIgnoreCase(AddStatus.PENDING.name())){
-                    if (dto.getAddStatus().equalsIgnoreCase(AddStatus.ACCEPT.name())){
+            if (present) {
+                if (friends.get().getStatus().equalsIgnoreCase(AddStatus.PENDING.name())) {
+                    if (dto.getAddStatus().equalsIgnoreCase(AddStatus.ACCEPT.name())) {
                         friends.get().setStatus(AddStatus.ACCEPT.name());
                         friendsRepository.save(friends.get());
                         log.info("Friend relationship accepted");
                         return new CommonResDto(HttpStatus.OK, 200, "친구가 되었습니다.", null, links);
-                    }else{
+                    } else {
                         friendsRepository.delete(friends.get());
                         log.info("Friend relationship rejected");
                         return new CommonResDto(HttpStatus.OK, 200, "친구추가를 거절하셨습니다.", null, links);
                     }
-                }else{
+                } else {
                     log.info("Friend relationship already exists");
                     return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이미 친구입니다.", null, links);
                 }
-            }else{
+            } else {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "ACCEPT 와 REJECT 중 하나를 선택해 주세요", null, links);
             }
         } catch (IllegalArgumentException e) {
@@ -245,7 +246,6 @@ public class FriendsService {
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 에러 발생: " + e.getMessage(), null, links);
         }
     }
-
 
 
 }
