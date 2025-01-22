@@ -30,12 +30,12 @@ public class StompInterceptor implements ChannelInterceptor {
 
                 // 1. Authorization 헤더 추출
                 String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
-                log.info("Authorization header: {}", authorizationHeader);
+                log.info("Authorization header: {} in StompInterceptor", authorizationHeader);
 
                 // 2. 토큰 검증
                 if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                    log.error("Missing or invalid Authorization header");
-                    throw new UnauthorizedException("401","Missing or invalid Authorization header");
+                    log.error("Missing or invalid Authorization header in StompInterceptor");
+                    throw new UnauthorizedException("401","Missing or invalid Authorization header in StompInterceptor");
                 }
 
                 // "Bearer " 제거
@@ -52,7 +52,7 @@ public class StompInterceptor implements ChannelInterceptor {
                     // 5. 사용자 정보를 STOMP 세션에 추가
                     accessor.setUser(() -> email);
                 } catch (Exception e) {
-                    log.error("Token validation failed: {}", e.getMessage());
+                    log.error("Token validation failed: {} in StompInterceptor", e.getMessage());
                     throw new UnauthorizedException("401","Invalid token: " + e.getMessage());
                 }
             }

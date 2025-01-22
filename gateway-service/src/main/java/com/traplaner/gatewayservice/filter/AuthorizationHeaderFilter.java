@@ -65,8 +65,9 @@ public class AuthorizationHeaderFilter
 
             // Authorization 헤더 확인
             String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            log.info("헤더 값: {}", authorizationHeader);
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                return onError(exchange, "Authorization header is missing or invalid", HttpStatus.UNAUTHORIZED);
+                return onError(exchange, "Authorization header is missing or invalid in gate 1", HttpStatus.UNAUTHORIZED);
             }
 
             // Bearer 떼기
@@ -75,7 +76,7 @@ public class AuthorizationHeaderFilter
             // JWT 토큰 유효성 검증
             Claims claims = validateJwt(token);
             if (claims == null) {
-                return onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED);
+                return onError(exchange, "Invalid token in gate 2", HttpStatus.UNAUTHORIZED);
             }
 
             // 사용자 정보를 클레임에서 꺼내 헤더에 추가
@@ -85,7 +86,7 @@ public class AuthorizationHeaderFilter
                     .header("X-User-Nickname", String.valueOf(claims.get("nickname")))
                     .header("X-User-Id", String.valueOf(claims.get("user_id")))
                     .build();
-
+            log.info("통과~ 요구 url : {}", path);
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
@@ -105,12 +106,12 @@ public class AuthorizationHeaderFilter
             try {
                 redisToken = loginTemplate.opsForValue().get(email);
             } catch (Exception e) {
-                log.error("Failed to fetch token from Redis: {}", e.getMessage());
+                log.error("Failed to fetch token from Redis: 3 {}", e.getMessage());
                 return null;
             }
 
             if (redisToken == null || !redisToken.equals(token)) {
-                log.error("Token mismatch or not found in Redis");
+                log.error("Token mismatch or not found in Redis 4");
                 return null;
             }
             return body;
