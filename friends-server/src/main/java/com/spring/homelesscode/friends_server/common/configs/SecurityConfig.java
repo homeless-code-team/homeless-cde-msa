@@ -1,7 +1,6 @@
 package com.spring.homelesscode.friends_server.common.configs;
 
 
-
 import com.spring.homelesscode.friends_server.common.auth.JwtAuthFilter;
 import com.spring.homelesscode.friends_server.common.dto.ErrorEntryPoint;
 import lombok.RequiredArgsConstructor;

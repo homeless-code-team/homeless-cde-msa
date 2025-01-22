@@ -1,13 +1,9 @@
 package com.spring.homeless_user.user.Oauth;
 
-import com.spring.homeless_user.user.dto.AccessTokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service

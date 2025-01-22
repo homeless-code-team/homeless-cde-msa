@@ -1,7 +1,6 @@
 package com.spring.homeless_user.user.dto;
 
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter

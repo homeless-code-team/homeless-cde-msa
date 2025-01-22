@@ -58,6 +58,7 @@ public class FriednsController {
         log.info("addFriendJoin");
         return friendsAndServerService.reqFriendsJoin();
     }
+
     // 친구요청 취소
     @DeleteMapping("/request")
     public CommonResDto reqFriendLeave(@RequestParam String receiverNickname) {

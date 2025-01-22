@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "tbl_users", indexes = {
+@Table(name = "users", indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_nickname", columnList = "nickname")
 })
@@ -31,12 +31,8 @@ public class User {
     private String nickname;
     private String profileImage;
     private String contents;
-    private String achievement; // Camel case 수정
-    private LocalDateTime createdAt; // Camel case 수정
+    private String achievement;
+    private LocalDateTime createdAt;
     private String refreshToken;
 
-
-    public User(String email, String id, String nickname) {
-
-    }
 }
