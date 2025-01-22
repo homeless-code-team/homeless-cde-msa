@@ -5,11 +5,9 @@ import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -24,18 +22,17 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 @ConfigurationProperties
 @Component
 @Slf4j
 public class AuthorizationHeaderFilter
         extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
 
-    @Value("${jwt.secretKey}")
-    private String secretKey;
-
-
     private final RedisTemplate<String, String> loginTemplate;
     private final SecurityPropertiesUtil securityPropertiesUtil;
+    @Value("${jwt.secretKey}")
+    private String secretKey;
 
     public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate, SecurityPropertiesUtil securityPropertiesUtil) {
         super(Config.class);
