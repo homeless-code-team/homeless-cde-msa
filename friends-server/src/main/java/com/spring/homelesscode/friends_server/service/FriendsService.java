@@ -130,7 +130,7 @@ public class FriendsService {
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/friends", "Delete"));
         try {
             // 현재 사용자 정보 가져오기
-            String email = securityContextUtil.getCurrentUser().getEmail();
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
             String friendEmail = userServiceclient.getEmail(receiverNickname);
 
             Friends byReceiverEmailAAndSenderEmail = friendsRepository.findByReceiverEmailAndSenderEmail(friendEmail, email)
