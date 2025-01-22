@@ -7,7 +7,6 @@ import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.service.ServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -78,7 +77,7 @@ public class ServerController {
 
     // 서버 참여 유저 조회
     @GetMapping("/userList")
-    public CommonResDto<List<UserReponseInRoleDto>> getUserList(@RequestParam String id ) {
+    public CommonResDto<List<UserReponseInRoleDto>> getUserList(@RequestParam String id) {
 
 
         List<UserReponseInRoleDto> userList = serverService.getUserList(id);
@@ -90,7 +89,7 @@ public class ServerController {
 
     // 서버 권한 변경
     @PutMapping("/userRole")
-    public ResponseEntity<?> changeRole(@RequestBody ChangeRoleDto dto){
+    public ResponseEntity<?> changeRole(@RequestBody ChangeRoleDto dto) {
         serverService.changeRole(dto);
 
         return new ResponseEntity<>(HttpStatus.OK);
@@ -98,9 +97,9 @@ public class ServerController {
 
     // 유저 추방
     @DeleteMapping("/resign")
-    public ResponseEntity<?> resignUser(@RequestBody ResignUserDto dto){
+    public ResponseEntity<?> resignUser(@RequestBody ResignUserDto dto) {
         serverService.resignUser(dto);
-        
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -127,7 +126,6 @@ public class ServerController {
         log.info("addServerJoin");
         return serverService.addServerJoin(serverId);
     }
-
 
 
 }
