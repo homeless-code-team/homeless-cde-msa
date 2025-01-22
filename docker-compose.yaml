@@ -92,7 +92,19 @@ services:
       - friends-service
       - server-service
       - chat-service
-
+  config-service:
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8181" # 게이트웨이는 고정 포트로 설정
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - user-service
+      - friends-service
+      - server-service
+      - chat-service
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
