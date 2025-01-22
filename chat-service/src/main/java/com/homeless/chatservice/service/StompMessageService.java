@@ -1,6 +1,7 @@
 package com.homeless.chatservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.homeless.chatservice.common.config.AwsS3Config;
 import com.homeless.chatservice.common.config.RabbitConfig;
 import com.homeless.chatservice.dto.CreateChannelRequest;
 import com.homeless.chatservice.dto.JoinMessage;
@@ -18,6 +19,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -36,56 +39,13 @@ public class StompMessageService {
     private final RabbitConfig rabbitConfig;
     private final RabbitAdmin rabbitAdmin;
     private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
+    private final AwsS3Config awsS3Config;
+
 
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;
 
     private final RedisTemplate<String, String> redisTemplate;
-
-    // 1. 채널 관리 관련 메서드들
-    public String createChannel(CreateChannelRequest request) {
-        String channelId = generateChannelId(); // UUID 등을 사용하여 채널 ID 생성 (DB의 uuid 전략 사용해도 무방)
-
-        try {
-            // 큐 생성
-            Queue queue = rabbitConfig.createChatQueue(channelId);
-            rabbitAdmin.declareQueue(queue);
-
-            // 바인딩 생성
-            Binding binding = rabbitConfig.createChatChannelBinding(queue, channelId);
-            rabbitAdmin.declareBinding(binding);
-
-            // 리스너 생성 및 시작
-            createChannelListener(channelId);
-
-            log.info("Created channel: {}", channelId);
-            return channelId;
-
-        } catch (Exception e) {
-            log.error("Failed to create channel: {}", channelId, e);
-            cleanupChannelResources(channelId);
-            throw new RuntimeException("Failed to create channel", e);
-        }
-    }
-
-    public void removeChannel(String channelId) {
-        log.info("Removing channel: {}", channelId);
-
-        // 리스너 정리
-        SimpleMessageListenerContainer container = channelListeners.remove(channelId);
-        if (container != null) {
-            container.stop();
-        }
-
-        // 큐 삭제
-        rabbitAdmin.deleteQueue("chat.channel." + channelId);
-
-        // 시스템 메시지 발송
-        sendSystemMessage(channelId, "채널이 삭제되었습니다.");
-    }
-
-
-
 
     // 메시지를 RabbitMQ로 전달하는 메서드
     // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
@@ -114,6 +74,9 @@ public class StompMessageService {
 
 
 
+
+
+
     // 중복 메시지 여부를 체크하는 메서드
 // 중복 메시지 여부를 체크하는 메서드
     public boolean isDuplicateMessage(String channelId, String messageContentHash) {
@@ -132,7 +95,6 @@ public class StompMessageService {
         // 중복 메시지인 경우 true 반환
         return true;
     }
-
 
 
         // 메시지 내용 해시값 생성
@@ -228,6 +190,49 @@ public class StompMessageService {
                 .build();
 
         sendMessage(systemMessage);
+    }
+
+
+
+    public String createChannel(CreateChannelRequest request) {
+        String channelId = generateChannelId(); // UUID 등을 사용하여 채널 ID 생성 (DB의 uuid 전략 사용해도 무방)
+
+        try {
+            // 큐 생성
+            Queue queue = rabbitConfig.createChatQueue(channelId);
+            rabbitAdmin.declareQueue(queue);
+
+            // 바인딩 생성
+            Binding binding = rabbitConfig.createChatChannelBinding(queue, channelId);
+            rabbitAdmin.declareBinding(binding);
+
+            // 리스너 생성 및 시작
+            createChannelListener(channelId);
+
+            log.info("Created channel: {}", channelId);
+            return channelId;
+
+        } catch (Exception e) {
+            log.error("Failed to create channel: {}", channelId, e);
+            cleanupChannelResources(channelId);
+            throw new RuntimeException("Failed to create channel", e);
+        }
+    }
+
+    public void removeChannel(String channelId) {
+        log.info("Removing channel: {}", channelId);
+
+        // 리스너 정리
+        SimpleMessageListenerContainer container = channelListeners.remove(channelId);
+        if (container != null) {
+            container.stop();
+        }
+
+        // 큐 삭제
+        rabbitAdmin.deleteQueue("chat.channel." + channelId);
+
+        // 시스템 메시지 발송
+        sendSystemMessage(channelId, "채널이 삭제되었습니다.");
     }
 
 
