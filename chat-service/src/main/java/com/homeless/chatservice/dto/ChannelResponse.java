@@ -2,7 +2,8 @@ package com.homeless.chatservice.dto;
 
 import lombok.*;
 
-@Getter @ToString
+@Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
