@@ -19,7 +19,6 @@ public class BoardListUpdateDto {
     private String serverId;
 
 
-
     public BoardList toEntity(Server server) {
         return BoardList.builder()
                 .id(id)

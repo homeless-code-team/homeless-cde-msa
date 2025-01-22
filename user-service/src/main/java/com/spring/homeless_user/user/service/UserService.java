@@ -767,7 +767,7 @@ public class UserService {
         log.info("유저리스트 {}", byEmailIn);
 
         List<UserResponseDto> collect = byEmailIn.stream().map(user ->
-                new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
+                new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
 
 
         return collect;

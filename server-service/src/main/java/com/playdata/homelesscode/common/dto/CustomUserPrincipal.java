@@ -4,13 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Getter@Setter@ToString
-public  class CustomUserPrincipal {
+@Getter
+@Setter
+@ToString
+public class CustomUserPrincipal {
     private final String email;
     private final String userId;
 
 
-    public CustomUserPrincipal(String email, String  userId) {
+    public CustomUserPrincipal(String email, String userId) {
         this.email = email;
         this.userId = userId;
 
@@ -20,10 +22,9 @@ public  class CustomUserPrincipal {
         return email;
     }
 
-    public String  getUserId() {
+    public String getUserId() {
         return userId;
     }
-
 
 
     @Override

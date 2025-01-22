@@ -33,7 +33,6 @@ public class ChannelService {
     private final ChatServiceClient chatServiceClient;
 
 
-
     public Channel createChannel(ChannelCreateDto dto) {
 
         String serverId = dto.getServerId();
@@ -64,7 +63,6 @@ public class ChannelService {
         }
 
 
-
         List<Channel> byServerId = channelRepository.findByServerId(id);
         List<ChannelResponseDto> list = byServerId.stream().map(c ->
                 new ChannelResponseDto(
@@ -88,10 +86,10 @@ public class ChannelService {
 
         log.info("롤은 ? {}", byEmailAndServerId.getRole());
 
-        if(byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+        if (byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER) {
             channelRepository.deleteById(id);
             chatServiceClient.deleteChatMessageByChannelId(id);
-        }else {
+        } else {
             throw new CustomThrowException("권한이 없습니다.");
         }
 
