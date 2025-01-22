@@ -309,8 +309,6 @@ public class ServerService {
     }
 
 
-
-
     // Redis에서 value로 조회하기 위한 전체 조회
     public List<String> findKeysByValue(String targetValue) {
         List<String> matchingKeys = new ArrayList<>(); // 결과를 저장할 리스트
@@ -327,34 +325,6 @@ public class ServerService {
 
         return matchingKeys; // 매칭된 키 리스트 반환
     }
-
-//    public Page<UserReponseInRoleDto> getUserList(String id, Pageable pageable) {
-//
-//        List<ServerJoinUserList> byServerId = serverListRepository.findByServerId(id);
-//
-//        List<String> userEmails = byServerId.stream().map(s -> s.getEmail()).collect(Collectors.toList());
-//
-//        int start = (int) pageable.getOffset();
-//        int end = Math.min((start + pageable.getPageSize()), userEmails.size());
-//
-//
-//        List<UserResponseDto> byEmailIn = userServiceClient.findByEmailIn(userEmails, pageable);
-//
-//
-//
-//        List<UserReponseInRoleDto> userList = byEmailIn.stream().map(dto -> {
-//            ServerJoinUserList serverJoinUserList
-//                    = byServerId.stream().filter(user -> user
-//                            .getEmail().equals(dto.getEmail()))
-//                    .findFirst().orElseThrow(null);
-//
-//            return new UserReponseInRoleDto(dto.getId(), dto.getNickname(), dto.getEmail(), dto.getProfileImage(), serverJoinUserList.getRole());
-//        }).collect(Collectors.toList());
-//
-//
-//        List<UserReponseInRoleDto> pagedUserList = userList.subList(start, end);
-//        return new PageImpl<>(pagedUserList, pageable, userList.size());
-//    }
 
 
     public List<UserReponseInRoleDto> getUserList(String id) {
@@ -379,39 +349,62 @@ public class ServerService {
             );
         }).collect(Collectors.toList());
 
-
-
-
-
-
         return userList;
 
     }
 
     public void changeRole(ChangeRoleDto dto) {
-        log.info(dto.getEmail());
-        log.info(String.valueOf(dto.getRole()));
-
 
         ServerJoinUserList byEmail = serverListRepository.findByEmailAndServerId(dto.getEmail(), dto.getId());
-
-
-
-
-
-
-        log.info("헤헿 {}",byEmail.getEmail());
         byEmail.setRole(dto.getRole());
-
 
         ServerJoinUserList save = serverListRepository.save(byEmail);
 
-        log.info("롤은 , {}", save.getRole());
+
     }
 
     public void resignUser(ResignUserDto dto) {
 
         serverListRepository.deleteByServerIdAndEmail(dto.getServerId(), dto.getEmail());
+
+    }
+
+    public void editServer(ServerEditDto dto) throws IOException {
+
+
+        Server server = serverRepository.findById(dto.getId()).orElseThrow();
+
+        if(dto.getTitle() != null){
+            server.setTitle(dto.getTitle());
+        }
+
+        if (dto.getTag() != null){
+            server.setTag(dto.getTag());
+        }
+
+
+
+
+
+        if(dto.getServerImg() != null){
+
+            if (server.getServerImg() != null) {
+                try {
+                    s3Config.deleteFromS3Bucket(server.getServerImg());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+
+            String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
+
+            String imageUrl = s3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+
+            server.setServerImg(imageUrl);
+        }
+
+        serverRepository.save(server);
 
     }
 }
