@@ -5,11 +5,9 @@ import com.playdata.homelesscode.dto.boards.BoardCreateDto;
 import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
 import com.playdata.homelesscode.dto.boards.BoardSearchDto;
 import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
-import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.Role;
 import com.playdata.homelesscode.entity.Board;
 import com.playdata.homelesscode.entity.BoardList;
-import com.playdata.homelesscode.entity.Channel;
 import com.playdata.homelesscode.entity.ServerJoinUserList;
 import com.playdata.homelesscode.repository.BoardListRepository;
 import com.playdata.homelesscode.repository.BoardRepository;
@@ -55,12 +53,12 @@ public class BoardService {
 //        List<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
 //        return result;
 
-        if(dto.getSearchName() != null){
+        if (dto.getSearchName() != null) {
             log.info("아이디 {}", dto.getId());
             log.info("검색 {}", dto.getSearchName());
-            Page<Board> result = boardRepository.findByBoardListIdAndTitleContainingOrderByCreateAtDesc(dto.getId(),dto.getSearchName(), pageable);
+            Page<Board> result = boardRepository.findByBoardListIdAndTitleContainingOrderByCreateAtDesc(dto.getId(), dto.getSearchName(), pageable);
             return result;
-        }else {
+        } else {
             log.info("널인데?");
             Page<Board> result = boardRepository.findByBoardListIdOrderByCreateAtDesc(dto.getId(), pageable);
             return result;
@@ -77,10 +75,9 @@ public class BoardService {
 
         Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
 
-        if(board.getWriter().equals(email) ||byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER){
+        if (board.getWriter().equals(email) || byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER) {
             boardRepository.deleteById(dto.getBoardId());
         }
-
 
 
     }
@@ -93,11 +90,6 @@ public class BoardService {
 
         boardRepository.save(board);
     }
-
-
-
-
-
 
 
 }
