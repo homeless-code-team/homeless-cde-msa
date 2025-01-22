@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/server")
 public class BoardListController {
 
-    private BoardListService boardListService;
+    private final BoardListService boardListService;
 
     // 게시판 생성
     @PostMapping("/boardList")
@@ -36,6 +36,8 @@ public class BoardListController {
     // 게시판 조회
     @GetMapping("/boardList")
     public ResponseEntity<?> getBoardList(@RequestParam String id) {
+
+        log.info("아이디 : {}", id);
 
         List<BoardList> result = boardListService.getBoardList(id);
 
