@@ -1,9 +1,9 @@
 package com.homeless.chatservice.service;
 
 import com.homeless.chatservice.common.config.AwsS3Config;
-import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageResponse;
+import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.repository.ChatMessageRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -95,6 +94,7 @@ public class ChatHttpService {
                 msg.getFileUrl(),
                 msg.getFileName()));
     }
+
     public Page<ChatMessageResponse> searchMessagesByWriter(String channelId, String keyword, int page, int size) {
         if (page < 0 || size <= 0) {
             throw new IllegalArgumentException("페이지 번호와 크기는 양수여야 합니다.");
@@ -117,8 +117,6 @@ public class ChatHttpService {
                 msg.getFileUrl(),
                 msg.getFileName()));
     }
-
-
 
 
     // 메시지 삭제
@@ -155,9 +153,8 @@ public class ChatHttpService {
     // 해당 채널의 모든 메시지 삭제
     @Transactional
     public void deleteChatMessageByChannelId(String channelId) throws Exception {
-        chatMessageRepository.deleteChatMessageByChannelId(channelId);
         fileService.deleteChatMessagesWithFileByChannelId(channelId);
+        chatMessageRepository.deleteChatMessageByChannelId(channelId);
     }
-
 
 }

@@ -20,7 +20,6 @@ public class FileService {
     private final ChatMessageRepository chatMessageRepository;
 
 
-
     @Transactional
     public String uploadFile(MultipartFile file) throws IOException {
         // 파일 이름을 UUID로 생성하여 고유하게 처리 (필요 시 UUID 대신 다른 방식 사용 가능)

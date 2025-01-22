@@ -8,9 +8,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.stereotype.Component;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -35,7 +35,7 @@ public class StompInterceptor implements ChannelInterceptor {
                 // 2. 토큰 검증
                 if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
                     log.error("Missing or invalid Authorization header in StompInterceptor");
-                    throw new UnauthorizedException("401","Missing or invalid Authorization header in StompInterceptor");
+                    throw new UnauthorizedException("401", "Missing or invalid Authorization header in StompInterceptor");
                 }
 
                 // "Bearer " 제거
@@ -53,7 +53,7 @@ public class StompInterceptor implements ChannelInterceptor {
                     accessor.setUser(() -> email);
                 } catch (Exception e) {
                     log.error("Token validation failed: {} in StompInterceptor", e.getMessage());
-                    throw new UnauthorizedException("401","Invalid token: " + e.getMessage());
+                    throw new UnauthorizedException("401", "Invalid token: " + e.getMessage());
                 }
             }
         }

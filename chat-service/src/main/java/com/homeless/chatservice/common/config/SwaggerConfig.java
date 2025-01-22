@@ -28,6 +28,7 @@ public class SwaggerConfig {
                 .components(components)
                 .addServersItem(new Server().url("/chat-service"));
     }
+
     private Info apiInfo() {
         return new Info()
                 .title("API Test") // API의 제목

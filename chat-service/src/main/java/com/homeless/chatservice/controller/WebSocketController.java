@@ -55,7 +55,7 @@ public class WebSocketController {
             // 2. 요청 메시지로 채팅 생성 객체 제작
             ChatMessageCreateCommand chatMessageCreateCommand =
                     new ChatMessageCreateCommand(chatReqDto.serverId(), channelId, chatReqDto.email(),
-                            chatReqDto.writer(),chatReqDto.content(),chatReqDto.messageType(),chatReqDto.fileUrl(),chatReqDto.fileName());
+                            chatReqDto.writer(), chatReqDto.content(), chatReqDto.messageType(), chatReqDto.fileUrl(), chatReqDto.fileName());
 
             // 3. 메시지 저장 후 생성된 chatId
             String chatId = chatHttpService.createChatMessage(chatMessageCreateCommand);
