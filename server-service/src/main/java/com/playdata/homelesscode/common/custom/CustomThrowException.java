@@ -1,4 +1,3 @@
-
 package com.playdata.homelesscode.common.custom;
 
 import org.springframework.http.HttpStatus;

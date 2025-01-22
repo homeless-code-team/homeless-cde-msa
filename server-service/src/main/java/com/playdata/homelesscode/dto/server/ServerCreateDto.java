@@ -19,7 +19,6 @@ public class ServerCreateDto {
     private MultipartFile serverImg;
 
 
-
     public Server toEntity() {
         return Server.builder()
                 .title(title)
