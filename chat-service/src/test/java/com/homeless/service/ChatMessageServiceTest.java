@@ -25,7 +25,6 @@ public class ChatMessageServiceTest {
     private ChatHttpService chatHttpService;  // 실제 서비스 사용
 
 
-
     @Test
     @Rollback
     void 통합_메시지_생성_테스트() {

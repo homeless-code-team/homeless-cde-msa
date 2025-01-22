@@ -19,8 +19,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -40,12 +38,9 @@ public class StompMessageService {
     private final RabbitAdmin rabbitAdmin;
     private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
     private final AwsS3Config awsS3Config;
-
-
+    private final RedisTemplate<String, String> redisTemplate;
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;
-
-    private final RedisTemplate<String, String> redisTemplate;
 
     // 메시지를 RabbitMQ로 전달하는 메서드
     // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
@@ -73,10 +68,6 @@ public class StompMessageService {
     }
 
 
-
-
-
-
     // 중복 메시지 여부를 체크하는 메서드
 // 중복 메시지 여부를 체크하는 메서드
     public boolean isDuplicateMessage(String channelId, String messageContentHash) {
@@ -97,7 +88,7 @@ public class StompMessageService {
     }
 
 
-        // 메시지 내용 해시값 생성
+    // 메시지 내용 해시값 생성
     private String generateMessageHash(String content) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -191,7 +182,6 @@ public class StompMessageService {
 
         sendMessage(systemMessage);
     }
-
 
 
     public String createChannel(CreateChannelRequest request) {
