@@ -229,7 +229,7 @@ public class UserService {
             String accessToken = jwtTokenProvider.accessToken(email, user.getId(), user.getNickname());
 
             // accessToken redis에 저장
-            loginTemplate.opsForValue().set(dto.getEmail(), accessToken, 30, TimeUnit.MINUTES);
+            loginTemplate.opsForValue().set(dto.getEmail(), accessToken, 6, TimeUnit.SECONDS);
             log.info("accessToken:{}", accessToken);
 
 
@@ -277,6 +277,7 @@ public class UserService {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh", "POST");
 
+        log.info(id);
         //토큰 유효성 검사
         try {
             User user = userRepository.findById(id)
