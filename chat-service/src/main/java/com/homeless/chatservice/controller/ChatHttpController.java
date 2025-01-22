@@ -70,7 +70,7 @@ public class ChatHttpController {
 
     // feign : 채널 삭제
     @DeleteMapping("/ch/{channelId}")
-    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId) {
+    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId) throws Exception {
         chatHttpService.deleteChatMessageByChannelId(channelId);
         return ResponseEntity.noContent().build();
 

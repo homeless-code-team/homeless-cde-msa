@@ -7,7 +7,10 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String>,ChatMessageCustomRepository {
@@ -22,5 +25,9 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
     Page<ChatMessage> findByChannelIdAndWriterContainingOrderByTimestampDesc(String channelId, String keyword, Pageable pageable);
 
     Page<ChatMessage> findByChannelIdAndIdLessThanOrderByTimestampDesc(String channelId, ObjectId objectId, Pageable pageable);
+
+    List<ChatMessage> findByChannelIdAndFileUrlIsNotNull(String channelId);
+
+
 
 }
