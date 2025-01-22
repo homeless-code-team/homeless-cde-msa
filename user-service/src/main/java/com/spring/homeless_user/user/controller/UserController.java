@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -55,9 +56,9 @@ public class UserController {
 
     // 토큰 갱신
     @PostMapping("/refresh-token")
-    public CommonResDto reissueAccessToken(@RequestParam String id) {
+    public CommonResDto reissueAccessToken(@RequestBody Map<String, String> data) {
         log.info("refresh token");
-        return userService.refreshToken(id);
+        return userService.refreshToken(data.get("id"));
     }
 
 
