@@ -55,9 +55,9 @@ public class UserController {
 
     // 토큰 갱신
     @PostMapping("/refresh-token")
-    public CommonResDto reissueAccessToken() {
+    public CommonResDto reissueAccessToken(@RequestParam String id) {
         log.info("refresh token");
-        return userService.refreshToken();
+        return userService.refreshToken(id);
     }
 
 
@@ -122,6 +122,13 @@ public class UserController {
     public CommonResDto allUser(){
         log.info("allUser");
         return userService.alluser();
+    }
+    
+    //멕세스 토큰 유효성 검사
+    @GetMapping("access-token/validate")
+    public CommonResDto CheckAccessToken (@RequestParam String token) {
+        log.info("checkAccessToken");
+        return userService.CheckAccessToken(token);
     }
 
     /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
