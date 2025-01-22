@@ -44,7 +44,7 @@ public class BoardController {
     @GetMapping("/boards")
     public ResponseEntity<?> getBoards(BoardSearchDto dto, Pageable pageable) {
 
-        Page<Board> result = boardService.getBoard(dto,pageable);
+        Page<Board> result = boardService.getBoard(dto, pageable);
 
         CommonResDto resDto = new CommonResDto<>(HttpStatus.OK, "조회 성공", result);
 
