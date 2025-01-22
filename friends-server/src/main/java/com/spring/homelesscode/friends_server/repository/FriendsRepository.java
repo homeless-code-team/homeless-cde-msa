@@ -1,6 +1,5 @@
 package com.spring.homelesscode.friends_server.repository;
 
-import com.spring.homelesscode.friends_server.entity.AddStatus;
 import com.spring.homelesscode.friends_server.entity.Friends;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,9 +12,10 @@ public interface FriendsRepository extends JpaRepository<Friends, String> {
 
 
     List<Friends> findByReceiverEmail(String ReceiverEmail);
+
     List<Friends> findBySenderEmail(String senderEmail);
 
-   Optional<Friends> findByReceiverEmailAndSenderEmail(String receiverEmail, String senderEmail);
+    Optional<Friends> findByReceiverEmailAndSenderEmail(String receiverEmail, String senderEmail);
 
     List<Friends> findByReceiverEmailAndStatus(String receiverEmail, String addStatus);
 
