@@ -70,10 +70,11 @@ public class ChatHttpController {
 
     // feign : 채널 삭제
     @DeleteMapping("/ch/{channelId}")
-    public ResponseEntity<Void> deleteMessagesByChannel(@PathVariable String channelId) throws Exception {
+    public ResponseEntity<?> deleteMessagesByChannel(@PathVariable String channelId) throws Exception {
         chatHttpService.deleteChatMessageByChannelId(channelId);
-        return ResponseEntity.noContent().build();
-
+        Map<String, Object> result = new HashMap<>();
+        CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "채널 삭제 완료", result);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     // HTTP 예외 처리
