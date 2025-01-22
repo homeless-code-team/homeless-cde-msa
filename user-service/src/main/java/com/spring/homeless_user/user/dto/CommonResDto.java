@@ -2,8 +2,9 @@ package com.spring.homeless_user.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import java.util.List;
 import org.springframework.http.HttpStatus;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor

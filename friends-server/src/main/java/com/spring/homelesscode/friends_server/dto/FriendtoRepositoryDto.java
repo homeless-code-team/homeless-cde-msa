@@ -1,9 +1,9 @@
 package com.spring.homelesscode.friends_server.dto;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
-@Getter@Setter
+@Getter
+@Setter
 @ToString
 @AllArgsConstructor
 @RequiredArgsConstructor

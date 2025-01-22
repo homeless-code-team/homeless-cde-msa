@@ -1,7 +1,6 @@
 package com.spring.homelesscode.friends_server.common.auth;
 
 
-
 import com.spring.homelesscode.friends_server.entity.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,12 +31,12 @@ public class JwtTokenProvider {
 
 
     // JWT AccessToken 생성
-    public String accessToken(String email, String  id, String nickname) {
+    public String accessToken(String email, String id, String nickname) {
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(email)
                 .claim("nickname", nickname)
-                .claim("user_id",id)
+                .claim("user_id", id)
                 .claim("role", Role.USER)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
@@ -46,16 +45,17 @@ public class JwtTokenProvider {
     }
 
     // JWT RefreshToken 생성
-    public String refreshToken(String email, String  id) {
+    public String refreshToken(String email, String id) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("user_id",id)
+                .claim("user_id", id)
                 .claim("role", Role.USER)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTimeRt))
                 .signWith(SignatureAlgorithm.HS256, secretKeyRt)
                 .compact();
     }
+
     // email token
     public String emailToken(String email) {
         // 6자리 짧은 토큰 생성
