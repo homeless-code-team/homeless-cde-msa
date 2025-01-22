@@ -12,10 +12,15 @@ import java.util.Optional;
 
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String>,ChatMessageCustomRepository {
 
-    //Page<ChatMessage> findByChannelId(String channelId, Pageable pageable);  // 방 번호로 메시지 찾기
     Optional<ChatMessage> findById(ObjectId chatId); //
     void deleteChatMessageByChannelId(String channelId);
-    Page<ChatMessage> findByChannelIdAndIdGreaterThanOrderByTimestampDesc(String channelId, ObjectId id, Pageable pageable);
 
     Page<ChatMessage> findByChannelIdOrderByTimestampDesc(String channelId, Pageable pageable);
+
+    Page<ChatMessage> findByChannelIdAndContentContainingOrderByTimestampDesc(String channelId, String content, Pageable pageable);
+
+    Page<ChatMessage> findByChannelIdAndWriterContainingOrderByTimestampDesc(String channelId, String keyword, Pageable pageable);
+
+    Page<ChatMessage> findByChannelIdAndIdLessThanOrderByTimestampDesc(String channelId, ObjectId objectId, Pageable pageable);
+
 }

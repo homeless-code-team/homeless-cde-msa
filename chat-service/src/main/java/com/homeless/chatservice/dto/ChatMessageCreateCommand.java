@@ -10,6 +10,8 @@ public record ChatMessageCreateCommand(String serverId,
                                        String email,
                                        String writer,
                                        String content,
-                                       MessageType messageType) {
+                                       MessageType messageType,
+                                       String fileUrl,
+                                       String fileName) {
 
 }

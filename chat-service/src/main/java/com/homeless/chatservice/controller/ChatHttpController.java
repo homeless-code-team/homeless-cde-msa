@@ -1,10 +1,7 @@
 package com.homeless.chatservice.controller;
 
-import com.homeless.chatservice.common.auth.JwtUtils;
-import com.homeless.chatservice.common.exception.ChatMessageNotFoundException;
 import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.dto.CommonResDto;
-import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.service.ChatHttpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -25,15 +20,13 @@ import java.util.Optional;
 public class ChatHttpController {
 
     private final ChatHttpService chatHttpService;
-    private final JwtUtils jwtUtils;
 
     // 특정 채널의 메시지 조회
     @GetMapping("/ch/{channelId}")
     public ResponseEntity<?> getMessages(
             @PathVariable String channelId,
-            @RequestParam(required = false) String lastId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int size) {
+            @RequestParam(defaultValue = "20") int size) {
         try {
             // size 값 검증
             if (size <= 0) {
@@ -41,37 +34,38 @@ public class ChatHttpController {
             }
 
             // 메시지 조회 (Page 형태로 반환)
-            Page<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId, lastId,page, size);
+            Page<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId, page, size);
 
             Map<String, Object> result = new HashMap<>();
             result.put("messages", messages.getContent()); // 메시지 목록
             result.put("totalElements", messages.getTotalElements()); // 총 메시지 수
             result.put("totalPages", messages.getTotalPages()); // 총 페이지 수
             result.put("currentPage", messages.getNumber()); // 현재 페이지
+            result.put("isLast", messages.isLast()); // 마지막 페이지 여부
 
             CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 조회 완료", result);
+
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            // size 값 검증 실패시 처리
             return new ResponseEntity<>(new CommonResDto<>(HttpStatus.BAD_REQUEST, e.getMessage(), null), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return handleException(e);
         }
     }
 
-
-
-    // 메시지 수정
-    @PatchMapping("/message/{chatId}")
-    public ResponseEntity<?> updateMessage(@PathVariable String chatId,
-                                           @RequestBody String reqMessage) {
-        try {
-            chatHttpService.updateMessage(chatId, reqMessage);
-            CommonResDto<Void> resDto = new CommonResDto<>(HttpStatus.OK, "메세지 수정 성공", null);
-            return new ResponseEntity<>(resDto, HttpStatus.OK);
-        } catch (Exception e) {
-            return handleException(e);
-        }
+    @GetMapping("/search")
+    public Page<ChatMessageResponse> searchMessages(
+            @RequestParam String channelId,
+            @RequestParam String keyword,
+            @RequestParam String category,
+            @RequestParam int page,
+            @RequestParam int size) {
+        if (category.equals("content"))
+            return chatHttpService.searchMessagesByChannel(channelId, keyword, page, size);
+        if (category.equals("nickname"))
+            return chatHttpService.searchMessagesByWriter(channelId, keyword, page, size);
+        else
+            return Page.empty();
     }
 
     // feign : 채널 삭제
