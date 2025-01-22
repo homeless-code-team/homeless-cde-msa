@@ -103,7 +103,7 @@ public class ServerController {
 
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
-    // 서버 추가요청
+    // 서버 초대
     @PostMapping("/servers/invite")
     public CommonResDto addReqServer(@RequestBody ServerDto dto) {
         log.info("addServer");
