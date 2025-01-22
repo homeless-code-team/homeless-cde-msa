@@ -22,14 +22,14 @@ import reactor.netty.tcp.TcpClient;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompInterceptor stompInterceptor;
+    @Value("${spring.rabbitmq.host}")
+    private String RABBITMQ_HOST;
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         // STOMP 인터셉터 추가
         registration.interceptors(stompInterceptor);
     }
-    @Value("${spring.rabbitmq.host}")
-    private String RABBITMQ_HOST;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {

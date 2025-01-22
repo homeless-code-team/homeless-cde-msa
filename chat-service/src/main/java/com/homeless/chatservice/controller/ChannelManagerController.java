@@ -23,10 +23,10 @@ public class ChannelManagerController {
         String channelId = messageService.createChannel(request);
         ChannelResponse channelResponse
                 = new ChannelResponse(
-                        channelId,
-                        request.getChannelName(),
-                        request.getCreatorId(),
-                        ChannelType.PUBLIC);
+                channelId,
+                request.getChannelName(),
+                request.getCreatorId(),
+                ChannelType.PUBLIC);
         return ResponseEntity.ok(channelResponse);
     }
 
