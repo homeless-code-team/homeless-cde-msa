@@ -9,6 +9,7 @@ import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -97,8 +98,14 @@ public class UserService {
     @Value("${jwt.secretKeyRt}")
     private String secretKeyRt;
 
+    @Value("${jwt.secretKey}")
+    private String secretKey;
+
     @Value("${jwt.expirationRt}")
     private long expirationTimeRt;
+
+    @Value("${jwt.expiration}")
+    private long expirationTime;
 
 
     @Value("${oauth.provider.google.tokenUrl}")
@@ -265,18 +272,15 @@ public class UserService {
     }
 
     //토큰갱신
-    public CommonResDto refreshToken() {
+    public CommonResDto refreshToken(String id) {
 
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("TokenRefresh", "api/v1/users/refresh", "POST");
 
         //토큰 유효성 검사
         try {
-            String email = SecurityContextUtil.getCurrentUser().getEmail();
-            // mysql에서 사용자검색
-            User user = getUserEntity(email);
-            //userId 불러어기
-            String userId = user.getId();
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + id));
             // 리프레쉬 토큰 유효성 검사
             String refreshToken = user.getRefreshToken();
             boolean flag = jwtUtil.isTokenExpired(refreshToken);
@@ -285,12 +289,12 @@ public class UserService {
 
             if (!flag) {
                 //새로운 엑세스 토큰 생성
-                String newAccessToken = jwtTokenProvider.accessToken(email, userId, user.getNickname());
+                String newAccessToken = jwtTokenProvider.accessToken(user.getEmail(), id, user.getNickname());
                 log.info(newAccessToken);
                 // 원래있던 access token 삭제
-                loginTemplate.delete(email);
+                loginTemplate.delete(user.getEmail());
                 // accesstoken 재발급 받은걸로 다시 저장
-                loginTemplate.opsForValue().set(email, newAccessToken);
+                loginTemplate.opsForValue().set(user.getEmail(), newAccessToken);
 
                 return new CommonResDto(HttpStatus.OK, 200, "Refresh token successfully.", newAccessToken, List.of(Link));
             } else {
@@ -597,6 +601,17 @@ public class UserService {
 
     }
 
+    public CommonResDto CheckAccessToken(String token) {
+
+        Claims claims = jwtUtil.extractAllClaims(token);
+        String email = claims.getSubject();
+        String accesstoken = loginTemplate.opsForValue().get(email);
+        if (accesstoken == null) {
+            return  new CommonResDto(HttpStatus.BAD_REQUEST,401,"만료된 엑세스토큰",null,null);
+        }
+        return new CommonResDto(HttpStatus.OK,200,"토큰유효 사용가능",null,null);
+    }
+
 
 
 
@@ -755,6 +770,8 @@ public class UserService {
         return collect;
 
     }
+
+
 }
 
 
