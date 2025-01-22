@@ -58,12 +58,20 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    //서버 수정
+    @PutMapping("/servers")
+    public ResponseEntity<?> updateServer(@ModelAttribute ServerEditDto dto) throws IOException {
+
+        serverService.editServer(dto);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     //서버 탍퇴
     @DeleteMapping("/serverList")
     public ResponseEntity<?> deleteServerList(@RequestParam("id") String id) {
 
         serverService.deleteServerList(id);
-
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -74,11 +82,7 @@ public class ServerController {
 
 
         List<UserReponseInRoleDto> userList = serverService.getUserList(id);
-
-
         CommonResDto<List<UserReponseInRoleDto>> List = new CommonResDto<>(HttpStatus.OK, "조회성공", userList);
-
-
 
         return List;
 

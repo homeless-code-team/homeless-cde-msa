@@ -199,10 +199,10 @@ public class UserService {
         links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
         links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
         // 레디스에 이미 로그인 중인지 확인
-        if (loginTemplate.opsForValue().get(dto.getEmail()) != null) {
-            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in", "POST");
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이미 로그인 중입니다.", null, List.of(Link));
-        }
+//        if (loginTemplate.opsForValue().get(dto.getEmail()) != null) {
+//            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in", "POST");
+//            return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이미 로그인 중입니다.", null, List.of(Link));
+//        }
         // mysql에서 사용자 검색
 
 
