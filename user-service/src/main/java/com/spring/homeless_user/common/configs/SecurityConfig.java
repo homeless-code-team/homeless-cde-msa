@@ -33,7 +33,6 @@ public class SecurityConfig {
         this.securityPropertiesUtil = securityPropertiesUtil;
 
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
