@@ -5,7 +5,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 public class JoinMessage {
 
     private String userId;
