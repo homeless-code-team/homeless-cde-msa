@@ -21,10 +21,10 @@ public class S3Upload {
 
     // 생성자 주입 방식으로 AWS 설정 값 초기화
     public S3Upload(
-            @Value("${aws.credentials.access-key}") String accessKey,
-            @Value("${aws.credentials.secret-key}") String secretKey,
-            @Value("${aws.s3.bucket-name}") String bucketName,
-            @Value("${aws.region}") String region) {
+            @Value("${cloud.aws.credentials.access-key}") String accessKey,
+            @Value("${cloud.aws.credentials.secret-key}") String secretKey,
+            @Value("${cloud.s3.bucket-name}") String bucketName,
+            @Value("${cloud.aws.region.static}") String region) {
         this.bucketName = bucketName;
         this.region = region;
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
