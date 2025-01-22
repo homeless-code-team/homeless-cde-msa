@@ -36,4 +36,6 @@ public class ChatMessage {
     @CreatedDate
     private Long timestamp;
 
+    private String fileUrl;
+    private String fileName;
 }

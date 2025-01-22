@@ -1,5 +1,6 @@
 package com.homeless.chatservice.service;
 
+import com.homeless.chatservice.common.config.AwsS3Config;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageResponse;
@@ -24,6 +25,7 @@ public class ChatHttpService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final MongoTemplate mongoTemplate;
+    private final AwsS3Config awsS3Config;
 
     // 채팅 메시지 생성 및 저장
     public String createChatMessage(ChatMessageCreateCommand command) {
@@ -36,6 +38,8 @@ public class ChatHttpService {
                 .email(command.email())
                 .messageType(command.messageType())
                 .timestamp(System.currentTimeMillis())
+                .fileUrl(command.fileUrl())
+                .fileName(command.fileName())
                 .build();
         System.out.println("Email: " + command.email());
 
@@ -44,31 +48,17 @@ public class ChatHttpService {
         return savedMessage.getId();  // 저장된 메시지의 id 반환
     }
 
-    public Page<ChatMessageResponse> getMessagesByChannel(String channelId, String lastId, int page, int size) {
+    public Page<ChatMessageResponse> getMessagesByChannel(String channelId, int page, int size) {
         // page와 size 값 검증 (음수일 경우 예외 처리)
         if (page < 0 || size <= 0) {
             throw new IllegalArgumentException("페이지 번호와 크기는 양수여야 합니다.");
-        }
-
-        ObjectId objectId = null;
-
-        // lastId를 ObjectId로 변환
-        if (lastId != null && !lastId.isEmpty()) {
-            objectId = new ObjectId(lastId);
         }
 
         // Pageable 객체 생성
         Pageable pageable = PageRequest.of(page, size);
 
         // lastId가 있는 경우 이후 메시지 조회, 없는 경우 전체 조회
-        Page<ChatMessage> messages;
-        if (objectId != null) {
-            messages = chatMessageRepository
-                    .findByChannelIdAndIdGreaterThanOrderByTimestampDesc(channelId, objectId, pageable);
-        } else {
-            messages = chatMessageRepository
-                    .findByChannelIdOrderByTimestampDesc(channelId, pageable);
-        }
+        Page<ChatMessage> messages = chatMessageRepository.findByChannelIdOrderByTimestampDesc(channelId, pageable);
 
         // 결과를 ChatMessageResponse로 변환하여 반환
         return messages.map(msg -> new ChatMessageResponse(
@@ -76,26 +66,79 @@ public class ChatHttpService {
                 msg.getEmail(),
                 msg.getContent(),
                 msg.getWriter(),
-                msg.getTimestamp()
+                msg.getTimestamp(),
+                msg.getFileUrl(),
+                msg.getFileName()
         ));
     }
 
+    public Page<ChatMessageResponse> searchMessagesByChannel(String channelId, String keyword, int page, int size) {
+        // 페이지 번호와 크기 검증
+        if (page < 0 || size <= 0) {
+            throw new IllegalArgumentException("페이지 번호와 크기는 양수여야 합니다.");
+        }
+
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, size);
+
+        // MongoDB에서 채널 내 메시지 검색 (content에 keyword가 포함된 메시지)
+        Page<ChatMessage> messages = chatMessageRepository
+                .findByChannelIdAndContentContainingOrderByTimestampDesc(channelId, keyword, pageable);
+
+        // 검색된 메시지를 ChatMessageResponse로 변환하여 반환
+        return messages.map(msg -> new ChatMessageResponse(
+                msg.getId(), // ObjectId를 문자열로 변환
+                msg.getEmail(),
+                msg.getContent(),
+                msg.getWriter(),
+                msg.getTimestamp(),
+                msg.getFileUrl(),
+                msg.getFileName()));
+    }
+    public Page<ChatMessageResponse> searchMessagesByWriter(String channelId, String keyword, int page, int size) {
+        if (page < 0 || size <= 0) {
+            throw new IllegalArgumentException("페이지 번호와 크기는 양수여야 합니다.");
+        }
+
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, size);
+
+        // MongoDB에서 채널 내 메시지 검색 (content에 keyword가 포함된 메시지)
+        Page<ChatMessage> messages = chatMessageRepository
+                .findByChannelIdAndWriterContainingOrderByTimestampDesc(channelId, keyword, pageable);
+
+        // 검색된 메시지를 ChatMessageResponse로 변환하여 반환
+        return messages.map(msg -> new ChatMessageResponse(
+                msg.getId(), // ObjectId를 문자열로 변환
+                msg.getEmail(),
+                msg.getContent(),
+                msg.getWriter(),
+                msg.getTimestamp(),
+                msg.getFileUrl(),
+                msg.getFileName()));
+    }
 
 
 
 
     // 메시지 삭제
-    public void deleteMessage(String chatId) {
+    public void deleteMessage(String chatId) throws Exception {
+        ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
+
+        if (chatMessage.getFileUrl() != null) {
+            awsS3Config.deleteFromS3Bucket(chatMessage.getFileUrl());
+        }
         chatMessageRepository.deleteById(chatId);
     }
 
     // 메시지 컨텐츠 업데이트
-    public void updateMessage(String chatId, String reqMessage) {
+    public void updateMessage(String chatId, String reqMessage) throws Exception {
         ChatMessage chatMessage = chatMessageRepository.findById(chatId).orElseThrow();
 
         if (!chatMessage.getContent().equals(reqMessage)) {
             chatMessageRepository.updateContent(chatId, reqMessage); // 변경된 내용만 저장
         }
+
     }
 
     // 메시지 조
@@ -114,4 +157,6 @@ public class ChatHttpService {
     public void deleteChatMessageByChannelId(String channelId){
         chatMessageRepository.deleteChatMessageByChannelId(channelId);
     }
+
+
 }
