@@ -1,39 +1,23 @@
 package com.homeless.chatservice.service;
 
 import com.homeless.chatservice.common.config.AwsS3Config;
-import com.homeless.chatservice.common.config.RabbitConfig;
+import com.homeless.chatservice.entity.ChatMessage;
+import com.homeless.chatservice.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileService {
-    private final RabbitTemplate rabbitTemplate;
-    private final SimpMessagingTemplate messagingTemplate;  // WebSocket 메시지 전송용 추가
-    private final RabbitConfig rabbitConfig;
-    private final RabbitAdmin rabbitAdmin;
-    private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
     private final AwsS3Config awsS3Config;
-
-    @Value("${rabbitmq.chat-exchange.name}")
-    private String CHAT_EXCHANGE_NAME;
-
-    private final RedisTemplate<String, String> redisTemplate;
-
+    private final ChatMessageRepository chatMessageRepository;
 
 
 
@@ -51,5 +35,18 @@ public class FileService {
     // 파일 삭제 처리 메서드 (파일 URL을 이용해 삭제)
     public void deleteFile(String fileUrl) throws Exception {
         awsS3Config.deleteFromS3Bucket(fileUrl);
+    }
+
+    public void deleteChatMessagesWithFileByChannelId(String channelId) throws Exception {
+        List<ChatMessage> deletingChatMessagesWithFile = chatMessageRepository.findByChannelIdAndFileUrlIsNotNull(channelId);
+        log.debug("Deleting chat messages {}", deletingChatMessagesWithFile);
+        for (ChatMessage chat : deletingChatMessagesWithFile) {
+            try {
+                awsS3Config.deleteFromS3Bucket(chat.getFileUrl());
+                log.info("Successfully deleted file: {}", chat.getFileUrl());
+            } catch (Exception e) {
+                log.error("Failed to delete file: {}", chat.getFileUrl(), e);
+            }
+        }
     }
 }
