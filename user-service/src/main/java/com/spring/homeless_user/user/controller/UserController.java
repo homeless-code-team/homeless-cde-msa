@@ -6,14 +6,8 @@ import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
-
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -124,7 +118,7 @@ public class UserController {
         log.info("allUser");
         return userService.alluser();
     }
-    
+
     //멕세스 토큰 유효성 검사
     @GetMapping("access-token/validate")
     public CommonResDto CheckAccessToken (@RequestParam String token) {

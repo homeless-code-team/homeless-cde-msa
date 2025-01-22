@@ -20,7 +20,8 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,13 +30,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -425,8 +427,8 @@ public class UserService {
         // REST API 링크 설정
         CommonResDto.Link Link = new CommonResDto.Link("Delete", "api/v1/users", "DELETE");
         try {
-            // 이메일 불러오기 
-            String email = securityContextUtil.getCurrentUser().getEmail();
+            // 이메일 불러오기
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
             User user = getUserEntity(email);
             // mysql에서 삭제
             userRepository.delete(user);
@@ -453,7 +455,7 @@ public class UserService {
 
         try {
             // 현재 인증된 사용자 가져오기
-            String email = securityContextUtil.getCurrentUser().getEmail();
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
             // 사용자 검색
             User user = getUserEntity(email);
 
