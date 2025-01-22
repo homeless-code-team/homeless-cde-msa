@@ -2,30 +2,20 @@ package com.playdata.homelesscode.service;
 
 //import com.playdata.homelesscode.common.config.AwsS3Config;
 
-import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.client.UserServiceClient;
 import com.playdata.homelesscode.common.config.AwsS3Config;
-import com.playdata.homelesscode.common.custom.CustomThrowException;
 import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
-import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
-import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
-import com.playdata.homelesscode.dto.boards.BoardCreateDto;
-import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
-import com.playdata.homelesscode.dto.boards.BoardSearchDto;
-import com.playdata.homelesscode.dto.boards.BoardUpdateDto;
-import com.playdata.homelesscode.dto.channel.ChannelCreateDto;
-import com.playdata.homelesscode.dto.channel.ChannelResponseDto;
-import com.playdata.homelesscode.dto.channel.ChannelUpdateDto;
 import com.playdata.homelesscode.dto.server.*;
 import com.playdata.homelesscode.dto.user.UserReponseInRoleDto;
 import com.playdata.homelesscode.dto.user.UserResponseDto;
-import com.playdata.homelesscode.entity.*;
-import com.playdata.homelesscode.repository.*;
+import com.playdata.homelesscode.entity.AddStatus;
+import com.playdata.homelesscode.entity.Server;
+import com.playdata.homelesscode.entity.ServerJoinUserList;
+import com.playdata.homelesscode.repository.ServerJoinUserListRepository;
+import com.playdata.homelesscode.repository.ServerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -57,7 +47,7 @@ public class ServerService {
                          AwsS3Config s3Config,
                          @Qualifier("server")
                          RedisTemplate<String, String> serverTemplate
-                         ) {
+    ) {
         this.serverRepository = serverRepository;
         this.userServiceClient = userServiceClient;
         this.serverListRepository = serverListRepository;
@@ -78,16 +68,14 @@ public class ServerService {
         server.setServerType(1);
 
 
+        if (dto.getServerImg() != null) {
+            String fileName = UUID.randomUUID() + "-" + dto.getServerImg().getOriginalFilename();
 
-        if(dto.getServerImg() != null){
-            String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
-
-        String imageUrl = s3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
+            String imageUrl = s3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
 
 
             server.setServerImg(imageUrl);
         }
-
 
 
         Server result = serverRepository.save(server);
@@ -121,25 +109,21 @@ public class ServerService {
         List<Server> byIdIn = serverRepository.findByIdInOrServerTypeOrderByServerTypeAsc(collect, 0);
 
 
-
-
-
         List<ServerResponseDto> collect1 = byIdIn.stream().map(server -> {
             ServerJoinUserList serverJoinUserList = byUserId.stream().filter(s -> s.getServer().getId().equals(server.getId()))
                     .findFirst().orElse(null);
 
             Role role = (serverJoinUserList != null) ? serverJoinUserList.getRole() : Role.GENERAL;
 
-                return new ServerResponseDto(server.getId(),
-                        server.getTag(),
-                        server.getTitle(),
-                        server.getServerImg(),
-                        server.getEmail(),
-                        server.getServerType(),
-                        role);
+            return new ServerResponseDto(server.getId(),
+                    server.getTag(),
+                    server.getTitle(),
+                    server.getServerImg(),
+                    server.getEmail(),
+                    server.getServerType(),
+                    role);
 
         }).collect(Collectors.toList());
-
 
 
         return collect1;
@@ -153,19 +137,17 @@ public class ServerService {
         ServerJoinUserList serverList = serverListRepository.findByEmailAndServerId(userEmail, id);
 
 
-            Server server = serverRepository.findById(id).orElseThrow();
+        Server server = serverRepository.findById(id).orElseThrow();
 
-            if (server.getServerImg() != null) {
-                try {
-                    s3Config.deleteFromS3Bucket(server.getServerImg());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
+        if (server.getServerImg() != null) {
+            try {
+                s3Config.deleteFromS3Bucket(server.getServerImg());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            serverRepository.deleteById(id);
 
-
+        }
+        serverRepository.deleteById(id);
 
 
     }
@@ -183,9 +165,6 @@ public class ServerService {
 
 
     }
-
-
-
 
 
     ////////////////////////////////// 서버 관리 ///////////////////////////////////////////////////////////////////////////////
@@ -235,7 +214,7 @@ public class ServerService {
 
             // AddStatus 검증
             if (dto.getAddStatus() == null) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST,  "status를 결정해주세요 (APPROVE 또는 REJECT)", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, "status를 결정해주세요 (APPROVE 또는 REJECT)", null);
             }
 
             // Redis에서 serverId 가져오기
@@ -244,7 +223,7 @@ public class ServerService {
 
 
             if (serverId == null || serverId.isEmpty()) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST,  "해당 요청에 대한 serverId가 없습니다.", null);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, "해당 요청에 대한 serverId가 없습니다.", null);
             }
 
 
@@ -267,13 +246,13 @@ public class ServerService {
                 // 서버 가입 요청 거절
                 deleteRedisServerData(email, serverId.toString());
 
-                return new CommonResDto(HttpStatus.OK,  "서버 가입을 거절하셨습니다.", null);
+                return new CommonResDto(HttpStatus.OK, "서버 가입을 거절하셨습니다.", null);
             }
 
-            return new CommonResDto(HttpStatus.BAD_REQUEST,  "Invalid AddStatus", null);
+            return new CommonResDto(HttpStatus.BAD_REQUEST, "Invalid AddStatus", null);
         } catch (Exception e) {
             log.error("Error in addResServer: {}", e.getMessage(), e);
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 응답 처리 중 오류 발생", e.getMessage());
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 응답 처리 중 오류 발생", e.getMessage());
         }
     }
 
@@ -288,11 +267,11 @@ public class ServerService {
             List<String> keysByValue = findKeysByValue(serverId);
 
 
-            return new CommonResDto(HttpStatus.OK,  "가입 요청 서버 목록 조회 성공", keysByValue);
+            return new CommonResDto(HttpStatus.OK, "가입 요청 서버 목록 조회 성공", keysByValue);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR,  "서버 요청 조회 중 오류 발생", null);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 요청 조회 중 오류 발생", null);
         }
     }
 
@@ -374,19 +353,16 @@ public class ServerService {
 
         Server server = serverRepository.findById(dto.getId()).orElseThrow();
 
-        if(dto.getTitle() != null){
+        if (dto.getTitle() != null) {
             server.setTitle(dto.getTitle());
         }
 
-        if (dto.getTag() != null){
+        if (dto.getTag() != null) {
             server.setTag(dto.getTag());
         }
 
 
-
-
-
-        if(dto.getServerImg() != null){
+        if (dto.getServerImg() != null) {
 
             if (server.getServerImg() != null) {
                 try {
@@ -397,7 +373,7 @@ public class ServerService {
 
             }
 
-            String fileName = UUID.randomUUID() + "-"  + dto.getServerImg().getOriginalFilename();
+            String fileName = UUID.randomUUID() + "-" + dto.getServerImg().getOriginalFilename();
 
             String imageUrl = s3Config.uploadToS3Bucket(dto.getServerImg().getBytes(), fileName);
 

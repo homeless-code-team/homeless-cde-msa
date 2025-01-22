@@ -18,12 +18,10 @@ public class ServerResponseDto {
     private String serverImg;
     private String email;
     private int serverType;
-    private  Role role;
+    private Role role;
 
 
-
-
-    public ServerResponseDto(String id, String tag, String title, String serveImg, String email,int serverType, Role role) {
+    public ServerResponseDto(String id, String tag, String title, String serveImg, String email, int serverType, Role role) {
 
         this.id = id;
         this.title = title;
