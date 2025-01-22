@@ -24,8 +24,8 @@ import java.util.Optional;
 public class ChatHttpService {
 
     private final ChatMessageRepository chatMessageRepository;
-    private final MongoTemplate mongoTemplate;
     private final AwsS3Config awsS3Config;
+    private final FileService fileService;
 
     // 채팅 메시지 생성 및 저장
     public String createChatMessage(ChatMessageCreateCommand command) {
@@ -154,8 +154,9 @@ public class ChatHttpService {
 
     // 해당 채널의 모든 메시지 삭제
     @Transactional
-    public void deleteChatMessageByChannelId(String channelId){
+    public void deleteChatMessageByChannelId(String channelId) throws Exception {
         chatMessageRepository.deleteChatMessageByChannelId(channelId);
+        fileService.deleteChatMessagesWithFileByChannelId(channelId);
     }
 
 
