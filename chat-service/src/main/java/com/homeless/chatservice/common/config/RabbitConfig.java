@@ -22,27 +22,20 @@ import org.springframework.context.event.EventListener;
 
 
 @Configuration
-@EnableRabbit // Spring에서 RabbitMQ 기능 활성화 하기
+@EnableRabbit
 @Slf4j
 public class RabbitConfig {
 
-    private final String CHAT_EXCHANGE_NAME;
-    private final String RABBITMQ_HOST;
+    @Value("${rabbitmq.chat-exchange.name}")
+    private String CHAT_EXCHANGE_NAME;
 
-    public RabbitConfig(
-            @Value("${rabbitmq.chat-exchange.name}") String CHAT_EXCHANGE_NAME,
-            @Value("${spring.rabbitmq.host}") String RABBITMQ_HOST
-    ) {
-        this.CHAT_EXCHANGE_NAME = CHAT_EXCHANGE_NAME;
-        this.RABBITMQ_HOST = RABBITMQ_HOST;
-    }
+    @Value("${spring.rabbitmq.host}")
+    private String RABBITMQ_HOST;
 
-    // "chat.queue"라는 이름의 Queue 생성
     // 실제로 메시지가 저장되는 공간인 Queue.
     // Bean으로 등록하지 않고, 채널이 생성될 때 직접 호출할 예정이다.
     public Queue createChatQueue(String channelId) {
         String queueName = "chat.channel." + channelId;
-        log.info("Creating queue: {}", queueName);
         return new Queue(queueName, true); // durable을 true로 세팅해서 지속성 주기
     }
 
@@ -50,7 +43,6 @@ public class RabbitConfig {
     // 4가지 Binding 전략 중 TopicExchange 전략을 사용. "chat.exchange"를 이름으로 지정
     @Bean
     public TopicExchange chatExchange() {
-        log.info("Creating exchange: {}", CHAT_EXCHANGE_NAME);
         return new TopicExchange(CHAT_EXCHANGE_NAME);
     }
 
@@ -92,9 +84,8 @@ public class RabbitConfig {
         return factory;
     }
 
-    /**
-     * 직렬화(메세지를 JSON 으로 변환하는 Message Converter)
-     */
+
+    // 직렬화 : 메세지를 JSON 으로 변환하는 Message Converter
     @Bean
     public MessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -123,15 +114,11 @@ public class RabbitConfig {
     // 좀 더 확실하게 RabbitMQ 자원들을 생성하기 위해 추가함.
     @EventListener(ContextRefreshedEvent.class)
     public void initialize(ContextRefreshedEvent event) {
-        log.info("Initializing RabbitMQ exchanges and queues...");
-
         RabbitAdmin admin = event.getApplicationContext().getBean(RabbitAdmin.class);
 
         try {
-            // exchange 선언
             TopicExchange exchange = new TopicExchange(CHAT_EXCHANGE_NAME, true, false);
             admin.declareExchange(exchange);
-            log.info("Declared exchange: {}", CHAT_EXCHANGE_NAME);
 
         } catch (Exception e) {
             log.error("Error during RabbitMQ initialization", e);
