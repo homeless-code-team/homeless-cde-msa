@@ -124,18 +124,6 @@ public class StompMessageService {
         channelListeners.put(channelId, container);
     }
 
-    private void cleanupChannelResources(String channelId) {
-        try {
-            SimpleMessageListenerContainer container = channelListeners.remove(channelId);
-            if (container != null) {
-                container.stop();
-            }
-            rabbitAdmin.deleteQueue("chat.channel." + channelId);
-        } catch (Exception e) {
-            log.error("Error during channel cleanup: {}", channelId, e);
-        }
-    }
-
     private void sendSystemMessage(String channelId, String content) {
         MessageDto systemMessage = MessageDto.builder()
                 .channelId(channelId)
@@ -148,8 +136,6 @@ public class StompMessageService {
 
 
     public void removeChannel(String channelId) {
-        log.info("Removing channel: {}", channelId);
-
         // 리스너 정리
         SimpleMessageListenerContainer container = channelListeners.remove(channelId);
         if (container != null) {
@@ -161,11 +147,6 @@ public class StompMessageService {
 
         // 시스템 메시지 발송
         sendSystemMessage(channelId, "채널이 삭제되었습니다.");
-    }
-
-
-    private String generateChannelId() {
-        return UUID.randomUUID().toString();
     }
 
 }
