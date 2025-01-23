@@ -1,6 +1,5 @@
 package com.homeless.chatservice.dto;
 
-
 import lombok.Builder;
 
 // 메세지 전송시 킇라이언트 -> 서버 보내는 데이터 객체

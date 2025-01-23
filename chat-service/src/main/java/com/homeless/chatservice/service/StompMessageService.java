@@ -1,16 +1,10 @@
 package com.homeless.chatservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.homeless.chatservice.common.config.AwsS3Config;
 import com.homeless.chatservice.common.config.RabbitConfig;
-import com.homeless.chatservice.dto.CreateChannelRequest;
-import com.homeless.chatservice.dto.JoinMessage;
-import com.homeless.chatservice.dto.LeaveMessage;
-import com.homeless.chatservice.entity.MessageDto;
+import com.homeless.chatservice.dto.MessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -37,7 +31,6 @@ public class StompMessageService {
     private final RabbitConfig rabbitConfig;
     private final RabbitAdmin rabbitAdmin;
     private final Map<String, SimpleMessageListenerContainer> channelListeners = new ConcurrentHashMap<>();
-    private final AwsS3Config awsS3Config;
     private final RedisTemplate<String, String> redisTemplate;
     @Value("${rabbitmq.chat-exchange.name}")
     private String CHAT_EXCHANGE_NAME;
@@ -45,20 +38,17 @@ public class StompMessageService {
     // 메시지를 RabbitMQ로 전달하는 메서드
     // Exchange의 이름과 라우팅 키를 조합하여 메시지를 목적지로 보낸다.
     @Transactional
-    public void sendMessage(MessageDto message) {
+    public void sendMessageFromRabbitMQ(MessageDto message) {
         // 1. 메시지 내용 해시 값 생성
         String messageContentHash = generateMessageHash(message.getContent());
 
         // 2. 중복 메시지 여부 확인
         boolean isDuplicate = isDuplicateMessage(message.getChannelId(), messageContentHash);
         if (isDuplicate) {
-            log.warn("Duplicate message detected. Message will not be sent.");
-            return; // 중복 메시지일 경우 전송하지 않음
+            return;
         }
-
         // 3. 메시지 전송
-        String routingKey = "chat.channel." + message.getChannelId();
-        log.info("Sending message to exchange: {}, routing key: {}", CHAT_EXCHANGE_NAME, routingKey);
+        String routingKey = "chat.channel." + message.getChannelId();;
 
         rabbitTemplate.convertAndSend(
                 CHAT_EXCHANGE_NAME,
@@ -108,34 +98,6 @@ public class StompMessageService {
         return hexString.toString();
     }
 
-    public void handleJoinChannel(String channelId, JoinMessage joinMessage) {
-        /*
-        // 채널이 존재하지 않으면 생성
-        // 데이터베이스에서 채널 조회 후 없으면 새롭게 생성하는 로직 (추후에 DB와 연동해서 처리하면 됩니다.)
-        if (!chatChannelRepository.existsById(channelId)) {
-            createChannel(channelId);
-        }
-        */
-
-        log.info("User {} joining channel {}", joinMessage.getUserId(), channelId);
-        sendSystemMessage(channelId, joinMessage.getUserName() + "님이 입장하셨습니다.");
-
-        // 채널 참여자 정보 저장
-        // parameter: 채널아이디, 참여하려는 사용자 아이디, 입장/퇴장 flag
-        // updateChannelParticipants(channelId, joinMessage.getUserId(), true);
-    }
-
-    // 사용자가 채널을 떠날 때 사용하는 메서드
-    public void handleLeaveChannel(String channelId, LeaveMessage leaveMessage) {
-        log.info("User {} leaving channel {}", leaveMessage.getUserId(), channelId);
-        sendSystemMessage(channelId, leaveMessage.getUserId() + "님이 퇴장하셨습니다.");
-
-        // 채널 참여자 정보 업데이트 (이것도 DB 연동 로직 나중에 추가하면 됩니다.)
-        // 채널에다가 현재 참여중인 사용자의 정보를 업데이트 합니다.
-        // parameter: 채널아이디, 참여하려는 사용자 아이디, 입장/퇴장 flag
-        // updateChannelParticipants(channelId, leaveMessage.getUserId(), false);
-    }
-
 
     private void createChannelListener(String channelId) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -180,34 +142,10 @@ public class StompMessageService {
                 .content(content)
                 .build();
 
-        sendMessage(systemMessage);
+        sendMessageFromRabbitMQ(systemMessage);
     }
 
 
-    public String createChannel(CreateChannelRequest request) {
-        String channelId = generateChannelId(); // UUID 등을 사용하여 채널 ID 생성 (DB의 uuid 전략 사용해도 무방)
-
-        try {
-            // 큐 생성
-            Queue queue = rabbitConfig.createChatQueue(channelId);
-            rabbitAdmin.declareQueue(queue);
-
-            // 바인딩 생성
-            Binding binding = rabbitConfig.createChatChannelBinding(queue, channelId);
-            rabbitAdmin.declareBinding(binding);
-
-            // 리스너 생성 및 시작
-            createChannelListener(channelId);
-
-            log.info("Created channel: {}", channelId);
-            return channelId;
-
-        } catch (Exception e) {
-            log.error("Failed to create channel: {}", channelId, e);
-            cleanupChannelResources(channelId);
-            throw new RuntimeException("Failed to create channel", e);
-        }
-    }
 
     public void removeChannel(String channelId) {
         log.info("Removing channel: {}", channelId);

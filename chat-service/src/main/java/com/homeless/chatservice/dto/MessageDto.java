@@ -1,7 +1,5 @@
-package com.homeless.chatservice.entity;
+package com.homeless.chatservice.dto;
 
-import com.homeless.chatservice.dto.ChannelType;
-import com.homeless.chatservice.dto.MessageType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;

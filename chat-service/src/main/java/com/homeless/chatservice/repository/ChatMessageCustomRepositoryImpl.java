@@ -1,6 +1,7 @@
 package com.homeless.chatservice.repository;
 
 import com.homeless.chatservice.entity.ChatMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -10,11 +11,10 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Slf4j
+@RequiredArgsConstructor
 public class ChatMessageCustomRepositoryImpl implements ChatMessageCustomRepository {
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public void updateContent(String chatId, String content) {

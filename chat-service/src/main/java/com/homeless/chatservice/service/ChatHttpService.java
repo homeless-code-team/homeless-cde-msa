@@ -3,6 +3,7 @@ package com.homeless.chatservice.service;
 import com.homeless.chatservice.common.config.AwsS3Config;
 import com.homeless.chatservice.dto.ChatMessageCreateCommand;
 import com.homeless.chatservice.dto.ChatMessageResponse;
+import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.entity.ChatMessage;
 import com.homeless.chatservice.repository.ChatMessageRepository;
 import jakarta.transaction.Transactional;
@@ -12,8 +13,12 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -40,11 +45,10 @@ public class ChatHttpService {
                 .fileUrl(command.fileUrl())
                 .fileName(command.fileName())
                 .build();
-        System.out.println("Email: " + command.email());
 
         // MongoDB에 저장
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
-        return savedMessage.getId();  // 저장된 메시지의 id 반환
+        return savedMessage.getId();
     }
 
     public Page<ChatMessageResponse> getMessagesByChannel(String channelId, int page, int size) {
@@ -142,8 +146,7 @@ public class ChatHttpService {
     // 메시지 조
     public Optional<ChatMessage> getChatMessage(String chatId) {
         try {
-            ObjectId objectId = new ObjectId(chatId);
-            return chatMessageRepository.findById(objectId);
+            return chatMessageRepository.findById(chatId);
         } catch (IllegalArgumentException e) {
             log.error("Invalid chatId format", e);
             return Optional.empty();
@@ -156,5 +159,13 @@ public class ChatHttpService {
         fileService.deleteChatMessagesWithFileByChannelId(channelId);
         chatMessageRepository.deleteChatMessageByChannelId(channelId);
     }
+
+    public boolean isInvalidSize(int size) {
+        return size <= 0;
+    }
+
+
+
+
 
 }

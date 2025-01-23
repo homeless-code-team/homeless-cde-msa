@@ -6,9 +6,9 @@ import lombok.Getter;
 public class UnauthorizedException extends RuntimeException {
 
     // 오류 코드 가져오기
-    private String errorCode;
+    private final String errorCode;
     // 오류 메시지 가져오기
-    private String errorMessage;
+    private final String errorMessage;
 
     // 생성자
     public UnauthorizedException(String errorCode, String errorMessage) {
