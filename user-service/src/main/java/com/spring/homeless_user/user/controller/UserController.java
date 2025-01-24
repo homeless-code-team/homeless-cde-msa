@@ -1,7 +1,6 @@
 package com.spring.homeless_user.user.controller;
 
 
-import com.spring.homeless_user.user.Oauth.OAuthService;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ public class UserController {
     @Autowired
     private final UserService userService;
 
-    private final OAuthService oAuthService;
 
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
     //회원가입
@@ -104,77 +102,6 @@ public class UserController {
     public CommonResDto allUser(){
         return userService.alluser();
     }
-
-    /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
-    // 1. 인증 URL 반환
-    @GetMapping("/o-auth")
-    public ResponseEntity<?> redirectToProvider(@RequestParam String provider) {
-        log.info("/o-auth:GET, provider: {}", provider);
-        if ("google".equals(provider)) {
-            log.info("/o-auth:GET, provider: {}", provider);
-            String googleAuthUrl = oAuthService.getGoogleAuthUrl();
-            return ResponseEntity.ok().body(googleAuthUrl);
-        } else {
-            log.info("/o-auth:GET, provider: {}", provider);
-            String redirectUrl = oAuthService.getGithubAuthUrl();
-            return ResponseEntity.ok().body(redirectUrl);
-        }
-    }
-
-    // 2. OAuth Callback 처리
-    @PostMapping("/callback")
-    public CommonResDto handleOAuthCallbacks(@RequestParam String code) {
-        try {
-            // AccessTokenResponse는 액세스 토큰과 리프레시 토큰을 포함한 DTO입니다.
-            AccessTokenResponse tokenResponse = userService.getAccessTokenSync(code);
-
-            log.info("tokenResponse: {}", tokenResponse);
-
-            // 액세스 토큰과 리프레시 토큰을 각각 처리
-            String accessToken = tokenResponse.getAccessToken();
-            log.info("accessToken: {}", accessToken);
-
-            // 사용자 정보 가져오기 및 OAuth 사용자 처리
-            GoogleUserInfo user = userService.getUserInfoSync(accessToken);
-
-
-            return userService.processOAuthUserSync(user);
-
-        } catch (Exception e) {
-            log.error("OAuth 처리 중 오류 발생", e);
-            return
-                    new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null);
-        }
-    }
-
-
-    @GetMapping("/callback")
-    public CommonResDto handleOAuthCallback(@RequestParam String code) {
-        try {
-            // AccessTokenResponse는 액세스 토큰과 리프레시 토큰을 포함한 DTO입니다.
-            AccessTokenResponse tokenResponse = userService.getAccessTokenSync(code);
-
-            log.info("tokenResponse: {}", tokenResponse);
-
-            // 액세스 토큰과 리프레시 토큰을 각각 처리
-            String accessToken = tokenResponse.getAccessToken();
-            log.info("accessToken: {}", accessToken);
-
-            // 사용자 정보 가져오기 및 OAuth 사용자 처리
-            GoogleUserInfo user = userService.getUserInfoSync(accessToken);
-
-
-            return userService.processOAuthUserSync(user);
-
-        } catch (Exception e) {
-            log.error("OAuth 처리 중 오류 발생", e);
-            return
-                    new CommonResDto(null, 500, "OAuth 처리 중 오류 발생: " + e.getMessage(), null, null);
-        }
-    }
-
-
-
 
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
