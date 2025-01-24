@@ -49,7 +49,6 @@ public class FriendsService {
             String senderEmail = SecurityContextUtil.getCurrentUser().getEmail();
             String receiverEmail = userServiceclient.getEmail(dto.getReceiverNickname());
 
-            // 중복 검사
             boolean isDuplicate = friendsRepository.existsByReceiverEmailAndSenderEmail(receiverEmail, senderEmail)
                     || friendsRepository.existsByReceiverEmailAndSenderEmail(senderEmail, receiverEmail);
 
@@ -57,11 +56,10 @@ public class FriendsService {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이미 진행 중인 요청 또는 친구 관계입니다", null, links);
             }
 
-            // 새로운 친구 요청 생성
             Friends newFriendRequest = new Friends();
             newFriendRequest.setReceiverEmail(receiverEmail);
             newFriendRequest.setSenderEmail(senderEmail);
-            newFriendRequest.setStatus(AddStatus.PENDING.name());
+            newFriendRequest.setStatus(AddStatus.PENDING);
 
             friendsRepository.save(newFriendRequest);
 
@@ -124,11 +122,9 @@ public class FriendsService {
             Friends byReceiverEmailAAndSenderEmail = friendsRepository.findByReceiverEmailAndSenderEmail(friendEmail, email)
                     .orElseThrow(() -> new UsernameNotFoundException("이미친구관계가 아닙니다: " + email));
 
-            // 저장 삭제x
             friendsRepository.delete(byReceiverEmailAAndSenderEmail);
 
             return new CommonResDto(HttpStatus.OK, 200, "친구 관계가 삭제되었습니다.", null, links);
-
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 401, "에러 발생: " + e.getMessage(), null, links);
@@ -146,21 +142,15 @@ public class FriendsService {
 
         try {
             String senderEmail = SecurityContextUtil.getCurrentUser().getEmail();
-            log.info("senderEmail:{}", senderEmail);
             String receiverEmail = userServiceclient.getEmail(dto.getReceiverNickname());
-            log.info("receiverNickname:{}", dto.getReceiverNickname());
-            log.info("receiverEmail:{}", receiverEmail);
 
-
-            // 이미 친구 관계 또는 요청 상태인지 확인
             Optional<Friends> friends = friendsRepository.findByReceiverEmailAndSenderEmail(senderEmail, receiverEmail);
-            // 사용자 객체 로드
             boolean present = friends.isPresent();
             log.info(String.valueOf(present));
             if (present) {
                 if (friends.get().getStatus().equalsIgnoreCase(AddStatus.PENDING.name())) {
                     if (dto.getAddStatus().equalsIgnoreCase(AddStatus.ACCEPT.name())) {
-                        friends.get().setStatus(AddStatus.ACCEPT.name());
+                        friends.get().setStatus(AddStatus.ACCEPT);
                         friendsRepository.save(friends.get());
                         log.info("Friend relationship accepted");
                         return new CommonResDto(HttpStatus.OK, 200, "친구가 되었습니다.", null, links);
@@ -198,14 +188,13 @@ public class FriendsService {
 
             List<Friends> byReceiverEmail1 = friendsRepository.findByReceiverEmailAndStatus(email, String.valueOf(AddStatus.PENDING));
             List<String> byReceiverEmail = byReceiverEmail1.stream()
-                    .map(Friends::getSenderEmail) // Friends 객체에서 receiverEmail 필드 추출
-                    .collect(Collectors.toList()); // List<String>으로 변환
+                    .map(Friends::getSenderEmail)
+                    .collect(Collectors.toList());
             List<FeignResDto> friendList = userServiceclient.getUserDetails(byReceiverEmail);
 
             // 응답 생성
             return new CommonResDto(HttpStatus.OK, 200, "친구 요청 조회를 완료했습니다.", friendList, links);
         } catch (Exception e) {
-            e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 에러 발생: " + e.getMessage(), null, links);
         }
     }
@@ -218,19 +207,17 @@ public class FriendsService {
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/users", "DELETE"));
 
         try {
-            // 현재 사용자 이메일 가져오기
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
             List<Friends> bySenderEmail = friendsRepository.findBySenderEmailAndStatus(email, String.valueOf(AddStatus.PENDING));
 
             List<String> friendList1 = bySenderEmail.stream()
-                    .map(Friends::getReceiverEmail) // Friends 객체에서 receiverEmail 필드 추출
-                    .collect(Collectors.toList()); // List<String>으로 변환
+                    .map(Friends::getReceiverEmail)
+                    .collect(Collectors.toList());
             List<FeignResDto> friendList = userServiceclient.getUserDetails(friendList1);
 
             return new CommonResDto(HttpStatus.OK, 200, "친구 요청 조회를 완료했습니다.", friendList, links);
         } catch (Exception e) {
-            e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 에러 발생: " + e.getMessage(), null, links);
         }
     }
