@@ -1,11 +1,11 @@
 package com.spring.homelesscode.friends_server.service;
 
 
-import com.spring.homelesscode.friends_server.cofig.UserServiceClient;
+import com.spring.homelesscode.friends_server.common.dto.UserResponseDto;
+import com.spring.homelesscode.friends_server.config.UserServiceClient;
 import com.spring.homelesscode.friends_server.common.utill.SecurityContextUtil;
 import com.spring.homelesscode.friends_server.dto.CommonResDto;
 import com.spring.homelesscode.friends_server.dto.FeignResDto;
-import com.spring.homelesscode.friends_server.dto.FriendDto;
 import com.spring.homelesscode.friends_server.dto.FriendsDto;
 import com.spring.homelesscode.friends_server.entity.AddStatus;
 import com.spring.homelesscode.friends_server.entity.Friends;
@@ -18,10 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -30,8 +27,6 @@ import java.util.stream.Collectors;
 public class FriendsService {
 
     private final FriendsRepository friendsRepository;
-    private final SecurityContextUtil securityContextUtil;
-    private final RedisTemplate<String, String> friendsTemplate;
     private final UserServiceClient userServiceclient;
 
     public FriendsService(FriendsRepository friendsRepository,
@@ -39,8 +34,6 @@ public class FriendsService {
                           @Qualifier("friends") RedisTemplate<String, String> friendsTemplate,
                           UserServiceClient userServiceclient) {
         this.friendsRepository = friendsRepository;
-        this.securityContextUtil = securityContextUtil;
-        this.friendsTemplate = friendsTemplate;
         this.userServiceclient = userServiceclient;
     }
 
@@ -82,41 +75,39 @@ public class FriendsService {
 
 
     // 친구목록 조회
-// 친구 목록 조회 메서드 수정
-    public CommonResDto UserFriends() {
+    public CommonResDto getFriends() {
         // REST API 링크 설정
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("addFriends", "/api/v1/friends", "POST"));
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/friends", "GET"));
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/friends", "DELETE"));
+
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
-            log.info("my email: {}", email);
-            // JPQL로 친구 목록 조회
-            List<Friends> results1 = friendsRepository.findByReceiverEmailAndStatus(email, AddStatus.ACCEPT.name());
-            List<Friends> results2 = friendsRepository.findBySenderEmailAndStatus(email, AddStatus.ACCEPT.name());
-            log.info(String.valueOf(results1));
-            log.info(String.valueOf(results2));
+            List<UserResponseDto> userResponseDtoList = new ArrayList<>();
 
-            // Friends 데이터를 Custom DTO로 변환하여 `id` 필드 포함
-            List<FriendDto> friendDtos = new ArrayList<>();
-            results1.forEach(friend -> friendDtos.add(new FriendDto(friend.getId(), friend.getSenderEmail(), friend.getStatus())));
-            results2.forEach(friend -> friendDtos.add(new FriendDto(friend.getId(), friend.getReceiverEmail(), friend.getStatus())));
+            List<Friends> friends = friendsRepository.findBySenderEmailOrReceiverEmailAndStatus(email, email, AddStatus.ACCEPT.name());
 
-            log.info(String.valueOf(friendDtos));
-
-            // 친구 목록이 없을 경우 처리
-            if (friendDtos.isEmpty()) {
+            if (friends.isEmpty()) {
                 return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
+            } else {
+                log.info("프렌즈조회리스트 존재");
+                for (Friends friend : friends) {
+                    // 프론트로 보낼 dto 생성
+                    UserResponseDto userResponseDto = userServiceclient.findFriendByEmail(email);
+                    // 채널id로  set
+                    log.info(String.valueOf(userResponseDto));
+                    userResponseDto.setId(friend.getId());
+                    userResponseDtoList.add(userResponseDto);
+                }
+                return new CommonResDto(HttpStatus.OK, 200, "친구목록 조회 성공", userResponseDtoList, links);
             }
 
-            // 친구 목록 반환
-            return new CommonResDto(HttpStatus.OK, 200, "친구목록 조회 성공", friendDtos, links);
         } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러발생: " + e.getMessage(), null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러발생: " + e.getMessage(), null, links);
         }
     }
+
 
 
     // 친구 삭제
