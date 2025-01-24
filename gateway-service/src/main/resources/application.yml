@@ -127,7 +127,8 @@ security:
     - /api/v1/users/swagger-ui.html
     - /api/v1/friends/swagger-ui/**
     - /api/v1/friends/swagger-ui/html
-    - /api/v1/users/o-auth
+    - /oauth2/**
+    - /login/**
     - /api/v1/users/callback
     - /ws/info
     - /ws/**
