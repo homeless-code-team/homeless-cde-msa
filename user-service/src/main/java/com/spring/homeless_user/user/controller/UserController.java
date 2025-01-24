@@ -30,28 +30,24 @@ public class UserController {
     //회원가입
     @PostMapping("/sign-up")
     public CommonResDto userSignUp(@ModelAttribute UserSaveReqDto dto) throws IOException {
-        log.info("singup");
         return userService.userSignUp(dto);
     }
 
     // 로그인
     @PostMapping("/sign-in")
     public CommonResDto userSignIn(@RequestBody UserLoginReqDto dto) {
-        log.info("signin");
         return userService.userSignIn(dto);
     }
 
     // 로그아웃
     @DeleteMapping("/sign-out")
     public CommonResDto userSignOut() {
-        log.info("logout");
         return userService.userSignOut();
     }
 
     // 토큰 갱신
     @PostMapping("/refresh-token")
     public CommonResDto reissueAccessToken(@RequestBody Map<String, String> data) {
-        log.info("refresh token");
         return userService.refreshToken(data.get("id"));
     }
 
@@ -59,7 +55,6 @@ public class UserController {
     // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
     @PostMapping("/confirm")
     public CommonResDto sendVerificationEmail(@RequestBody EmailCheckDto dto) {
-        log.info("confirm");
         return userService.sendVerificationEmail(dto);
     }
 
@@ -67,39 +62,32 @@ public class UserController {
     // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
     public CommonResDto confirm(@ModelAttribute EmailCheckDto dto) {
-    log.info("confirm, dto: {}", dto);
         return userService.confirm(dto);
     }
 
     // 이메일 & 닉네임 중복검사 회원가입시
     @GetMapping("/duplicate")
     public CommonResDto duplicateCheck(@RequestParam(required = false) String email
-            ,@RequestParam(required = false) String nickname) throws IOException {
-        log.info("duplicateCheck - email: {}, nickname: {}", email, nickname);
+            ,@RequestParam(required = false) String nickname) {
         return userService.duplicateCheck(email, nickname);
     }
 
     // 이메일 & 닉네임 중복검사 수정시
     @GetMapping("/duplicate/mod")
     public CommonResDto duplicateCheckmodify(@RequestParam(required = false) String email,
-                                             @RequestParam(required = false) String nickname) throws IOException {
-        log.info("duplicateCheck");
+                                             @RequestParam(required = false) String nickname){
         return userService.duplicateCheck(email, nickname);
     }
     // 회원탈퇴
     @DeleteMapping("")
     public CommonResDto delete () {
-        log.info("quit");
         return userService.delete();
     }
 
 
     // 정보수정
     @PatchMapping( "")
-    public CommonResDto modify(@ModelAttribute ModifyDto dto) throws IOException {
-    log.info("profileUpdate");
-    log.info(String.valueOf(dto));
-
+    public CommonResDto modify(@ModelAttribute ModifyDto dto){
         return userService.modify(dto);
     }
 
@@ -107,7 +95,6 @@ public class UserController {
     // 정보 조회
     @GetMapping("")
     public CommonResDto GetUserData(){
-        log.info("getUserData");
         return userService.getUserData();
     }
 
@@ -115,15 +102,7 @@ public class UserController {
     // 유저데이터 모두 조회
     @GetMapping("/all")
     public CommonResDto allUser(){
-        log.info("allUser");
         return userService.alluser();
-    }
-
-    //멕세스 토큰 유효성 검사
-    @GetMapping("access-token/validate")
-    public CommonResDto CheckAccessToken (@RequestParam String token) {
-        log.info("checkAccessToken");
-        return userService.CheckAccessToken(token);
     }
 
     /////////////////////////////////////////////OAuth 2.0///////////////////////////////////////////////////////////////////
