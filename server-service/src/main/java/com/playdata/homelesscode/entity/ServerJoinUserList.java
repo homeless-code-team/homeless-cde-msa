@@ -25,7 +25,7 @@ public class ServerJoinUserList {
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "server_id", nullable = false)
+    @JoinColumn(name="server_id", nullable = false)
     @JsonIgnore
     private Server server;
 

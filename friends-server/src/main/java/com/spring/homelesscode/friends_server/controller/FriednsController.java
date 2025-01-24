@@ -1,6 +1,7 @@
 package com.spring.homelesscode.friends_server.controller;
 
 
+import com.spring.homelesscode.friends_server.common.utill.SecurityContextUtil;
 import com.spring.homelesscode.friends_server.dto.CommonResDto;
 import com.spring.homelesscode.friends_server.dto.FriendsDto;
 import com.spring.homelesscode.friends_server.service.FriendsService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class FriednsController {
 
     private final FriendsService friendsAndServerService;
+    private final SecurityContextUtil securityContextUtil;
 
     // 친구 요청
     @PostMapping("")

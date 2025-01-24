@@ -251,6 +251,7 @@ public class UserService {
 
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
+            log.info("이메일 {}", email);
             //mysql에서 email을 기반으로 사용자 검색
             User user = getUserEntity(email);
 

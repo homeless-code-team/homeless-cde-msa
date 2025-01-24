@@ -1,5 +1,6 @@
 package com.playdata.homelesscode.controller;
 
+
 import com.playdata.homelesscode.common.dto.CommonResDto;
 import com.playdata.homelesscode.dto.server.*;
 import com.playdata.homelesscode.dto.user.UserReponseInRoleDto;
@@ -103,11 +104,24 @@ public class ServerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // 서버 초대 시 본인이 OWNER 혹은 MANAGER인 서버 조회
+    @GetMapping("/serverList")
+    public ResponseEntity<?> getServerList(){
+
+
+        List<ServerResponseDto> serverList = serverService.getServerList();
+        log.info("serverList in Controller: {}", serverList);
+
+
+        CommonResDto<List<ServerResponseDto>> List = new CommonResDto<>(HttpStatus.OK, "조회성공", serverList);
+
+        return new ResponseEntity<>(serverList,HttpStatus.OK);
+    }
 
     ////////////////////////////////////////////// 서버관리 /////////////////////////////////////////////////////////////////
 
     // 서버 초대
-    @PostMapping("/servers/invite")
+    @PostMapping("/invite")
     public CommonResDto addReqServer(@RequestBody ServerDto dto) {
         log.info("addServer");
         return serverService.addReqServer(dto);
@@ -125,6 +139,12 @@ public class ServerController {
     public CommonResDto addServerJoin(@RequestParam String serverId) {
         log.info("addServerJoin");
         return serverService.addServerJoin(serverId);
+    }
+
+    @GetMapping("/inviteList")
+    public CommonResDto<Void> inviteList(){
+
+        return serverService.getInviteList();
     }
 
 
