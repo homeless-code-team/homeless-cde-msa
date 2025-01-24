@@ -16,4 +16,6 @@ public interface ServerJoinUserListRepository extends JpaRepository<ServerJoinUs
 
 
     ServerJoinUserList findByEmailAndServerId(String email, String id);
+
+    List<ServerJoinUserList> findByEmailAndRoleIn(String email, List<String> role);
 }
