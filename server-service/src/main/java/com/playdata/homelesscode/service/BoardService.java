@@ -37,6 +37,8 @@ public class BoardService {
 
         String userNickName = SecurityContextUtil.getCurrentUser().getNickname();
 
+        log.info("닉네임 {}", userNickName);
+
         BoardList boardList = boardListRepository.findById(dto.getBoardListId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 게시판이 존재하지 않습니다."));
 
