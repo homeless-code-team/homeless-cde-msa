@@ -32,10 +32,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String userId = request.getHeader("X-User-Id");
         String nickname = request.getHeader("X-User-Nickname");
 
-        log.info("userEmail: {}", userEmail);
-        log.info("userId: {}", userId);
-        log.info("nickname: {}", nickname);
-        log.info("request Url: {}", request.getRequestURI());
+//        log.info("userEmail: {}", userEmail);
+//        log.info("userId: {}", userId);
+//        log.info("nickname: {}", nickname);
+//        log.info("request Url: {}", request.getRequestURI());
 
 
         if (userEmail != null) {

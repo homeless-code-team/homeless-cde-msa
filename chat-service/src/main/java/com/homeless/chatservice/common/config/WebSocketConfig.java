@@ -33,7 +33,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        log.info("registerStompEndpoints called!");
         // stomp 접속 주소 url = ws://localhost:8181/ws
         registry.addEndpoint("/ws") // 연결될 엔드포인트
                 .setAllowedOriginPatterns("*")
@@ -46,7 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         TcpClient tcpClient = TcpClient
                 .create()
                 .host(RABBITMQ_HOST)
-                .port(61613); // STOMP 프로토콜의 기본 포트번호는 61613 이다.
+                .port(61613); // STOMP 프로토콜의 기본 포트번호는 61613
 
         ReactorNettyTcpClient<byte[]> client = new ReactorNettyTcpClient<>(tcpClient, new StompReactorNettyCodec());
 
@@ -70,13 +69,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         registry.setPathMatcher(new AntPathMatcher(".")); // url을 chat/room/3 -> chat.room.3으로 참조하기 위한 설정
         registry.setApplicationDestinationPrefixes("/pub"); // 클라이언트에서 메시지 발행 시 사용할 접두어를 pub으로 세팅.
-
-
-        // 메시지를 구독(수신)하는 요청 엔드포인트
-//        registry.enableSimpleBroker("/sub");
-
-        // 메시지를 발행(송신)하는 엔드포인트
-//        registry.setApplicationDestinationPrefixes("/pub");
+        
     }
 
 }

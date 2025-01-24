@@ -15,7 +15,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 public class ChatMessage {
 
     @Id  // MongoDB에서 id는 _id로 자동 설정됨
@@ -38,4 +37,8 @@ public class ChatMessage {
 
     private String fileUrl;
     private String fileName;
+
+    public void setContent(String reqMessage) {
+
+    }
 }

@@ -58,8 +58,8 @@ public class AwsS3Config {
 
         // 업로드 할 파일을 S3 오브젝트로 생성.
         PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucketName) // 버킷 이름
-                .key(fileName) // 파일명
+                .bucket(bucketName)
+                .key(fileName)
                 .build();
 
         // 오브젝트를 버킷에 업로드 (위에서 선언한 오브젝트, 업로드 하고자 하는 파일(바이트배열))
