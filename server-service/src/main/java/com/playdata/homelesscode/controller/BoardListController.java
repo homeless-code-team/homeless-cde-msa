@@ -36,7 +36,7 @@ public class BoardListController {
     @GetMapping("/boardList")
     public ResponseEntity<?> getBoardList(@RequestParam String id) {
 
-        log.info("아이디 : {}", id);
+            log.info("아이디 : {}", id);
 
         List<BoardList> result = boardListService.getBoardList(id);
 

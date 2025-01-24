@@ -24,15 +24,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     // 필터가 해야 할 일들을 작성.
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         // 게이트웨이가 토큰 내에 클레임을 헤더에 담아서 보내준다.
         String userEmail = request.getHeader("X-User-Email");
         String userId = request.getHeader("X-User-Id");
-        String nickName = request.getHeader("X-User-NickName");
+        String nickname = request.getHeader("X-User-Nickname");
 
         log.info("userEmail: {}", userEmail);
         log.info("userId: {}", userId);
+        log.info("nickname: {}", nickname);
         log.info("request Url: {}", request.getRequestURI());
 
 
@@ -46,7 +47,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // 인증 완료 처리
             // spring security에게 인증 정보를 전달해서 전역적으로 어플리케이션 내에서
             // 인증 정보를 활용할 수 있도록 설정.
-            Authentication auth = new UsernamePasswordAuthenticationToken(new CustomUserPrincipal(userEmail, userId, nickName), // 컨트롤러 등에서 활용할 유저 정보
+            Authentication auth = new UsernamePasswordAuthenticationToken(new CustomUserPrincipal(userEmail, userId, nickname), // 컨트롤러 등에서 활용할 유저 정보
                     "", // 인증된 사용자 비밀번호: 보통 null 혹은 빈 문자열로 선언.
                     authorityList // 인가 정보 (권한)
             );
@@ -61,4 +62,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
     }
+
 }
