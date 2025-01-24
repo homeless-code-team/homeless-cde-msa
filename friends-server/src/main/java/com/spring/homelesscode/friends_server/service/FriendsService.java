@@ -84,7 +84,8 @@ public class FriendsService {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
             List<UserResponseDto> userResponseDtoList = new ArrayList<>();
 
-            List<Friends> friends = friendsRepository.findBySenderEmailOrReceiverEmailAndStatus(email, email, AddStatus.ACCEPT.name());
+            List<Friends> friends = friendsRepository.findBySenderEmailOrReceiverEmailAndStatus(email, email, AddStatus.ACCEPT);
+            log.info(friends.toString());
 
             if (friends.isEmpty()) {
                 return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
@@ -186,7 +187,7 @@ public class FriendsService {
         try {      // 현재 사용자 이메일 가져오기
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
-            List<Friends> byReceiverEmail1 = friendsRepository.findByReceiverEmailAndStatus(email, String.valueOf(AddStatus.PENDING));
+            List<Friends> byReceiverEmail1 = friendsRepository.findByReceiverEmailAndStatus(email, AddStatus.PENDING);
             List<String> byReceiverEmail = byReceiverEmail1.stream()
                     .map(Friends::getSenderEmail)
                     .collect(Collectors.toList());
@@ -209,7 +210,7 @@ public class FriendsService {
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
-            List<Friends> bySenderEmail = friendsRepository.findBySenderEmailAndStatus(email, String.valueOf(AddStatus.PENDING));
+            List<Friends> bySenderEmail = friendsRepository.findBySenderEmailAndStatus(email, AddStatus.PENDING);
 
             List<String> friendList1 = bySenderEmail.stream()
                     .map(Friends::getReceiverEmail)
