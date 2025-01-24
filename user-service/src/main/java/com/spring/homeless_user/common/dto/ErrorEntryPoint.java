@@ -29,7 +29,7 @@ public class ErrorEntryPoint implements AuthenticationEntryPoint {
 
         // Map 생성 및 데이터 추가
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("message", "NO_LOGIN");
+        responseMap.put("message", "401 in ErrorEntryPoint");
         responseMap.put("code", "401");
 
         // Map을 JSON 문자열로 변환
