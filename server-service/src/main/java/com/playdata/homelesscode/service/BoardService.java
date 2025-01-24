@@ -32,14 +32,15 @@ public class BoardService {
 
     public Board createBoard(BoardCreateDto dto) {
 
-        String userEmail = SecurityContextUtil.getCurrentUser().getEmail();
+
+        String userNickName = SecurityContextUtil.getCurrentUser().getNickname();
 
         BoardList boardList = boardListRepository.findById(dto.getBoardListId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 게시판이 존재하지 않습니다."));
 
         Board board = Board.builder()
                 .title(dto.getTitle())
-                .writer(userEmail)
+                .writer(userNickName)
                 .boardList(boardList)
                 .build();
 
