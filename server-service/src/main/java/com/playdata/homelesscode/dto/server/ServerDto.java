@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ServerDto {
     private String serverId;
+    private String email;
     private AddStatus addStatus;
 }

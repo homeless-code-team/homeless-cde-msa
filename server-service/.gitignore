@@ -1,5 +1,5 @@
 HELP.md
-.gradle
+../../../homeless-cde-msa/server-service/.gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
