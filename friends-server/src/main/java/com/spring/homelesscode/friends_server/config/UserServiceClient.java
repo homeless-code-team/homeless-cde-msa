@@ -18,12 +18,12 @@ public interface UserServiceClient {
     List<FeignResDto> getUserDetails(@RequestBody List<String> result);
 
     // 이메일 전송 닉네임 전달
-    @GetMapping("/api/v1/users/getemail")
+    @GetMapping("/api/v1/users/get-email")
     String getEmail(@RequestParam("nickname") String nickname);
 
 
 
-    @PostMapping("api/v1/users/friend")
+    @PostMapping("/api/v1/users/friend")
     UserResponseDto findFriendByEmail(@RequestParam("email") String email);
 }
 

@@ -13,7 +13,8 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class JwtTokenProvider {
+public class
+JwtTokenProvider {
 
     private  Role role;
 
