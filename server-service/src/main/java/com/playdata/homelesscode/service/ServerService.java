@@ -40,21 +40,21 @@ public class ServerService {
 
 
     private final RedisTemplate<String, String> serverTemplate;
+    private final RedisTemplate server;
 
     public ServerService(ServerRepository serverRepository,
                          ServerJoinUserListRepository serverListRepository,
                          UserServiceClient userServiceClient,
                          AwsS3Config s3Config,
                          @Qualifier("server")
-                         RedisTemplate<String, String> serverTemplate
-    ) {
+                         RedisTemplate<String, String> serverTemplate,
+                         @Qualifier("server") RedisTemplate server) {
         this.serverRepository = serverRepository;
         this.userServiceClient = userServiceClient;
         this.serverListRepository = serverListRepository;
-
         this.serverTemplate = serverTemplate;
         this.s3Config = s3Config;
-
+        this.server = server;
     }
 
 
@@ -170,33 +170,36 @@ public class ServerService {
     ////////////////////////////////// 서버 관리 ///////////////////////////////////////////////////////////////////////////////
 
     // 서버 가입 신청
-    public CommonResDto addReqServer(ServerDto dto) {
+    public CommonResDto<Void> addReqServer(ServerDto dto) {
 
 
+        log.info("서버 아이디 {}", dto.getServerId() );
+        log.info("이메일 {}", dto.getEmail() );
+        
+        
         try {
-            String email = SecurityContextUtil.getCurrentUser().getEmail();
+//            String email = SecurityContextUtil.getCurrentUser().getEmail();
 
             // Redis에 서버 ID 추가
             if (dto.getServerId() == null) {
-                return new CommonResDto(HttpStatus.OK, "유효하지 않은 서버 ID 입니다ㅏ", null);
+                return new CommonResDto<Void>(HttpStatus.OK, "유효하지 않은 서버 ID 입니다ㅏ", null);
             }
 
             // Redis에 기존 값 확인
-            Set<String> existingServerIds = serverTemplate.opsForSet().members(email);
+            Set<String> existingServerIds = serverTemplate.opsForSet().members(dto.getEmail());
             log.info(existingServerIds.toString());
 
-            if (existingServerIds != null && existingServerIds.contains(dto.getServerId())) {
-                return new CommonResDto(HttpStatus.OK, "이미 가입이 진행 중입니다.", null);
+            if (existingServerIds.contains(dto.getServerId())) {
+                return new CommonResDto<Void>(HttpStatus.OK, "이미 초대한 회원입니다..", null);
             }
 
             // Redis에 서버 ID 추가
-            serverTemplate.opsForSet().add(email, dto.getServerId());
+            serverTemplate.opsForSet().add(dto.getEmail(), dto.getServerId());
 
-            return new CommonResDto(HttpStatus.OK, "서버 가입 요청이 완료되었습니다.", null);
+            return new CommonResDto<Void>(HttpStatus.OK, "서버 가입 요청이 완료되었습니다.", null);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 가입 요청 중 오류가 발생했습니다.", e.getMessage());
+            return new CommonResDto<Void>(HttpStatus.INTERNAL_SERVER_ERROR, "서버 초대 중 오류가 발생했습니다..",null);
         }
     }
 
@@ -257,7 +260,7 @@ public class ServerService {
     }
 
 
-    // 서버 가입 요청 조회
+    // 서버 가입 보낸거 조회
     public CommonResDto addServerJoin(String serverId) {
 
 
@@ -265,6 +268,7 @@ public class ServerService {
 
             // Redis에서 모든 요청 서버 ID 조회
             List<String> keysByValue = findKeysByValue(serverId);
+
 
 
             return new CommonResDto(HttpStatus.OK, "가입 요청 서버 목록 조회 성공", keysByValue);
@@ -291,7 +295,11 @@ public class ServerService {
     // Redis에서 value로 조회하기 위한 전체 조회
     public List<String> findKeysByValue(String targetValue) {
         List<String> matchingKeys = new ArrayList<>(); // 결과를 저장할 리스트
-        Set<String> keys = serverTemplate.keys("*"); // 모든 키 가져오기
+          Set<String> keys = serverTemplate.keys("*"); // 모든 키 가져오기
+
+
+        serverTemplate.opsForValue();
+
 
         if (keys != null) {
             for (String key : keys) {
@@ -300,10 +308,54 @@ public class ServerService {
                     matchingKeys.add(key); // 일치하는 키를 리스트에 추가
                 }
             }
-        }
+    }
 
         return matchingKeys; // 매칭된 키 리스트 반환
     }
+
+
+    public List<String> findServersByEmail(String email) {
+        List<String> serverList = new ArrayList<>(); // 결과를 저장할 리스트
+
+
+
+        // 이메일(키)에 해당하는 서버 ID 리스트를 가져옴
+        Set<String> servers = serverTemplate.opsForSet().members(email);
+
+        if (servers != null) {
+            serverList.addAll(servers); // 서버 리스트에 추가
+        }
+
+        log.info("이메일 '{}'에 해당하는 서버 리스트: {}", email, serverList);
+        return serverList; // 매칭된 서버 리스트 반환
+    }
+
+    
+    // 서버 초대 요청 리스트
+    public CommonResDto<Void> getInviteList() {
+
+        try {
+            String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+            // Redis에서 모든 요청 서버 ID 조회
+            List<String> keysByValue = findServersByEmail(email);
+
+
+            List<Server> servers = serverRepository.findByIdIn(keysByValue);
+
+            List<inviteServerList> serverList = servers.stream().map(server -> new inviteServerList(server)).toList();
+
+
+            return new CommonResDto(HttpStatus.OK, "가입 요청 서버 목록 조회 성공",serverList );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 요청 조회 중 오류 발생", null);
+        }
+
+
+    }
+
 
 
     public List<UserReponseInRoleDto> getUserList(String id) {
@@ -383,4 +435,41 @@ public class ServerService {
         serverRepository.save(server);
 
     }
+
+    public List<ServerResponseDto> getServerList() {
+
+        String email = SecurityContextUtil.getCurrentUser().getEmail();
+
+        List<String> role = new ArrayList<>();
+
+        role.add("OWNER");
+        role.add("MANAGER");
+
+        List<ServerJoinUserList> byEmailAndRole = serverListRepository.findByEmailAndRoleIn(email, role);
+        for (ServerJoinUserList serverJoinUserList : byEmailAndRole) {
+            serverJoinUserList.getServer().getId();
+        }
+        log.info("강제 초기화 후 결과: {}", byEmailAndRole);
+
+        List<String> collect = byEmailAndRole.stream().map(s -> s.getServer().getId()).collect(Collectors.toList());
+        log.info("collect: {}", collect);
+
+        List<Server> byIdIn = serverRepository.findByIdIn(collect);
+        log.info("byIdIn: {}", byIdIn);
+
+        List<ServerResponseDto> result = byIdIn.stream().map(server -> {
+            return new ServerResponseDto(
+                    server.getId(),
+                    server.getTag(),
+                    server.getTitle(),
+                    server.getServerImg(),
+                    null, 0, null
+            );
+        }).collect(Collectors.toList());
+
+
+        return result;
+
+    }
+
 }

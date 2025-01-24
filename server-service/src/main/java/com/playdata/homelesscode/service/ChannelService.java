@@ -53,15 +53,6 @@ public class ChannelService {
 
         List<ServerJoinUserList> collect = byEmail.stream().filter(s -> s.getServer().getId().equals(id)).collect(Collectors.toList());
 
-        boolean checkRole = false;
-        for (ServerJoinUserList server : collect) {
-            Role role = server.getRole(); // role 가져오기
-            if ("OWNER".equals(role) || "ROLE".equals(role)) {
-                checkRole = true;
-                break; // 조건을 만족하는 role을 찾으면 더 이상 순회하지 않고 종료
-            }
-        }
-
 
         List<Channel> byServerId = channelRepository.findByServerId(id);
         List<ChannelResponseDto> list = byServerId.stream().map(c ->
