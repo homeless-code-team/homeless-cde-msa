@@ -128,23 +128,31 @@ public class ServerController {
     }
 
     //서버 요청 응답
-    @PostMapping("/servers/response")
+    @PostMapping("/acceptanceInvite")
     public CommonResDto addResServer(@RequestBody ServerDto dto) {
         log.info("addServerJoin");
         return serverService.addResServer(dto);
     }
 
     //서버추가 요청 조회
-    @GetMapping("/servers/response")
+    @GetMapping("/inviteUserList")
     public CommonResDto addServerJoin(@RequestParam String serverId) {
         log.info("addServerJoin");
         return serverService.addServerJoin(serverId);
     }
 
+    
+    // 받은 요청
     @GetMapping("/inviteList")
     public CommonResDto<Void> inviteList(){
 
         return serverService.getInviteList();
+    }
+
+    @DeleteMapping("/cancelInvite")
+    public CommonResDto<Void> cancelInvite(@RequestParam String serverId, @RequestParam String email) {
+
+        return serverService.cancelInvite(serverId, email);
     }
 
 
