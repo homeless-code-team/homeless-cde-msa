@@ -1,5 +1,6 @@
 package com.playdata.homelesscode.service;
 
+import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boards.BoardCreateDto;
 import com.playdata.homelesscode.dto.boards.BoardDeleteDto;
@@ -28,6 +29,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardListRepository boardListRepository;
     private final ServerJoinUserListRepository serverListRepository;
+    private final ChatServiceClient chatServiceClient;
 
 
     public Board createBoard(BoardCreateDto dto) {
@@ -77,6 +79,7 @@ public class BoardService {
         Board board = boardRepository.findById(dto.getBoardId()).orElseThrow();
 
         if (board.getWriter().equals(email) || byEmailAndServerId.getRole() == Role.OWNER || byEmailAndServerId.getRole() == Role.MANAGER) {
+            chatServiceClient.deleteChatMessageByChannelId(dto.getBoardId());
             boardRepository.deleteById(dto.getBoardId());
         }
 

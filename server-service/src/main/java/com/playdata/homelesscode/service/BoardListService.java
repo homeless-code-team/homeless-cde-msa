@@ -1,14 +1,17 @@
 package com.playdata.homelesscode.service;
 
+import com.playdata.homelesscode.client.ChatServiceClient;
 import com.playdata.homelesscode.common.custom.CustomThrowException;
 import com.playdata.homelesscode.common.utill.SecurityContextUtil;
 import com.playdata.homelesscode.dto.boardList.BoardListCreateDto;
 import com.playdata.homelesscode.dto.boardList.BoardListUpdateDto;
 import com.playdata.homelesscode.dto.server.Role;
+import com.playdata.homelesscode.entity.Board;
 import com.playdata.homelesscode.entity.BoardList;
 import com.playdata.homelesscode.entity.Server;
 import com.playdata.homelesscode.entity.ServerJoinUserList;
 import com.playdata.homelesscode.repository.BoardListRepository;
+import com.playdata.homelesscode.repository.BoardRepository;
 import com.playdata.homelesscode.repository.ServerJoinUserListRepository;
 import com.playdata.homelesscode.repository.ServerRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,8 @@ public class BoardListService {
     private final BoardListRepository boardListRepository;
     private final ServerRepository serverRepository;
     private final ServerJoinUserListRepository serverListRepository;
+    private final ChatServiceClient chatServiceClient;
+    private final BoardRepository boardRepository;
 
 
     public BoardList createBoardList(BoardListCreateDto dto) {
@@ -72,7 +77,12 @@ public class BoardListService {
 
 
         if (serverList.getRole() == Role.OWNER || serverList.getRole() == Role.MANAGER) {
+            List<Board> findedBoardList = boardRepository.findByBoardListId(id);
+            for (Board board: findedBoardList) {
+                chatServiceClient.deleteChatMessageByChannelId(board.getId());
+            }
             boardListRepository.deleteById(id);
+
         } else {
             throw new CustomThrowException("권한 부족");
         }
