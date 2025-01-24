@@ -207,11 +207,10 @@ public class UserController {
 
     }
 
-    @GetMapping("/getemail")
-    public ResponseEntity<String> changetoEamil(@RequestParam("nickname") String nickname) {
-        log.info("feignemail");
-        String exists = userService.changeEmail(nickname);
-        return ResponseEntity.ok(exists);
+    @GetMapping("/get-email")
+    public ResponseEntity<?> findEmailByNickname(@RequestParam("nickname") String nickname) {
+        String findEmail = userService.changeEmail(nickname);
+        return ResponseEntity.ok(findEmail);
     }
 
     /// feign 요청
