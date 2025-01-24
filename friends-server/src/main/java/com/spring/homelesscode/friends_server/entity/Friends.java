@@ -26,8 +26,8 @@ public class Friends {
     @Column(name = "friend_email")
     private String receiverEmail;
 
-    @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AddStatus status;
 
     @Column(name = "createAt")
     private DateTime createAt;
