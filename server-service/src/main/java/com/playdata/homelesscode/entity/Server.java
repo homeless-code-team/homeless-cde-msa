@@ -11,7 +11,7 @@ import java.util.List;
 
 @Setter
 @Getter
-@ToString
+@ToString(exclude = {"channels", "serverLists", "board"})
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -46,7 +46,7 @@ public class Server {
     @Column
     @CreationTimestamp
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul") //날짜 포멧 바꾸기
+    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm", timezone="Asia/Seoul") //날짜 포멧 바꾸기
     private LocalDateTime createAt;
 
     @OneToMany(mappedBy = "server", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
