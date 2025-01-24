@@ -30,11 +30,9 @@ public class StompInterceptor implements ChannelInterceptor {
 
                 // 1. Authorization 헤더 추출
                 String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
-                log.info("Authorization header: {} in StompInterceptor", authorizationHeader);
 
                 // 2. 토큰 검증
                 if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                    log.error("Missing or invalid Authorization header in StompInterceptor");
                     throw new UnauthorizedException("401", "Missing or invalid Authorization header in StompInterceptor");
                 }
 
@@ -67,7 +65,7 @@ public class StompInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
-            //log.info("Post-send processing for message: {}", message);
+            log.info("Post-send processing for message: {}", message);
         }
     }
 }

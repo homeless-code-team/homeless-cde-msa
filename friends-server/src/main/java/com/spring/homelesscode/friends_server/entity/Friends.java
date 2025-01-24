@@ -31,4 +31,5 @@ public class Friends {
 
     @Column(name = "createAt")
     private DateTime createAt;
+
 }

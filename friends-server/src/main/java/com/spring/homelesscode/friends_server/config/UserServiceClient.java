@@ -1,5 +1,6 @@
-package com.spring.homelesscode.friends_server.cofig;
+package com.spring.homelesscode.friends_server.config;
 
+import com.spring.homelesscode.friends_server.common.dto.UserResponseDto;
 import com.spring.homelesscode.friends_server.dto.FeignResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,5 +20,10 @@ public interface UserServiceClient {
     // 이메일 전송 닉네임 전달
     @GetMapping("/api/v1/users/getemail")
     String getEmail(@RequestParam("nickname") String nickname);
+
+
+
+    @PostMapping("api/v1/users/friend")
+    UserResponseDto findFriendByEmail(@RequestParam("email") String email);
 }
 

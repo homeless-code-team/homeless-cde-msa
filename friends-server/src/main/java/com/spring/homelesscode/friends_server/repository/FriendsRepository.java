@@ -15,6 +15,10 @@ public interface FriendsRepository extends JpaRepository<Friends, String> {
 
     List<Friends> findBySenderEmail(String senderEmail);
 
+    // FriendsRepository에서 두 이메일 필드로 id를 조회하는 쿼리
+    List<Friends> findBySenderEmailOrReceiverEmailAndStatus(String senderEmail, String receiverEmail, String status);
+
+
     Optional<Friends> findByReceiverEmailAndSenderEmail(String receiverEmail, String senderEmail);
 
     List<Friends> findByReceiverEmailAndStatus(String receiverEmail, String addStatus);
@@ -22,4 +26,5 @@ public interface FriendsRepository extends JpaRepository<Friends, String> {
     List<Friends> findBySenderEmailAndStatus(String senderEmail, String addStatus);
 
     boolean existsByReceiverEmailAndSenderEmail(String receiverEmail, String senderEmail);
+
 }

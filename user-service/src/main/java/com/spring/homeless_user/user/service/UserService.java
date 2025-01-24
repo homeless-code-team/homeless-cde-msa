@@ -776,6 +776,16 @@ public class UserService {
     }
 
 
+    public UserResponseDto findFriendByEmail(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            return new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage());
+        }
+        else {
+            throw new UsernameNotFoundException("User not found by email: " + email);
+        }
+    }
 }
 
 

@@ -3,6 +3,8 @@ package com.homeless.chatservice.controller;
 import com.homeless.chatservice.dto.ChatMessageResponse;
 import com.homeless.chatservice.dto.CommonResDto;
 import com.homeless.chatservice.service.ChatHttpService;
+import com.homeless.chatservice.service.ResponseService;
+import com.homeless.chatservice.service.StompMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -20,39 +21,34 @@ import java.util.Map;
 public class ChatHttpController {
 
     private final ChatHttpService chatHttpService;
+    private final ResponseService responseService;
+    private final StompMessageService stompMessageService;
 
-    // 특정 채널의 메시지 조회
+    //메시지 조회
     @GetMapping("/ch/{channelId}")
     public ResponseEntity<?> getMessages(
             @PathVariable String channelId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+
+        if (chatHttpService.isInvalidSize(size)) {
+            return responseService.createErrorResponse(HttpStatus.BAD_REQUEST,"size는 1 이상의 값이어야 합니다.");
+        }
+
         try {
-            // size 값 검증
-            if (size <= 0) {
-                throw new IllegalArgumentException("size는 1 이상의 값이어야 합니다.");
-            }
-
-            // 메시지 조회 (Page 형태로 반환)
             Page<ChatMessageResponse> messages = chatHttpService.getMessagesByChannel(channelId, page, size);
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("messages", messages.getContent()); // 메시지 목록
-            result.put("totalElements", messages.getTotalElements()); // 총 메시지 수
-            result.put("totalPages", messages.getTotalPages()); // 총 페이지 수
-            result.put("currentPage", messages.getNumber()); // 현재 페이지
-            result.put("isLast", messages.isLast()); // 마지막 페이지 여부
+            Map<String, Object> result = responseService.createMessageResultMap(messages);
 
             CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "메시지 조회 완료", result);
-
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(new CommonResDto<>(HttpStatus.BAD_REQUEST, e.getMessage(), null), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return handleException(e);
         }
     }
 
+
+
+    // 메시지 검색
     @GetMapping("/search")
     public Page<ChatMessageResponse> searchMessages(
             @RequestParam String channelId,
@@ -71,9 +67,10 @@ public class ChatHttpController {
     // feign : 채널 삭제
     @DeleteMapping("/ch/{channelId}")
     public ResponseEntity<?> deleteMessagesByChannel(@PathVariable String channelId) throws Exception {
+        stompMessageService.removeChannel(channelId);
         chatHttpService.deleteChatMessageByChannelId(channelId);
-        Map<String, Object> result = new HashMap<>();
-        CommonResDto<Object> commonResDto = new CommonResDto<>(HttpStatus.OK, "채널 삭제 완료", result);
+
+        CommonResDto<Void> commonResDto = new CommonResDto<>(HttpStatus.OK, "채널 삭제 완료", null);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
