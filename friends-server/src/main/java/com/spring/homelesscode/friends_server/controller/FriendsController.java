@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/friends")
 @RequiredArgsConstructor
 @Slf4j
-public class FriednsController {
+public class FriendsController {
 
     private final FriendsService friendsAndServerService;
 
