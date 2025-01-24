@@ -1,4 +1,4 @@
-package com.spring.homelesscode.friends_server.cofig;
+package com.spring.homelesscode.friends_server.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

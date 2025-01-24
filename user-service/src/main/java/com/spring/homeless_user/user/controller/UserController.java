@@ -226,6 +226,11 @@ public class UserController {
         return byEmailIn;
     }
 
+    @PostMapping("/friend")
+    UserResponseDto findFriendByEmail(@RequestParam("email") String email) {
+        return userService.findFriendByEmail(email);
+    }
+
 }
 
 
