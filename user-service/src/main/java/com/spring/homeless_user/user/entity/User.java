@@ -1,15 +1,12 @@
 package com.spring.homeless_user.user.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,13 +23,14 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Enumerated(EnumType.STRING)
     private Provider provider;
+
     private String password;
     private String nickname;
     private String profileImage;
     private String contents;
     private String achievement;
     private LocalDateTime createdAt;
-    private String refreshToken;
 
 }
