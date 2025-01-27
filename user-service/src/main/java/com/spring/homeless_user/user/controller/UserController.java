@@ -103,6 +103,12 @@ public class UserController {
         return userService.alluser();
     }
 
+    // 유저1명데이터 모두 조회
+    @GetMapping("/get")
+    public CommonResDto getData(@RequestParam(required = false) String nickname){
+        return userService.getData(nickname);
+    }
+
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
