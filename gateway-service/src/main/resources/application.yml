@@ -127,11 +127,14 @@ security:
     - /api/v1/users/swagger-ui.html
     - /api/v1/friends/swagger-ui/**
     - /api/v1/friends/swagger-ui/html
-    - /oauth2/**
-    - /login/**
     - /api/v1/users/callback
     - /ws/info
     - /ws/**
+    - /oauth2/authorization/**
+    - /login/oauth2/code/**
+    - /user-service/oauth2/**
+    - /user-service/oauth2/authorization/**
+    - /user-service/login/oauth2/code/**
   expiration: 3600000
   secretKey: rI9KLc/nWq+0ehvbQXjST52lIHi+A4PurdKwAe0ZcN+0LE1QBv7p0qhFx8wzt8PaigtMXpJHdIl6p4ILsLDasA==
   expirationRt: 1209600000
