@@ -8,29 +8,22 @@ import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
-import io.jsonwebtoken.Claims;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -523,6 +516,18 @@ public class UserService {
         }catch (Exception e) {
             return;
         }
+    }
+
+    public CommonResDto getData(String nickname) {
+        User user = userRepository.findByNickname(nickname).orElseThrow(() -> new UsernameNotFoundException(nickname));
+
+        UserDataDto build = UserDataDto.builder()
+                .contents(user.getContents())
+                .profileImage(user.getProfileImage())
+                .nickname(user.getNickname())
+                .build();
+        return new CommonResDto(HttpStatus.OK,200,"조회완료",build,null);
+
     }
 }
 
