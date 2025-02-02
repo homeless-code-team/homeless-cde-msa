@@ -21,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -43,7 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .authorizeHttpRequests(auth -> {
                     log.info("HTTP 요청 권한 설정");
 
@@ -58,6 +59,7 @@ public class SecurityConfig {
                 })
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> {
+                            log.info("OAuth2 Authorization Endpoint 설정");
                             endpoint.baseUri("/oauth2/authorization");
                             DefaultOAuth2AuthorizationRequestResolver resolver =
                                     new DefaultOAuth2AuthorizationRequestResolver(
@@ -65,14 +67,24 @@ public class SecurityConfig {
                                             "/oauth2/authorization"
                                     );
                             endpoint.authorizationRequestResolver(resolver);
+                            endpoint.authorizationRequestRepository(
+                                    new HttpSessionOAuth2AuthorizationRequestRepository()
+                            );
                         })
-                        .redirectionEndpoint(endpoint ->
-                                endpoint.baseUri("/login/oauth2/code/{registrationId}") // ✅ 기본 형식 유지
-                        )
-                        .userInfoEndpoint(endpoint ->
-                                endpoint.userService(customOAuth2UserService))
-                        .successHandler(oAuth2SuccessHandler)
+                        .redirectionEndpoint(endpoint -> {
+                            log.info("OAuth2 Redirection Endpoint 설정");
+                            endpoint.baseUri("/login/oauth2/code/{registrationId}");
+                        })
+                        .userInfoEndpoint(endpoint -> {
+                            log.info("OAuth2 UserInfo Endpoint 설정");
+                            endpoint.userService(customOAuth2UserService);
+                        })
+                        .successHandler((request, response, authentication) -> {
+                            log.info("OAuth2 로그인 성공: {}", authentication.getName());
+                            oAuth2SuccessHandler.onAuthenticationSuccess(request, response, authentication);
+                        })
                         .failureHandler((request, response, exception) -> {
+                            log.error("OAuth2 로그인 실패: {}", exception.getMessage());
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("{\"error\": \"" + exception.getMessage() + "\"}");

@@ -2,7 +2,6 @@ package com.spring.homeless_user.common.configs;
 
 import com.spring.homeless_user.common.auth.JwtTokenProvider;
 import com.spring.homeless_user.user.service.UserService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +39,11 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String email = oAuth2User.getAttribute("email");
         String id = UUID.randomUUID().toString();
         String nickname = oAuth2User.getAttribute("name");
+        
+        log.info("OAuth2 로그인 성공 - email: {}, nickname: {}", email, nickname);
+
+        // 회원가입 또는 로그인 처리
+        userService.registerOrLoginOAuthUser(email, nickname);
 
         // JWT 발급
         String accessToken = jwtTokenProvider.accessToken(email, id, nickname);

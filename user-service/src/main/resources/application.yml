@@ -4,3 +4,11 @@ server:
 spring:
   application:
     name: user-service
+  config:
+    import: "optional:configserver:"
+
+
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
