@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.UUID;
+
 @Slf4j
 @Component
 public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -22,63 +23,40 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final RedisTemplate<String, String> loginTemplate;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
-    private final RedisTemplate<String, String> login;
 
-    public CustomOAuth2SuccessHandler(@Qualifier("login")RedisTemplate<String, String> loginTemplate, JwtTokenProvider jwtTokenProvider, UserService userService, RedisTemplate<String, String> login) {
+    public CustomOAuth2SuccessHandler(@Qualifier("login") RedisTemplate<String, String> loginTemplate,
+                                      JwtTokenProvider jwtTokenProvider,
+                                      UserService userService) {
         this.loginTemplate = loginTemplate;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
-        this.login = login;
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                      HttpServletResponse response,
-                                      Authentication authentication) throws IOException, ServletException {
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oAuth2User.getAttribute("email");
+        String id = UUID.randomUUID().toString();
+        String nickname = oAuth2User.getAttribute("name");
 
-        try {
-            log.info("OAuth 인증 성공. 사용자 속성: {}", oAuth2User.getAttributes());
-            
-            // 사용자 정보 가져오기
-            String email = oAuth2User.getAttribute("email");
-            String name = oAuth2User.getAttribute("name");
-            String id = UUID.randomUUID().toString();
-            String nickname = name != null ? name : "User-" + UUID.randomUUID().toString().substring(0, 8);
+        // JWT 발급
+        String accessToken = jwtTokenProvider.accessToken(email, id, nickname);
+        String refreshToken = jwtTokenProvider.refreshToken(email,id);
 
-            log.info("처리된 사용자 정보 - email:{}, name:{}, id:{}, nickname:{}", 
-                    email, name, id, nickname);
+        loginTemplate.opsForValue().set(email, refreshToken);
 
-            // 사용자 정보 저장 또는 업데이트
-            userService.saveOrUpdateUser(email, name, id, nickname);
+        log.info("OAuth2 로그인 성공 - email: {}, JWT 발급 완료", email);
 
-            String refreshToken = jwtTokenProvider.refreshToken(email, id);
-            String accessToken = jwtTokenProvider.accessToken(email, id, nickname);
-
-            loginTemplate.opsForValue().set(email, refreshToken);
-
-            // CORS 헤더 설정
-            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-            // JWT 토큰 응답
-            response.setContentType("application/json;charset=UTF-8");
-            String jsonResponse = String.format(
-                "{\"status\":\"success\",\"token\":\"%s\",\"email\":\"%s\",\"nickname\":\"%s\"}",
-                accessToken, email, nickname
-            );
-            
-            log.info("인증 성공 응답 전송: {}", jsonResponse);
-            response.getWriter().write(jsonResponse);
-            response.getWriter().flush();
-
-        } catch (Exception e) {
-            log.error("OAuth 인증 성공 처리 중 오류 발생", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
-            response.getWriter().flush();
-        }
+        // ✅ 새 창에서 기존 창으로 JWT 전송 & 창 닫기
+        response.setContentType("text/html;charset=UTF-8");
+        response.getWriter().write(
+                "<script>" +
+                        "window.opener.postMessage({ token: '" + accessToken + "' }, '*');" + // 기존 창으로 토큰 전달
+                        "window.close();" + // 팝업 창 닫기
+                        "</script>"
+        );
     }
+
 }

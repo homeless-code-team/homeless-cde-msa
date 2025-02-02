@@ -1,0 +1,92 @@
+pipeline {
+    agent any
+    environment {
+        GITHUB_REPO = "https://github.com/si-cpu/myfood_msa.git"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                    sh '''
+                    if [ -d "myfood_msa/.git" ]; then
+                        echo "✅ Repository already exists. Pulling latest changes..."
+                        cd myfood_msa
+                        git reset --hard
+                        git pull origin master
+                    else
+                        echo "🚀 Cloning repository..."
+                        git clone https://$GIT_USER:$GIT_PASS@github.com/si-cpu/myfood_msa.git
+                    fi
+                    '''
+                }
+            }
+        }
+        stage('Detect Changed Services') {
+            steps {
+                script {
+                    def changedServices = sh(script: '''
+                        cd myfood_msa
+                        git fetch origin master
+                        git diff --name-only HEAD^ HEAD | awk -F'/' '{print $1}' | sort -u | grep -E '.*-server|.*-spark' || echo ""
+                    ''', returnStdout: true).trim()
+                    
+                    if (changedServices) {
+                        env.CHANGED_SERVICES = changedServices
+                        echo "🚀 변경된 서비스: ${env.CHANGED_SERVICES}"
+                    } else {
+                        echo "✅ 변경된 서비스가 없습니다. 기존 빌드를 유지합니다."
+                        env.CHANGED_SERVICES = ""
+                    }
+                }
+            }
+        }
+        stage('Ensure JAR Files Exist') {
+            steps {
+                script {
+                    def services = sh(script: 'ls myfood_msa | grep -E ".*-server|.*-spark"', returnStdout: true).trim().split("\n")
+                    for (service in services) {
+                        sh """
+                        if [ ! -f "myfood_msa/$service/build/libs/*.jar" ]; then
+                            echo "⚠️ $service JAR 파일이 없으므로 빌드 실행!"
+                            cd myfood_msa/$service
+                            chmod +x ./gradlew
+                            ./gradlew clean build -x test
+                        else
+                            echo "✅ $service JAR 파일이 존재하므로 기존 파일 사용!"
+                        fi
+                        """
+                    }
+                }
+            }
+        }
+        stage('Build & Push Changed Services') {
+            when { expression { return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != "" } }
+            steps {
+                script {
+                    def services = env.CHANGED_SERVICES.split("\n")
+                    for (service in services) {
+                        sh """
+                        cd myfood_msa/$service
+                        docker build -t sihyogeon/backend-services:$service .
+                        docker push sihyogeon/backend-services:$service
+                        """
+                    }
+                }
+            }
+        }
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['jenkins-ec2-key']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@your-ec2-ip "
+                    cd ~/myfood_msa &&
+                    git pull &&
+                    docker-compose pull &&
+                    docker-compose up -d
+                    "
+                    '''
+                }
+            }
+        }
+    }
+}

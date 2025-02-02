@@ -3,6 +3,7 @@ package com.spring.homeless_user.common.configs;
 import com.spring.homeless_user.common.auth.JwtAuthFilter;
 import com.spring.homeless_user.common.dto.ErrorEntryPoint;
 import com.spring.homeless_user.common.utill.SecurityPropertiesUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,71 +19,58 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @Slf4j
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final ErrorEntryPoint errorEntryPoint;
     private final JwtAuthFilter jwtAuthFilter;
     private final SecurityPropertiesUtil securityPropertiesUtil;
-    private final CustomOAuth2SuccessHandler oAuth2SuccessHandler; // OAuth2 성공 핸들러
+    private final CustomOAuth2SuccessHandler oAuth2SuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          ErrorEntryPoint errorEntryPoint,
-                          SecurityPropertiesUtil securityPropertiesUtil,
-                          CustomOAuth2SuccessHandler oAuth2SuccessHandler,
-                          CustomOAuth2UserService customOAuth2UserService,
-                          ClientRegistrationRepository clientRegistrationRepository) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.errorEntryPoint = errorEntryPoint;
-        this.securityPropertiesUtil = securityPropertiesUtil;
-        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
-        this.customOAuth2UserService = customOAuth2UserService;
-        this.clientRegistrationRepository = clientRegistrationRepository;
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("SecurityFilterChain 설정 시작");
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> {
-                    securityPropertiesUtil.getExcludedPaths().forEach(path -> auth.requestMatchers(path).permitAll());
+                    log.info("HTTP 요청 권한 설정");
+
+                    // 허용된 경로 확인 (디버깅)
+                    securityPropertiesUtil.getExcludedPaths().forEach(path -> log.info("허용된 경로: {}", path));
+
+                    // ✅ OAuth2 리디렉트 경로 허용
+                    auth.requestMatchers("/login/oauth2/code/**").permitAll();
                     auth.requestMatchers("/oauth2/**", "/login/**", "/api/v1/users/**").permitAll();
+
                     auth.anyRequest().authenticated();
                 })
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> {
                             endpoint.baseUri("/oauth2/authorization");
-                            DefaultOAuth2AuthorizationRequestResolver resolver = 
-                                new DefaultOAuth2AuthorizationRequestResolver(
-                                    clientRegistrationRepository, 
-                                    "/oauth2/authorization"
-                                );
-                            resolver.setAuthorizationRequestCustomizer(builder -> 
-                                builder.additionalParameters(params -> {
-                                    params.put("device_id", "homeless_code_app");
-                                    params.put("device_name", "Homeless Code Desktop App");
-                                })
-                            );
+                            DefaultOAuth2AuthorizationRequestResolver resolver =
+                                    new DefaultOAuth2AuthorizationRequestResolver(
+                                            clientRegistrationRepository,
+                                            "/oauth2/authorization"
+                                    );
                             endpoint.authorizationRequestResolver(resolver);
                         })
                         .redirectionEndpoint(endpoint ->
-                            endpoint.baseUri("/login/oauth2/code/*"))
+                                endpoint.baseUri("/login/oauth2/code/{registrationId}") // ✅ 기본 형식 유지
+                        )
                         .userInfoEndpoint(endpoint ->
-                            endpoint.userService(customOAuth2UserService))
+                                endpoint.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler((request, response, exception) -> {
                             response.setContentType("application/json;charset=UTF-8");
@@ -100,8 +88,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:8181"
+                "http://localhost:3000",
+                "http://localhost:8181"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
@@ -112,4 +100,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

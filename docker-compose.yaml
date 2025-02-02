@@ -1,137 +1,38 @@
-version: '3.8'
-
 services:
   user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    ports:
-      - "0:8383"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_user
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
+    image: sihyogeon/homeless-cde-msa:user-service
     networks:
       - msa-network
 
   friends-service:
-    build:
-      context: ./friends-server
-      dockerfile: Dockerfile
-    ports:
-      - "0:8282"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_friends
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
+    image: sihyogeon/homeless-cde-msa:friends-service
     networks:
       - msa-network
 
   server-service:
-    build:
-      context: ./server-service
-      dockerfile: Dockerfile
-    ports:
-      - "0:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_server
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
+    image: sihyogeon/homeless-cde-msa:server-service
     networks:
       - msa-network
 
   chat-service:
-    build:
-      context: ./chat-service
-      dockerfile: Dockerfile
-    ports:
-      - "0:8083"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_chat
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
-    networks:
-      - msa-network
-
-  gateway-service:
-    build:
-      context: ./gateway-service
-      dockerfile: Dockerfile
-    ports:
-      - "8181:8181"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
-    networks:
-      - msa-network
-
-  config-service:
-    build:
-      context: ./config-service
-      dockerfile: Dockerfile
-    ports:
-      - "8888:8888"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
+    image: sihyogeon/homeless-cde-msa:chat-service
     networks:
       - msa-network
 
   discovery-service:
-    build:
-      context: ./discovery-service
-      dockerfile: Dockerfile
+    image: sihyogeon/homeless-cde-msa:discovery-service
     ports:
       - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
     networks:
       - msa-network
+
+  gateway-service:
+    image: sihyogeon/homeless-cde-msa:gateway-service
+    ports:
+      - "8181:8181"
+    networks:
+      - msa-network
+
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -154,6 +55,7 @@ services:
 
 volumes:
   redis_data:
+  mysql_data:
 
 networks:
   msa-network:

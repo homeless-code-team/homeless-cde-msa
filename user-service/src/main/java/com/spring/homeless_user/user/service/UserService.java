@@ -373,9 +373,6 @@ public class UserService {
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
-
-            List<User> users = userRepository.findAll();
-
             List<User> users1 = userRepository.findAll().stream()
                     .filter(user -> !user.getEmail().equals(email)) // 현재 유저 제외
                     .toList();
@@ -475,7 +472,7 @@ public class UserService {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UsernameNotFoundException(nickname));
         return user.getEmail();
-}
+    }
 
     public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
 

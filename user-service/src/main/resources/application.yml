@@ -1,15 +1,6 @@
 server:
-  port: 8181
+  port: 0
 
 spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: [your-client-id]
-            client-secret: [your-client-secret]
-            redirect-uri: http://localhost:8181/user-service/login/oauth2/code/google
-            scope:
-              - email
-              - profile 
+  application:
+    name: user-service
