@@ -3,14 +3,15 @@ server:
 
 spring:
   application:
-    name: config-service
+    name: config-server
   cloud:
     config:
       server:
-        native:
-          search-locations: file://C:/home/homeless-code-config
         git:
-          uri: file://C:/home/homeless-code-config
+          uri: https://github.com/homeless-code-team/homeless-code-config.git
+          username: si-cpu
+          password: ${GITHUB_TOKEN}  # 여기서 GitHub Token을 환경 변수로 설정
+          clone-on-start: true
 
 management:
   endpoints:
