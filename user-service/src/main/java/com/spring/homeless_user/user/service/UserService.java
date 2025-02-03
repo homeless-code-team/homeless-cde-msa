@@ -6,6 +6,7 @@ import com.spring.homeless_user.common.utill.SecurityContextUtil;
 import com.spring.homeless_user.user.config.S3Upload;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
+import com.spring.homeless_user.user.entity.Role;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -373,9 +374,6 @@ public class UserService {
         try {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
 
-
-            List<User> users = userRepository.findAll();
-
             List<User> users1 = userRepository.findAll().stream()
                     .filter(user -> !user.getEmail().equals(email)) // 현재 유저 제외
                     .toList();
@@ -475,7 +473,7 @@ public class UserService {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UsernameNotFoundException(nickname));
         return user.getEmail();
-}
+    }
 
     public List<UserResponseDto> findByEmailIn(List<String> userEmails) {
 
@@ -528,6 +526,23 @@ public class UserService {
                 .build();
         return new CommonResDto(HttpStatus.OK,200,"조회완료",build,null);
 
+    }
+
+    public void registerOrLoginOAuthUser(String email, String nickname) {
+        // 이미 가입된 회원인지 확인
+        if (!userRepository.existsByEmail(email)) {
+            // 새로운 회원이면 회원가입 처리
+            User user = User.builder()
+                    .email(email)
+                    .nickname(nickname)
+                    .provider(Provider.SOCIALLOGIN)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            userRepository.save(user);
+            log.info("OAuth2 회원가입 완료 - email: {}", email);
+        } else {
+            log.info("기존 회원 OAuth2 로그인 - email: {}", email);
+        }
     }
 }
 
