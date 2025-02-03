@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Step 3: Copy the JAR file into the container
-COPY build/libs/*.jar app.jar
+COPY build/libs/*.jar /app.jar
 
 # Step 4: Set the default command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
