@@ -63,7 +63,7 @@ public class CheckService {
 
             return new CommonResDto(HttpStatus.OK, 200, "이메일 전송 성공!!!", token, links);
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 401, "이메일 전송 실패", null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "이메일 전송 실패", null, links);
         }
     }
 
@@ -90,9 +90,9 @@ public class CheckService {
                 }
             }
 
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "토큰이 저장되지 않았습니다", null, links);
+            return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "유효하지 않은 토큰입니다", null, links);
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러발생" + e.getMessage(), null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러발생: " + e.getMessage(), null, links);
         }
     }
 
@@ -108,8 +108,8 @@ public class CheckService {
             if (email != null) {
                 boolean exists = userRepository.findByEmail(email).isPresent();
                 return exists
-                        ? new CommonResDto(HttpStatus.BAD_REQUEST, 401, "이메일 사용 불가", null, links)
-                        : new CommonResDto(HttpStatus.OK, 200, "이메일을 사용해도 좋아요.", null, links);
+                        ? new CommonResDto(HttpStatus.CONFLICT, 409, "이미 사용 중인 이메일입니다", null, links)
+                        : new CommonResDto(HttpStatus.OK, 200, "사용 가능한 이메일입니다", null, links);
             } else if (nickname != null) {
                 //닉네임 중복체크
                 boolean nicknameExists = userRepository.findByNickname(nickname).isPresent();
@@ -122,7 +122,29 @@ public class CheckService {
             return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "잘못된 요청입니다.", null, links);
 
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 401, "에러 발생", e.getMessage(), links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "검증 중 오류 발생", e.getMessage(), links);
+        }
+    }
+
+    public CommonResDto checkEmail(String email) {
+        try {
+            if (userRepository.existsByEmail(email)) {
+                return new CommonResDto(HttpStatus.CONFLICT, 409, "이미 존재하는 이메일입니다.", null, null);
+            }
+            return new CommonResDto(HttpStatus.OK, 200, "사용 가능한 이메일입니다.", null, null);
+        } catch (Exception e) {
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "이메일 검증 중 오류 발생", null, null);
+        }
+    }
+
+    public CommonResDto checkNickname(String nickname) {
+        try {
+            if (userRepository.existsByNickname(nickname)) {
+                return new CommonResDto(HttpStatus.CONFLICT, 409, "이미 존재하는 닉네임입니다.", null, null);
+            }
+            return new CommonResDto(HttpStatus.OK, 200, "사용 가능한 닉네임입니다.", null, null);
+        } catch (Exception e) {
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "닉네임 검증 중 오류 발생", null, null);
         }
     }
 

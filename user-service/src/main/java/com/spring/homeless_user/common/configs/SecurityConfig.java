@@ -87,7 +87,7 @@ public class SecurityConfig {
                             log.error("OAuth2 로그인 실패: {}", exception.getMessage());
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.getWriter().write("{\"error\": \"" + exception.getMessage() + "\"}");
+                            response.getWriter().write("{\"error\": \"" + exception.getMessage() + "\", \"status\": 401}");
                         })
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

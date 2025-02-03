@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spring.homeless_user.user.utillity.CheckingUtil.isValidPassword;
+import static com.spring.homeless_user.user.utility.CheckingUtil.isValidPassword;
 
 @AllArgsConstructor
 @Service
@@ -85,7 +85,7 @@ public class InfomationService {
             return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "사용자 수정 정보가 없습니다.", null, links);
 
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links);
         }
     }
 
@@ -107,7 +107,7 @@ public class InfomationService {
 
             return new CommonResDto(HttpStatus.OK, 200, "조회성공", dto, links);
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러 발생: " + e.getMessage(), null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links);
         }
     }
 
@@ -124,7 +124,7 @@ public class InfomationService {
                     .collect(Collectors.toList());
             return new CommonResDto(HttpStatus.OK, 200, "유저 리스트 조회 성공", allDtos, null);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "유저 리스트 조회 실패: " + e.getMessage(), null, null);
         }
     }
 

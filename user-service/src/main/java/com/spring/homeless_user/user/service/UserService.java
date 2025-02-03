@@ -21,12 +21,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import static com.spring.homeless_user.user.utillity.CheckingUtil.isValidEmail;
-import static com.spring.homeless_user.user.utillity.CheckingUtil.isValidPassword;
+
+import static com.spring.homeless_user.user.utility.CheckingUtil.isValidEmail;
+import static com.spring.homeless_user.user.utility.CheckingUtil.isValidPassword;
 
 @Service
 @Slf4j
@@ -71,10 +70,10 @@ public class UserService {
 
         try {
             if (!isValidPassword(dto.getPassword())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "비밀번호가 유효하지 않습니다.", null, links);
             }
             if (!isValidEmail(dto.getEmail())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "아메일이 유효하지 않습니다.", null, links);
+                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이메일이 유효하지 않습니다.", null, links);
             }
 
             User user = new User();
@@ -89,7 +88,7 @@ public class UserService {
             return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 401, "에러발생" + e.getMessage(), null, links);
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 오류: " + e.getMessage(), null, links);
         }
     }
 
@@ -108,7 +107,7 @@ public class UserService {
             User user = cacheComponent.getUserEntity(email);
 
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Invalid password.", null, links);
+                return new CommonResDto(HttpStatus.UNAUTHORIZED, 401, "잘못된 비밀번호입니다.", null, links);
             }
 
             String refreshToken = jwtTokenProvider.refreshToken(email, user.getId());
@@ -118,8 +117,7 @@ public class UserService {
 
             return new CommonResDto(HttpStatus.OK, 200, "SignIn successfully.", accessToken, links);
         } catch (Exception e) {
-            CommonResDto.Link Link = new CommonResDto.Link("login", "api/v1/users/sign-in", "POST");
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 402, "에러발생" + e.getMessage(), null, List.of(Link));
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "로그인 처리 중 오류 발생: " + e.getMessage(), null, links);
         }
     }
 
@@ -136,7 +134,7 @@ public class UserService {
 
             return new CommonResDto(HttpStatus.OK, 200, "SignOut successfully.", null, List.of(Link));
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "로그아웃중 에러 발생", e.getMessage(), List.of(Link));
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "로그아웃중 에러 발생", e.getMessage(), List.of(Link));
         }
 
     }
@@ -158,10 +156,10 @@ public class UserService {
                 loginTemplate.delete(user.getEmail());
                 return new CommonResDto(HttpStatus.OK, 200, "Refresh token successfully.", newAccessToken, List.of(Link));
             } else {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "Invalid refresh token.", null, List.of(Link));
+                return new CommonResDto(HttpStatus.UNAUTHORIZED, 401, "유효하지 않은 리프레시 토큰입니다.", null, List.of(Link));
             }
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이메일 access token error", null, List.of(Link));
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "토큰 갱신 중 오류 발생: " + e.getMessage(), null, List.of(Link));
         }
     }
 
@@ -180,7 +178,7 @@ public class UserService {
 
             return new CommonResDto(HttpStatus.OK, 200, "삭제완료", null, List.of(Link));
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 400, "에러발생" + e.getMessage(), null, List.of(Link));
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러발생" + e.getMessage(), null, List.of(Link));
         }
     }
     public void registerOrLoginOAuthUser(String email, String nickname) {
