@@ -28,16 +28,12 @@ import java.util.List;
 @Slf4j
 public class AuthorizationHeaderFilter
         extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
-
-    private final RedisTemplate<String, String> loginTemplate;
     private final SecurityPropertiesUtil securityPropertiesUtil;
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate, SecurityPropertiesUtil securityPropertiesUtil) {
+    public AuthorizationHeaderFilter( SecurityPropertiesUtil securityPropertiesUtil) {
         super(Config.class);
-        this.loginTemplate = loginTemplate;
-
         this.securityPropertiesUtil = securityPropertiesUtil;
     }
 
