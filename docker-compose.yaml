@@ -105,7 +105,7 @@ services:
     image: sihyogeon/homeless-cde-msa:chat-service
     container_name: chat-service
     ports:
-      - "15672:15672"  # 관리 UI 포트
+      - "15673:15673"  # 관리 UI 포트
       - "5672:5672"    # 기본 AMQP 포트
       - "61613:61613"  # STOMP 프로토콜 포트
       - "15674:15674"  # (선택) Web STOMP 포트    
