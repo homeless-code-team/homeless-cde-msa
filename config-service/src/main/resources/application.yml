@@ -10,7 +10,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/homeless-code-team/homeless-cde-msa.git
+          uri: https://github.com/homeless-code-team/homeless-code-config.git
           username: ${SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME}
           password: ${SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD}
 
