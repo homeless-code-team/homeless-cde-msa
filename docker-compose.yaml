@@ -10,9 +10,6 @@ services:
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
     container_name: discovery-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     ports:
       - "8761:8761"
     networks:
@@ -22,9 +19,6 @@ services:
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
     container_name: gateway-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     ports:
       - "8181:8181"
     networks:
@@ -34,9 +28,6 @@ services:
   user-service:
     image: sihyogeon/homeless-cde-msa:user-service
     container_name: user-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     networks:
       - msa-network
     restart: always
@@ -44,9 +35,6 @@ services:
   friends-service:
     image: sihyogeon/homeless-cde-msa:friends-service
     container_name: friends-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     networks:
       - msa-network
     restart: always
@@ -54,9 +42,6 @@ services:
   server-service:
     image: sihyogeon/homeless-cde-msa:server-service
     container_name: server-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     networks:
       - msa-network
     restart: always
@@ -64,9 +49,6 @@ services:
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
     container_name: chat-service
-    depends_on:
-      config-service:
-        condition: service_healthy
     networks:
       - msa-network
     restart: always
