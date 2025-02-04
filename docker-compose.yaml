@@ -12,7 +12,7 @@ services:
       - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://3.35.152.209:8888/actuator/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -30,7 +30,7 @@ services:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://3.35.152.209:8761/actuator/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
