@@ -29,15 +29,12 @@ import java.util.List;
 public class AuthorizationHeaderFilter
         extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
 
-    private final RedisTemplate<String, String> loginTemplate;
     private final SecurityPropertiesUtil securityPropertiesUtil;
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    public AuthorizationHeaderFilter(@Qualifier("login") RedisTemplate<String, String> loginTemplate, SecurityPropertiesUtil securityPropertiesUtil) {
+    public AuthorizationHeaderFilter(SecurityPropertiesUtil securityPropertiesUtil) {
         super(Config.class);
-        this.loginTemplate = loginTemplate;
-
         this.securityPropertiesUtil = securityPropertiesUtil;
     }
 
@@ -98,18 +95,6 @@ public class AuthorizationHeaderFilter
 
             String email = body.getSubject();
 
-            // Redis에서 토큰 확인
-            String redisToken = null;
-            try {
-                redisToken = loginTemplate.opsForValue().get(email);
-            } catch (Exception e) {
-                log.error("Failed to fetch token from Redis: 3 {}", e.getMessage());
-                return null;
-            }
-            if (redisToken == null || !redisToken.equals(token)) {
-                log.error("Token mismatch or not found in Redis 4");
-                return null;
-            }
             return body;
         } catch (ExpiredJwtException e) {
             log.error("Token expired: {}", e.getMessage());
