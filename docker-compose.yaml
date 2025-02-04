@@ -9,8 +9,7 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME}
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD}
+      - GIT_ACCESSTOKEN=${GIT_ACCESSTOKEN}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://3.35.152.209:8888/actuator/health" ]
       interval: 15s
