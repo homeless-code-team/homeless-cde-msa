@@ -9,8 +9,8 @@ spring:
       server:
         git:
           uri: https://github.com/homeless-code-team/homeless-code-config.git
-          username: ${GITHUB_USERNAME}
-          password: ${GITHUB_ACCESS_TOKEN}
+          username: ${SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME}
+          password: ${SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD}
           default-label: main
 
 management:
