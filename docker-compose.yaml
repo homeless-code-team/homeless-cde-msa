@@ -3,21 +3,21 @@ version: '3.8'
 services:
   config-service:
     image: sihyogeon/homeless-cde-msa:config-service
-    container_name: app-config-service-1
+    container_name: config-service
     ports:
       - "8888:8888"
     networks:
       - msa-network
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://config-service:8888/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
-    container_name: app-discovery-service-1
+    container_name: discovery-service
     depends_on:
       config-service:
         condition: service_healthy
@@ -29,7 +29,7 @@ services:
 
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
-    container_name: app-gateway-service-1
+    container_name: gateway-service
     depends_on:
       config-service:
         condition: service_healthy
@@ -41,7 +41,7 @@ services:
 
   user-service:
     image: sihyogeon/homeless-cde-msa:user-service
-    container_name: app-user-service-1
+    container_name: user-service
     depends_on:
       config-service:
         condition: service_healthy
@@ -51,7 +51,7 @@ services:
 
   friends-service:
     image: sihyogeon/homeless-cde-msa:friends-service
-    container_name: app-friends-service-1
+    container_name: friends-service
     depends_on:
       config-service:
         condition: service_healthy
@@ -61,7 +61,7 @@ services:
 
   server-service:
     image: sihyogeon/homeless-cde-msa:server-service
-    container_name: app-server-service-1
+    container_name: server-service
     depends_on:
       config-service:
         condition: service_healthy
@@ -71,7 +71,7 @@ services:
 
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
-    container_name: app-chat-service-1
+    container_name: chat-service
     depends_on:
       config-service:
         condition: service_healthy
