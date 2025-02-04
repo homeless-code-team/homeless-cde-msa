@@ -66,7 +66,6 @@ public class FriendsService {
             return new CommonResDto(HttpStatus.OK, 200, "친구 요청 완료", null, links);
 
         } catch (Exception e) {
-            log.error("Error while adding friend request: {}", e.getMessage(), e);
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러 발생: " + e.getMessage(), null, links);
         }
     }
@@ -85,17 +84,15 @@ public class FriendsService {
             List<UserResponseDto> userResponseDtoList = new ArrayList<>();
 
             List<Friends> friends = friendsRepository.findBySenderEmailOrReceiverEmailAndStatus(email, email, AddStatus.ACCEPT);
-            log.info(friends.toString());
 
             if (friends.isEmpty()) {
                 return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
             } else {
                 log.info("프렌즈조회리스트 존재");
                 for (Friends friend : friends) {
-                    // 프론트로 보낼 dto 생성
+
                     UserResponseDto userResponseDto = userServiceclient.findFriendByEmail(email);
-                    // 채널id로  set
-                    log.info(String.valueOf(userResponseDto));
+
                     userResponseDto.setId(friend.getId());
                     userResponseDtoList.add(userResponseDto);
                 }
@@ -147,7 +144,6 @@ public class FriendsService {
 
             Optional<Friends> friends = friendsRepository.findByReceiverEmailAndSenderEmail(senderEmail, receiverEmail);
             boolean present = friends.isPresent();
-            log.info(String.valueOf(present));
             if (present) {
                 if (friends.get().getStatus().equalsIgnoreCase(AddStatus.PENDING.name())) {
                     if (dto.getAddStatus().equalsIgnoreCase(AddStatus.ACCEPT.name())) {
@@ -168,11 +164,9 @@ public class FriendsService {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "ACCEPT 와 REJECT 중 하나를 선택해 주세요", null, links);
             }
         } catch (IllegalArgumentException e) {
-            log.error("Invalid input: {}", e.getMessage());
             return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "잘못된 입력: " + e.getMessage(), null, links);
 
         } catch (Exception e) {
-            log.error("Unexpected error during friend addition: {}", e.getMessage(), e);
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 에러 발생: " + e.getMessage(), null, links);
         }
     }

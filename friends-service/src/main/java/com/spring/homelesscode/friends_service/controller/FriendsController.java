@@ -19,7 +19,6 @@ public class FriendsController {
     // 친구 요청
     @PostMapping("")
     public CommonResDto addFriend(@RequestBody FriendsDto dto) {
-        log.info("addFriend : {}", dto);
         return friendsService.addFriends(dto);
     }
 
