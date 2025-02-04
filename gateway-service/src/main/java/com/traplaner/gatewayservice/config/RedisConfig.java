@@ -16,12 +16,6 @@ public class RedisConfig {
     public RedisTemplate<String, String> checkTemplate() {
         return createRedisTemplate(0); // Database 0
     }
-
-    @Bean(name = "login")
-    public RedisTemplate<String, String> loginTemplate() {
-        return createRedisTemplate(1); // Database 1
-    }
-
     @Bean(name = "friends")
     public RedisTemplate<String, String> friendsTemplate() {
         return createRedisTemplate(2); // Database 2

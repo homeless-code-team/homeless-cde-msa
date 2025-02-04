@@ -1,107 +1,21 @@
-version: "3.8"
-
 services:
   user-service:
     image: sihyogeon/homeless-cde-msa:user-service
-    ports:
-      - "0:8383"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_user
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
     networks:
       - msa-network
 
   friends-service:
     image: sihyogeon/homeless-cde-msa:friends-service
-    ports:
-      - "0:8282"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_friends
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
     networks:
       - msa-network
 
   server-service:
     image: sihyogeon/homeless-cde-msa:server-service
-    ports:
-      - "0:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_server
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
     networks:
       - msa-network
 
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
-    ports:
-      - "0:8083"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - RABBITMQ_HOST=rabbitmq
-      - MYSQL_HOST=external-mysql-host
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=homeless_chat
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - rabbitmq
-      - redis
-    networks:
-      - msa-network
-
-  gateway-service:
-    image: sihyogeon/homeless-cde-msa:gateway-service
-    ports:
-      - "0:8181"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
-    networks:
-      - msa-network
-
-  config-service:
-    image: sihyogeon/homeless-cde-msa:config-service
-    ports:
-      - "8888:8888"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
     networks:
       - msa-network
 
@@ -109,15 +23,16 @@ services:
     image: sihyogeon/homeless-cde-msa:discovery-service
     ports:
       - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    depends_on:
-      - user-service
-      - friends-service
-      - server-service
-      - chat-service
     networks:
       - msa-network
+
+  gateway-service:
+    image: sihyogeon/homeless-cde-msa:gateway-service
+    ports:
+      - "8181:8181"
+    networks:
+      - msa-network
+
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -140,6 +55,7 @@ services:
 
 volumes:
   redis_data:
+  mysql_data:
 
 networks:
   msa-network:

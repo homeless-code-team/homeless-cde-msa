@@ -64,8 +64,6 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/friends-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
-            #- AuthorizationHeaderFilter
-
 
         - id: chat-service
           uri: lb://CHAT-SERVICE
