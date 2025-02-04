@@ -6,6 +6,9 @@ services:
       - "8888:8888"
     networks:
       - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
 
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
@@ -14,8 +17,10 @@ services:
       - "8761:8761"
     networks:
       - msa-network
-    restart: always
-
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
+      
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
     container_name: gateway-service
@@ -23,35 +28,45 @@ services:
       - "8181:8181"
     networks:
       - msa-network
-    restart: always
-
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
+      
   user-service:
     image: sihyogeon/homeless-cde-msa:user-service
     container_name: user-service
     networks:
       - msa-network
-    restart: always
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
 
   friends-service:
     image: sihyogeon/homeless-cde-msa:friends-service
     container_name: friends-service
     networks:
       - msa-network
-    restart: always
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
 
   server-service:
     image: sihyogeon/homeless-cde-msa:server-service
     container_name: server-service
     networks:
       - msa-network
-    restart: always
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
 
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
     container_name: chat-service
     networks:
       - msa-network
-    restart: always
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
 
   rabbitmq:
     image: rabbitmq:3-management
