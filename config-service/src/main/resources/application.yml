@@ -5,12 +5,15 @@ spring:
   application:
     name: config-service
   profiles:
-    active: native
+    active: git
   cloud:
     config:
       server:
-        native:
-          search-locations: file:///C:/Users/Hyo/Desktop/develop/homeless-code-config
+        git:
+          uri: https://github.com/사용자이름/설정저장소.git
+          username: {GITHUB_USERNAME}  # Jenkins에서 주입
+          password: {GITHUB_TOKEN}     # Jenkins에서 주입
+          default-label: develop
 
 management:
   endpoints:
