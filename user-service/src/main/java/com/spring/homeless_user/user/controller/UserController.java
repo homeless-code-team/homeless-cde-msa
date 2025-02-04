@@ -2,10 +2,12 @@ package com.spring.homeless_user.user.controller;
 
 
 import com.spring.homeless_user.user.dto.*;
+import com.spring.homeless_user.user.service.CheckService;
+import com.spring.homeless_user.user.service.FeignService;
+import com.spring.homeless_user.user.service.InfomationService;
 import com.spring.homeless_user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,12 @@ import java.util.Map;
 @Slf4j
 public class UserController {
 
-    @Autowired
+
     private final UserService userService;
+    private final CheckService checkService;
+    private final InfomationService infomationService;
+    private final FeignService feignService;
+
 
 
     ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
@@ -53,28 +59,28 @@ public class UserController {
     // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
     @PostMapping("/confirm")
     public CommonResDto sendVerificationEmail(@RequestBody EmailCheckDto dto) {
-        return userService.sendVerificationEmail(dto);
+        return checkService.sendVerificationEmail(dto);
     }
 
 
     // 이메일 인증번호 & 비밀번호 인증 확인
     @GetMapping("/confirm")
     public CommonResDto confirm(@ModelAttribute EmailCheckDto dto) {
-        return userService.confirm(dto);
+        return checkService.confirm(dto);
     }
 
     // 이메일 & 닉네임 중복검사 회원가입시
     @GetMapping("/duplicate")
     public CommonResDto duplicateCheck(@RequestParam(required = false) String email
             ,@RequestParam(required = false) String nickname) {
-        return userService.duplicateCheck(email, nickname);
+        return checkService.duplicateCheck(email, nickname);
     }
 
     // 이메일 & 닉네임 중복검사 수정시
     @GetMapping("/duplicate/mod")
     public CommonResDto duplicateCheckmodify(@RequestParam(required = false) String email,
                                              @RequestParam(required = false) String nickname){
-        return userService.duplicateCheck(email, nickname);
+        return checkService.duplicateCheck(email, nickname);
     }
     // 회원탈퇴
     @DeleteMapping("")
@@ -86,34 +92,33 @@ public class UserController {
     // 정보수정
     @PatchMapping( "")
     public CommonResDto modify(@ModelAttribute ModifyDto dto){
-        return userService.modify(dto);
+        return infomationService.modify(dto);
     }
 
 
     // 정보 조회
     @GetMapping("")
     public CommonResDto GetUserData(){
-        return userService.getUserData();
+        return infomationService.getUserData();
     }
 
 
     // 유저데이터 모두 조회
     @GetMapping("/all")
     public CommonResDto allUser(){
-        return userService.alluser();
+        return infomationService.alluser();
     }
 
     // 유저1명데이터 모두 조회
     @GetMapping("/get")
     public CommonResDto getData(@RequestParam(required = false) String nickname){
-        return userService.getData(nickname);
+        return infomationService.getData(nickname);
     }
 
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
-        log.info(result.toString());
-        List<FeignResDto> dto1 = userService.existsByEmailAndRefreshToken(result);
+        List<FeignResDto> dto1 = feignService.existsByEmailAndRefreshToken(result);
 
         return ResponseEntity.ok(dto1);
 
@@ -121,27 +126,21 @@ public class UserController {
 
     @GetMapping("/get-email")
     public ResponseEntity<?> findEmailByNickname(@RequestParam("nickname") String nickname) {
-        String findEmail = userService.changeEmail(nickname);
+        String findEmail = feignService.changeEmail(nickname);
         return ResponseEntity.ok(findEmail);
     }
 
-    /// feign 요청
+
     @PostMapping("/userList")
     public List<UserResponseDto> findByEmailIn(@RequestBody List<String> userEmails){
 
-        List<UserResponseDto> byEmailIn = userService.findByEmailIn(userEmails);
-
-        log.info("여기는 유저 컨트롤러 {}", byEmailIn);
-
-
+        List<UserResponseDto> byEmailIn = feignService.findByEmailIn(userEmails);
         return byEmailIn;
     }
 
     @PostMapping("/friend")
     UserResponseDto findFriendByEmail(@RequestParam("email") String email) {
-        return userService.findFriendByEmail(email);
+        return feignService.findFriendByEmail(email);
     }
 
 }
-
-
