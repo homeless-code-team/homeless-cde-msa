@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   config-service:
     image: sihyogeon/homeless-cde-msa:config-service
@@ -100,9 +98,23 @@ services:
       - msa-network
     restart: always
 
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - msa-network
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example  # 변경 가능
 
 volumes:
   redis_data:
+  mongo_data:
 
 networks:
   msa-network:
