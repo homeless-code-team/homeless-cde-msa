@@ -139,7 +139,7 @@ public class CheckService {
 
     public CommonResDto checkNickname(String nickname) {
         try {
-            if (userRepository.existByNickname(nickname)) {
+            if (userRepository.existsByNickname(nickname)) {
                 return new CommonResDto(HttpStatus.CONFLICT, 409, "이미 존재하는 닉네임입니다.", null, null);
             }
             return new CommonResDto(HttpStatus.OK, 200, "사용 가능한 닉네임입니다.", null, null);
