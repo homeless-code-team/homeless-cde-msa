@@ -9,7 +9,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://3.35.23.227:8888/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
     container_name: discovery-service
@@ -20,6 +26,12 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://3.35.23.227:8888/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s      
       
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
@@ -31,7 +43,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-      
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: always      
+    
   user-service:
     image: sihyogeon/homeless-cde-msa:user-service
     container_name: user-service
@@ -40,7 +58,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: always
+    
   friends-service:
     image: sihyogeon/homeless-cde-msa:friends-service
     container_name: friends-service
@@ -49,7 +73,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: always
+    
   server-service:
     image: sihyogeon/homeless-cde-msa:server-service
     container_name: server-service
@@ -58,7 +88,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: always
+    
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
     container_name: chat-service
@@ -67,7 +103,13 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
-
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: always
+    
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
