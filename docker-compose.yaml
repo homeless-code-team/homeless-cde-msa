@@ -115,7 +115,12 @@ services:
       discovery-service:
         condition: service_healthy
     restart: always
-
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
+             rabbitmq-server"
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
