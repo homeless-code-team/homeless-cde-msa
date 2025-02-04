@@ -3,14 +3,14 @@ version: '3.8'
 services:
   config-service:
     image: sihyogeon/homeless-cde-msa:config-service
-    container_name: config-server
+    container_name: config-service
     ports:
       - "8888:8888"
     networks:
       - msa-network
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://config-server:8888/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://config-service:8888/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
