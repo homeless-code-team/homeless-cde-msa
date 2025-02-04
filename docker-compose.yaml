@@ -1,38 +1,83 @@
+version: '3.8'
+
 services:
-  user-service:
-    image: sihyogeon/homeless-cde-msa:user-service
+  config-service:
+    image: sihyogeon/homeless-cde-msa:config-service
+    container_name: config-service
+    ports:
+      - "8888:8888"
     networks:
       - msa-network
-
-  friends-service:
-    image: sihyogeon/homeless-cde-msa:friends-service
-    networks:
-      - msa-network
-
-  server-service:
-    image: sihyogeon/homeless-cde-msa:server-service
-    networks:
-      - msa-network
-
-  chat-service:
-    image: sihyogeon/homeless-cde-msa:chat-service
-    networks:
-      - msa-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://config-service:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
+    container_name: discovery-service
+    depends_on:
+      config-service:
+        condition: service_healthy
     ports:
       - "8761:8761"
     networks:
       - msa-network
+    restart: always
 
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
+    container_name: gateway-service
+    depends_on:
+      config-service:
+        condition: service_healthy
     ports:
       - "8181:8181"
     networks:
       - msa-network
+    restart: always
 
+  user-service:
+    image: sihyogeon/homeless-cde-msa:user-service
+    container_name: user-service
+    depends_on:
+      config-service:
+        condition: service_healthy
+    networks:
+      - msa-network
+    restart: always
+
+  friends-service:
+    image: sihyogeon/homeless-cde-msa:friends-service
+    container_name: friends-service
+    depends_on:
+      config-service:
+        condition: service_healthy
+    networks:
+      - msa-network
+    restart: always
+
+  server-service:
+    image: sihyogeon/homeless-cde-msa:server-service
+    container_name: server-service
+    depends_on:
+      config-service:
+        condition: service_healthy
+    networks:
+      - msa-network
+    restart: always
+
+  chat-service:
+    image: sihyogeon/homeless-cde-msa:chat-service
+    container_name: chat-service
+    depends_on:
+      config-service:
+        condition: service_healthy
+    networks:
+      - msa-network
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -42,6 +87,7 @@ services:
       - "5672:5672"
     networks:
       - msa-network
+    restart: always
 
   redis:
     image: redis:7
@@ -52,10 +98,10 @@ services:
       - redis_data:/data
     networks:
       - msa-network
+    restart: always
 
 volumes:
   redis_data:
-  mysql_data:
 
 networks:
   msa-network:
