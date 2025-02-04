@@ -1,6 +1,8 @@
 # Step 1: Use OpenJDK as base image
 FROM openjdk:17-jdk-slim
 
+RUN apt-get update && apt-get install -y curl
+
 # Step 2: Set working directory
 WORKDIR /app
 
