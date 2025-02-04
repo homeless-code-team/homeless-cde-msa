@@ -6,12 +6,6 @@ services:
       - "8888:8888"
     networks:
       - msa-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://config-service:8888/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
