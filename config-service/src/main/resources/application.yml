@@ -11,9 +11,8 @@ spring:
       server:
         git:
           uri: https://github.com/homeless-code-team/homeless-cde-msa.git
-          username: {GITHUB_USERNAME}  # Jenkins에서 주입
-          password: {GITHUB_TOKEN}     # Jenkins에서 주입
-          default-label: main
+          username: ${SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME}
+          password: ${SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD}
 
 management:
   endpoints:
