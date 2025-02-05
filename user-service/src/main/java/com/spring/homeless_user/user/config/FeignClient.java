@@ -8,5 +8,4 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface FeignClient {
     @PostMapping("/users/server")
     FeignDto getUserIdByServerId(@RequestBody FeignDto dto);
-
 }
