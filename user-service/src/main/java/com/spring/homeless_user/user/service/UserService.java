@@ -67,7 +67,7 @@ public class UserService {
         links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
         links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
 
-
+  log.info(String.valueOf(dto));
         try {
             if (!isValidPassword(dto.getPassword())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "비밀번호가 유효하지 않습니다.", null, links);
