@@ -63,9 +63,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
-      - SPRING_REDIS_HOST=redis 
-      - SPRING_REDIS_PORT=6379  
+      - SPRING_RABBITMQ_PORT=5672   
     depends_on:
       config-service:
         condition: service_healthy
@@ -81,8 +79,6 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672 
-      - SPRING_REDIS_HOST=redis 
-      - SPRING_REDIS_PORT=6379        
     depends_on:
       config-service:
         condition: service_healthy
@@ -97,9 +93,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
-      - SPRING_REDIS_HOST=redis 
-      - SPRING_REDIS_PORT=6379        
+      - SPRING_RABBITMQ_PORT=5672     
     depends_on:
       config-service:
         condition: service_healthy
@@ -114,9 +108,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
-      - SPRING_REDIS_HOST=redis 
-      - SPRING_REDIS_PORT=6379        
+      - SPRING_RABBITMQ_PORT=5672         
     depends_on:
       config-service:
         condition: service_healthy
@@ -141,19 +133,7 @@ services:
       sh -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
              rabbitmq-server"    
 
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - msa-network
-    restart: always
-
 volumes:
-  redis_data:
   rabbitmq_data:
 
 networks:
