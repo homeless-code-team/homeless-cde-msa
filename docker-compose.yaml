@@ -63,7 +63,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672   
+      - SPRING_RABBITMQ_PORT=5672  
     depends_on:
       config-service:
         condition: service_healthy
@@ -93,7 +93,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672     
+      - SPRING_RABBITMQ_PORT=5672        
     depends_on:
       config-service:
         condition: service_healthy
@@ -108,7 +108,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672         
+      - SPRING_RABBITMQ_PORT=5672        
     depends_on:
       config-service:
         condition: service_healthy
