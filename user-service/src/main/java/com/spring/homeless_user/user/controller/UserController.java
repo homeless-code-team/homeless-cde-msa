@@ -30,91 +30,115 @@ public class UserController {
 
 
 
-    ////////////////////////////////////////////// 회원가입 및 정보처리 , 로그인 /////////////////////////////////////////////////////////////////
-    //회원가입
+
+    //////////////////////////////////////////////
+    // 회원가입, 로그인, 토큰 관련 API
+    //////////////////////////////////////////////
+
+    // ✅ 회원가입
     @PostMapping("/sign-up")
-    public CommonResDto userSignUp(@ModelAttribute UserSaveReqDto dto) throws IOException {
-        return userService.userSignUp(dto);
+    public ResponseEntity<CommonResDto> userSignUp(@ModelAttribute UserSaveReqDto dto) {
+        CommonResDto response = userService.userSignUp(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 로그인
+    // ✅ 로그인
     @PostMapping("/sign-in")
-    public CommonResDto userSignIn(@RequestBody UserLoginReqDto dto) {
-        return userService.userSignIn(dto);
+    public ResponseEntity<CommonResDto> userSignIn(@RequestBody UserLoginReqDto dto) {
+        CommonResDto response = userService.userSignIn(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 로그아웃
+    // ✅ 로그아웃
     @DeleteMapping("/sign-out")
-    public CommonResDto userSignOut() {
-        return userService.userSignOut();
+    public ResponseEntity<CommonResDto> userSignOut() {
+        CommonResDto response = userService.userSignOut();
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 토큰 갱신
+    // ✅ 토큰 갱신
     @PostMapping("/refresh-token")
-    public CommonResDto reissueAccessToken(@RequestBody Map<String, String> data) {
-        return userService.refreshToken(data.get("id"));
+    public ResponseEntity<CommonResDto> reissueAccessToken(@RequestBody Map<String, String> data) {
+        CommonResDto response = userService.refreshToken(data.get("id"));
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
+    //////////////////////////////////////////////
+    // 이메일 인증 관련 API
+    //////////////////////////////////////////////
 
-    // 인증 이메일 전송 로직 인증번호 10분 유효 (이메일 만 필요)
+    // ✅ 인증 이메일 전송 (인증번호 10분 유효)
     @PostMapping("/confirm")
-    public CommonResDto sendVerificationEmail(@RequestBody EmailCheckDto dto) {
-        return checkService.sendVerificationEmail(dto);
+    public ResponseEntity<CommonResDto> sendVerificationEmail(@RequestBody EmailCheckDto dto) {
+        CommonResDto response = checkService.sendVerificationEmail(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-
-    // 이메일 인증번호 & 비밀번호 인증 확인
+    // ✅ 이메일 인증번호 확인
     @GetMapping("/confirm")
-    public CommonResDto confirm(@ModelAttribute EmailCheckDto dto) {
-        return checkService.confirm(dto);
+    public ResponseEntity<CommonResDto> confirm(@ModelAttribute EmailCheckDto dto) {
+        CommonResDto response = checkService.confirm(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 이메일 & 닉네임 중복검사 회원가입시
+    //////////////////////////////////////////////
+    // 중복 검사 관련 API
+    //////////////////////////////////////////////
+
+    // ✅ 회원가입 시 이메일 & 닉네임 중복검사
     @GetMapping("/duplicate")
-    public CommonResDto duplicateCheck(@RequestParam(required = false) String email
-            ,@RequestParam(required = false) String nickname) {
-        return checkService.duplicateCheck(email, nickname);
+    public ResponseEntity<CommonResDto> duplicateCheck(@RequestParam(required = false) String email,
+                                                       @RequestParam(required = false) String nickname) {
+        CommonResDto response = checkService.duplicateCheck(email, nickname);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 이메일 & 닉네임 중복검사 수정시
+    // ✅ 수정 시 이메일 & 닉네임 중복검사
     @GetMapping("/duplicate/mod")
-    public CommonResDto duplicateCheckmodify(@RequestParam(required = false) String email,
-                                             @RequestParam(required = false) String nickname){
-        return checkService.duplicateCheck(email, nickname);
+    public ResponseEntity<CommonResDto> duplicateCheckModify(@RequestParam(required = false) String email,
+                                                             @RequestParam(required = false) String nickname) {
+        CommonResDto response = checkService.duplicateCheck(email, nickname);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
-    // 회원탈퇴
+
+    //////////////////////////////////////////////
+    // 회원 정보 관리 API
+    //////////////////////////////////////////////
+
+    // ✅ 회원 탈퇴
     @DeleteMapping("")
-    public CommonResDto delete () {
-        return userService.delete();
+    public ResponseEntity<CommonResDto> delete() {
+        CommonResDto response = userService.delete();
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-
-    // 정보수정
-    @PatchMapping( "")
-    public CommonResDto modify(@ModelAttribute ModifyDto dto){
-        return infomationService.modify(dto);
+    // ✅ 회원 정보 수정
+    @PatchMapping("")
+    public ResponseEntity<CommonResDto> modify(@ModelAttribute ModifyDto dto) {
+        CommonResDto response = infomationService.modify(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-
-    // 정보 조회
+    // ✅ 내 정보 조회
     @GetMapping("")
-    public CommonResDto GetUserData(){
-        return infomationService.getUserData();
+    public ResponseEntity<CommonResDto> getUserData() {
+        CommonResDto response = infomationService.getUserData();
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-
-    // 유저데이터 모두 조회
+    // ✅ 모든 유저 정보 조회
     @GetMapping("/all")
-    public CommonResDto allUser(){
-        return infomationService.alluser();
+    public ResponseEntity<CommonResDto> allUsers() {
+        CommonResDto response = infomationService.alluser();
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    // 유저1명데이터 모두 조회
+    // ✅ 특정 유저 정보 조회
     @GetMapping("/get")
-    public CommonResDto getData(@RequestParam(required = false) String nickname){
-        return infomationService.getData(nickname);
+    public ResponseEntity<CommonResDto> getUserByNickname(@RequestParam(required = false) String nickname) {
+        CommonResDto response = infomationService.getData(nickname);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
-
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
