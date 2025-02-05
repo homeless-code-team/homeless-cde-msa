@@ -25,6 +25,13 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
+
+    @Value("${spring.data.redis.host}")
+    private String host;
+
+    @Value("${spring.data.redis.port}")
+    private int port;
+
     // 0번 DB RedisTemplate
     @Bean(name = "check")
     public RedisTemplate<String, String> checkTemplate() {
