@@ -6,7 +6,6 @@ import com.spring.homeless_user.user.config.S3Upload;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
-import com.spring.homeless_user.user.utility.CheckingUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,7 +25,6 @@ public class InfomationService {
     private final CacheComponent cacheComponent;
     private final PasswordEncoder passwordEncoder;
     private final S3Upload s3Upload;
-    private final CheckingUtil checkingUtil;
 
 
     public CommonResDto getData(String nickname) {
@@ -64,9 +62,6 @@ public class InfomationService {
                 cacheComponent.updateUserEntity(email, user);
                 return new CommonResDto(HttpStatus.OK, 200, "닉네임변경성공", user.getNickname(), links);
             } else if (dto.getPassword() != null) {
-                if ((checkingUtil.isValidPassword(dto.getPassword()))) {
-                    return new CommonResDto(HttpStatus.BAD_REQUEST, 401, "비밀번호가 유효하지 않습니다.", null, links);
-                }
                 String hashedPassword = passwordEncoder.encode(dto.getPassword());
                 user.setPassword(hashedPassword);
                 cacheComponent.updateUserEntity(email, user);

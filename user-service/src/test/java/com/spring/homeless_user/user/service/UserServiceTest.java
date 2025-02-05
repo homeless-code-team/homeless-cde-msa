@@ -28,7 +28,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         userService = new UserService(userRepository, passwordEncoder, jwtTokenProvider,
-                null, cacheComponent, null, null, null);
+                null, cacheComponent, null, null);
     }
 
     @Test
