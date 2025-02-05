@@ -8,7 +8,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_RABBITMQ_PORT=5672 
       - GIT_ACCESSTOKEN=${GIT_ACCESSTOKEN}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://3.35.152.209:8888/actuator/health" ]
@@ -27,7 +27,7 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_RABBITMQ_PORT=5672
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://3.35.152.209:8761/actuator/health" ]
       interval: 15s
@@ -64,6 +64,8 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_REDIS_HOST=redis 
+      - SPRING_REDIS_PORT=6379  
     depends_on:
       config-service:
         condition: service_healthy
@@ -78,7 +80,9 @@ services:
       - msa-network
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_RABBITMQ_PORT=5672 
+      - SPRING_REDIS_HOST=redis 
+      - SPRING_REDIS_PORT=6379        
     depends_on:
       config-service:
         condition: service_healthy
@@ -94,6 +98,8 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_REDIS_HOST=redis 
+      - SPRING_REDIS_PORT=6379        
     depends_on:
       config-service:
         condition: service_healthy
@@ -109,6 +115,8 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672  
+      - SPRING_REDIS_HOST=redis 
+      - SPRING_REDIS_PORT=6379        
     depends_on:
       config-service:
         condition: service_healthy
