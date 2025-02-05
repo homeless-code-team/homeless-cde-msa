@@ -58,8 +58,8 @@ public class RedisConfig {
     // 공통 RedisTemplate 생성 로직
     private RedisTemplate<String, String> createRedisTemplate(int dbIndex) {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName("localhost");
-        configuration.setPort(6379);
+        configuration.setHostName(host);
+        configuration.setPort(port);
         configuration.setDatabase(dbIndex);
 
         LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration);
