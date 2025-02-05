@@ -103,12 +103,7 @@ services:
 
   chat-service:
     image: sihyogeon/homeless-cde-msa:chat-service
-    container_name: chat-service
-    ports:
-      - "15673:15673"  # 관리 UI 포트
-      - "5673:5673"    # 기본 AMQP 포트
-      - "61613:61613"  # STOMP 프로토콜 포트
-      - "15674:15674"  # (선택) Web STOMP 포트    
+    container_name: chat-service 
     networks:
       - msa-network
     environment:
@@ -122,9 +117,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
-    command: >
-      sh -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
-             rabbitmq-server"
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -136,6 +129,9 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
+             rabbitmq-server"    
 
   redis:
     image: redis:7
@@ -148,23 +144,8 @@ services:
       - msa-network
     restart: always
 
-  mongo:
-    image: mongo:6
-    container_name: mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    networks:
-      - msa-network
-    volumes:
-      - mongo_data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example  # 변경 가능
-
 volumes:
   redis_data:
-  mongo_data:
   rabbitmq_data:
 
 networks:
