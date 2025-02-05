@@ -21,7 +21,6 @@ import java.util.Arrays;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -43,32 +42,33 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> {
-                    log.info("HTTP 요청 권한 설정");
+            log.info("HTTP 요청 권한 설정");
 
-                    // yml에 정의된 허용 경로를 로그로 출력하고, 해당 경로에 대해 permitAll() 처리
-                    securityPropertiesUtil.getExcludedPaths()
-                            .forEach(path -> {
-                                log.info("허용된 경로: {}", path);
-                                auth.requestMatchers(path).permitAll();
-                            });
+            // 허용된 경로 확인 (디버깅)
+            securityPropertiesUtil.getExcludedPaths().forEach(path -> log.info("허용된 경로: {}", path));
 
-                    // OAuth2 관련 리디렉션 경로 허용
-                    auth.requestMatchers("/login/oauth2/code/**").permitAll();
-                    auth.requestMatchers("/oauth2/**", "/login/**").permitAll();
+            // ✅ OAuth2 리디렉트 경로 허용
+            auth.requestMatchers("/login/oauth2/code/**").permitAll();
+            auth.requestMatchers("/oauth2/**", "/login/**", "/api/v1/users/**").permitAll();
 
-                    // 그 외의 요청은 인증 필요
-                    auth.anyRequest().authenticated();
-                })
+            auth.anyRequest().authenticated();
+        })
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> {
                             log.info("OAuth2 Authorization Endpoint 설정");
                             endpoint.baseUri("/oauth2/authorization");
                             DefaultOAuth2AuthorizationRequestResolver resolver =
-                                    new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
+                                    new DefaultOAuth2AuthorizationRequestResolver(
+                                            clientRegistrationRepository,
+                                            "/oauth2/authorization"
+                                    );
                             endpoint.authorizationRequestResolver(resolver);
-                            endpoint.authorizationRequestRepository(new HttpSessionOAuth2AuthorizationRequestRepository());
+                            endpoint.authorizationRequestRepository(
+                                    new HttpSessionOAuth2AuthorizationRequestRepository()
+                            );
                         })
                         .redirectionEndpoint(endpoint -> {
                             log.info("OAuth2 Redirection Endpoint 설정");
@@ -93,21 +93,5 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(errorEntryPoint));
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:8181"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }
