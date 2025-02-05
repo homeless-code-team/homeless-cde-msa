@@ -5,7 +5,6 @@ public class CheckingUtil {
     private static final String PASSWORD_PATTERN =
             "^(?=.*[0-9])" +                 // 적어도 1개의 숫자
                     "(?=.*[a-z])" +                  // 적어도 1개의 소문자
-                    "(?=.*[A-Z])" +                  // 적어도 1개의 대문자
                     "(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~])" + // 적어도 1개의 특수문자
                     "(?=\\S+$).{8,16}$";             // 8~16자의 공백 없는 문자열
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
