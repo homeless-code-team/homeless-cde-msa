@@ -28,11 +28,12 @@ import java.util.List;
 @Slf4j
 public class AuthorizationHeaderFilter
         extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
+
     private final SecurityPropertiesUtil securityPropertiesUtil;
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    public AuthorizationHeaderFilter( SecurityPropertiesUtil securityPropertiesUtil) {
+    public AuthorizationHeaderFilter(SecurityPropertiesUtil securityPropertiesUtil) {
         super(Config.class);
         this.securityPropertiesUtil = securityPropertiesUtil;
     }

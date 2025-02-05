@@ -4,16 +4,21 @@ server:
 spring:
   application:
     name: config-service
-  profiles:
-    active: native
   cloud:
     config:
       server:
-        native:
-          search-locations: file:///C:/Users/Hyo/Desktop/develop/homeless-code-config
+        git:
+          uri: https://github.com/homeless-code-team/homeless-code-config.git
+          username: si-cpu
+          password: ${GIT_ACCESSTOKEN}
+          default-label: main
 
 management:
   endpoints:
     web:
       exposure:
         include: health, beans
+
+logging:
+  level:
+    org.springframework.cloud.config: debug

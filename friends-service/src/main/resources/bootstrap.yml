@@ -1,0 +1,8 @@
+
+spring:
+  application:
+    name: friends-service
+  cloud:
+    config:
+      uri: http://config-service:8888
+      profile: default

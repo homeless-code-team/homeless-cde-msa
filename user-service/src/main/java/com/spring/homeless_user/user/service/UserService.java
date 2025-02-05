@@ -4,11 +4,11 @@ import com.spring.homeless_user.common.auth.JwtTokenProvider;
 import com.spring.homeless_user.common.utill.JwtUtil;
 import com.spring.homeless_user.common.utill.SecurityContextUtil;
 import com.spring.homeless_user.user.component.CacheComponent;
-import com.spring.homeless_user.user.config.S3Upload;
 import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
+import com.spring.homeless_user.user.utility.CheckingUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,10 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
-import static com.spring.homeless_user.user.utility.CheckingUtil.isValidEmail;
-import static com.spring.homeless_user.user.utility.CheckingUtil.isValidPassword;
-
 @Service
 @Slf4j
 public class UserService {
@@ -36,22 +32,23 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtUtil jwtUtil;
     private final CacheComponent cacheComponent;
-
+    private final CheckingUtil checkingUtil;
     private final RedisTemplate<String, String> loginTemplate;
     private final RedisTemplate<String, String> cacheTemplate;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       JwtUtil jwtUtil, CacheComponent cacheComponent,
+                       JwtUtil jwtUtil, CacheComponent cacheComponent, CheckingUtil checkingUtil,
                        @Qualifier("login") RedisTemplate<String, String> loginTemplate,
-                       @Qualifier("cache") RedisTemplate<String, String> cacheTemplate,
-                       S3Upload s3Upload) {
+                       @Qualifier("cache") RedisTemplate<String, String> cacheTemplate
+                       ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.jwtUtil = jwtUtil;
         this.cacheComponent = cacheComponent;
+        this.checkingUtil = checkingUtil;
         this.loginTemplate = loginTemplate;
         this.cacheTemplate = cacheTemplate;
     }
@@ -67,12 +64,14 @@ public class UserService {
         links.add(new CommonResDto.Link("logout", "/api/v1/users/logout", "POST"));
         links.add(new CommonResDto.Link("Delete", "/api/v1/users", "DELETE"));
 
+        log.info(String.valueOf(dto));
 
         try {
-            if (!isValidPassword(dto.getPassword())) {
+
+            if (!checkingUtil.isValidPassword(dto.getPassword())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "비밀번호가 유효하지 않습니다.", null, links);
             }
-            if (!isValidEmail(dto.getEmail())) {
+            if (!checkingUtil.isValidEmail(dto.getEmail())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이메일이 유효하지 않습니다.", null, links);
             }
 
@@ -195,5 +194,3 @@ public class UserService {
         }
     }
 }
-
-

@@ -5,18 +5,18 @@ spring:
   application:
     name: chat-service
   config:
-    import: "optional:configserver:"
+    import: "configserver:http://config-service:8888"
   main:
     allow-bean-definition-overriding: true
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379 # Redis 서버 포트
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/ # Eureka 서버 주소
+      defaultZone: http://discovery-service:8761/eureka/ # Eureka 서버 주소
     register-with-eureka: true
     fetch-registry: true
   instance:

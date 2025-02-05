@@ -1,11 +1,13 @@
-# Step 1: Use the base image for OpenJDK
+# Step 1: Use OpenJDK as base image
 FROM openjdk:17-jdk-slim
 
-# Step 2: Set the working directory in the container
+RUN apt-get update && apt-get install -y curl
+
+# Step 2: Set working directory
 WORKDIR /app
 
 # Step 3: Copy the JAR file into the container
 COPY build/libs/*.jar /app.jar
 
-# Step 4: Set the default command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Step 4: Define the entry point
+ENTRYPOINT ["java", "-jar", "/app.jar"]

@@ -1,38 +1,122 @@
 services:
-  user-service:
-    image: sihyogeon/homeless-cde-msa:user-service
+  config-service:
+    image: sihyogeon/homeless-cde-msa:config-service
+    container_name: config-service
+    ports:
+      - "8888:8888"
     networks:
       - msa-network
-
-  friends-service:
-    image: sihyogeon/homeless-cde-msa:friends-service
-    networks:
-      - msa-network
-
-  server-service:
-    image: sihyogeon/homeless-cde-msa:server-service
-    networks:
-      - msa-network
-
-  chat-service:
-    image: sihyogeon/homeless-cde-msa:chat-service
-    networks:
-      - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672 
+      - GIT_ACCESSTOKEN=${GIT_ACCESSTOKEN}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://3.35.152.209:8888/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: always
 
   discovery-service:
     image: sihyogeon/homeless-cde-msa:discovery-service
+    container_name: discovery-service
     ports:
       - "8761:8761"
     networks:
       - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://3.35.152.209:8761/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      config-service:
+        condition: service_healthy
+    restart: always
 
   gateway-service:
     image: sihyogeon/homeless-cde-msa:gateway-service
+    container_name: gateway-service
     ports:
       - "8181:8181"
     networks:
       - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    restart: always      
 
+  user-service:
+    image: sihyogeon/homeless-cde-msa:user-service
+    container_name: user-service
+    networks:
+      - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    restart: always
+
+  friends-service:
+    image: sihyogeon/homeless-cde-msa:friends-service
+    container_name: friends-service
+    networks:
+      - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672 
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    restart: always
+
+  server-service:
+    image: sihyogeon/homeless-cde-msa:server-service
+    container_name: server-service
+    networks:
+      - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672        
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    restart: always
+
+  chat-service:
+    image: sihyogeon/homeless-cde-msa:chat-service
+    container_name: chat-service 
+    networks:
+      - msa-network
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672        
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -42,20 +126,15 @@ services:
       - "5672:5672"
     networks:
       - msa-network
-
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
     volumes:
-      - redis_data:/data
-    networks:
-      - msa-network
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
+             rabbitmq-server"    
 
 volumes:
-  redis_data:
-  mysql_data:
+  rabbitmq_data:
 
 networks:
   msa-network:
