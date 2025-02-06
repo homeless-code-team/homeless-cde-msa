@@ -106,6 +106,7 @@ public class UserService {
 
             return new CommonResDto(HttpStatus.OK, 200, "SignIn successfully.", accessToken, links);
         } catch (Exception e) {
+             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "로그인 처리 중 오류 발생: " + e.getMessage(), null, links);
         }
     }
