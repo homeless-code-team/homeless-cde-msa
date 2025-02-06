@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -24,6 +25,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Configuration
 @EnableCaching
+@Slf4j
 public class RedisConfig {
 
 
@@ -67,6 +69,8 @@ public class RedisConfig {
     // 공통 RedisTemplate 생성 로직
     private RedisTemplate<String, String> createRedisTemplate(int dbIndex) {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        log.info("레디스 host: {}", host);
+        log.info("레디스 port: {}", port);
         configuration.setHostName(host);
         configuration.setPort(port);
         configuration.setDatabase(dbIndex);
@@ -89,8 +93,8 @@ public class RedisConfig {
     @Bean(name = "cacheConnectionFactory")
     public LettuceConnectionFactory cacheConnectionFactory() {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName("localhost");
-        configuration.setPort(6379);
+        configuration.setHostName(host);
+        configuration.setPort(port);
         configuration.setDatabase(10); // Redis DB 10번 지정
         return new LettuceConnectionFactory(configuration);
     }

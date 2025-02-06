@@ -67,7 +67,7 @@ public class UserService {
         log.info(String.valueOf(dto));
 
         try {
-
+            
             if (!checkingUtil.isValidPassword(dto.getPassword())) {
                 return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "비밀번호가 유효하지 않습니다.", null, links);
             }
@@ -87,6 +87,7 @@ public class UserService {
             return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
         } catch (Exception e) {
+            e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 오류: " + e.getMessage(), null, links);
         }
     }
