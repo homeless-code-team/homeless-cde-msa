@@ -33,6 +33,7 @@ JwtTokenProvider {
 
     // JWT AccessToken 생성
     public String accessToken(String email, String  id, String nickname) {
+        log.info("expirationTime: {}", expirationTime);
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(email)
@@ -47,6 +48,7 @@ JwtTokenProvider {
 
     // JWT RefreshToken 생성
     public String refreshToken(String email, String  id) {
+        log.info("expirationRt: {}", expirationTimeRt);
         return Jwts.builder()
                 .setSubject(email)
                 .claim("user_id",id)
