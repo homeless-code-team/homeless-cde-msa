@@ -20,6 +20,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 @ConfigurationProperties
@@ -72,11 +73,15 @@ public class AuthorizationHeaderFilter
                 return onError(exchange, "Invalid token in gate 2", HttpStatus.UNAUTHORIZED);
             }
 
+
+
+            String nickname = String.valueOf(claims.get("nickname"));
+            String decodedNickname = new String(Base64.getDecoder().decode(nickname), StandardCharsets.UTF_8);
             // 사용자 정보를 클레임에서 꺼내 헤더에 추가
             ServerHttpRequest request = exchange.getRequest()
                     .mutate()
                     .header("X-User-Email", claims.getSubject())
-                    .header("X-User-Nickname", String.valueOf(claims.get("nickname")))
+                    .header("X-User-Nickname", decodedNickname)
                     .header("X-User-Id", String.valueOf(claims.get("user_id")))
                     .build();
             log.info("통과~ 요구 url : {}", path);
