@@ -1,6 +1,7 @@
 package com.spring.homeless_user.common.configs;
 
 import com.spring.homeless_user.common.auth.OAuth2LoginSuccessHandler;
+import com.spring.homeless_user.common.dto.ErrorEntryPoint;
 import com.spring.homeless_user.user.service.OAuth2UserServiceImpl;
 import com.spring.homeless_user.common.utill.SecurityPropertiesUtil;
 import org.springframework.context.annotation.Bean;
@@ -20,13 +21,15 @@ public class SecurityConfig {
     private final OAuth2LoginSuccessHandler oAuth2SuccessHandler;
     private final OAuth2UserServiceImpl oAuth2UserService;
     private final SecurityPropertiesUtil securityPropertiesUtil; // ✅ SecurityPropertiesUtil 추가
+    private final ErrorEntryPoint errorEntryPoint;
 
     public SecurityConfig(OAuth2LoginSuccessHandler oAuth2SuccessHandler,
                           OAuth2UserServiceImpl oAuth2UserService,
-                          SecurityPropertiesUtil securityPropertiesUtil) {
+                          SecurityPropertiesUtil securityPropertiesUtil, ErrorEntryPoint errorEntryPoint) {
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.oAuth2UserService = oAuth2UserService;
         this.securityPropertiesUtil = securityPropertiesUtil; // ✅ 주입
+        this.errorEntryPoint = errorEntryPoint;
     }
 
     @Bean
@@ -41,6 +44,9 @@ public class SecurityConfig {
                     );
 
                     auth.anyRequest().authenticated(); // 그 외 모든 요청은 인증 필요
+                })
+                .exceptionHandling(exception -> {
+                    exception.authenticationEntryPoint(errorEntryPoint);
                 })
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService)) // ✅ OAuth2UserServiceImpl 사용
