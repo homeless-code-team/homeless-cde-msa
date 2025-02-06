@@ -83,7 +83,12 @@ public class FriendsService {
             String email = SecurityContextUtil.getCurrentUser().getEmail();
             List<UserResponseDto> userResponseDtoList = new ArrayList<>();
 
-            List<Friends> friends = friendsRepository.findBySenderEmailOrReceiverEmailAndStatus(email, email, AddStatus.ACCEPT);
+            List<Friends> senderFriends = friendsRepository.findBySenderEmailAndStatus(email, AddStatus.ACCEPT);
+            List<Friends> receiverFriends = friendsRepository.findByReceiverEmailAndStatus(email, AddStatus.ACCEPT);
+            List<Friends> friends = new ArrayList<>();
+            friends.addAll(senderFriends);
+            friends.addAll(receiverFriends);
+
 
             if (friends.isEmpty()) {
                 return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
@@ -187,6 +192,7 @@ public class FriendsService {
                     .collect(Collectors.toList());
             List<FeignResDto> friendList = userServiceclient.getUserDetails(byReceiverEmail);
 
+            log.info(friendList.toString());
             // 응답 생성
             return new CommonResDto(HttpStatus.OK, 200, "친구 요청 조회를 완료했습니다.", friendList, links);
         } catch (Exception e) {
@@ -210,6 +216,7 @@ public class FriendsService {
                     .map(Friends::getReceiverEmail)
                     .collect(Collectors.toList());
             List<FeignResDto> friendList = userServiceclient.getUserDetails(friendList1);
+            log.info(friendList.toString());
 
             return new CommonResDto(HttpStatus.OK, 200, "친구 요청 조회를 완료했습니다.", friendList, links);
         } catch (Exception e) {
