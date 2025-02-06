@@ -8,7 +8,6 @@ import com.spring.homeless_user.user.dto.*;
 import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
-import com.spring.homeless_user.user.utility.CheckingUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,14 +31,13 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtUtil jwtUtil;
     private final CacheComponent cacheComponent;
-    private final CheckingUtil checkingUtil;
     private final RedisTemplate<String, String> loginTemplate;
     private final RedisTemplate<String, String> cacheTemplate;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       JwtUtil jwtUtil, CacheComponent cacheComponent, CheckingUtil checkingUtil,
+                       JwtUtil jwtUtil, CacheComponent cacheComponent,
                        @Qualifier("login") RedisTemplate<String, String> loginTemplate,
                        @Qualifier("cache") RedisTemplate<String, String> cacheTemplate
                        ) {
@@ -48,7 +46,6 @@ public class UserService {
         this.jwtTokenProvider = jwtTokenProvider;
         this.jwtUtil = jwtUtil;
         this.cacheComponent = cacheComponent;
-        this.checkingUtil = checkingUtil;
         this.loginTemplate = loginTemplate;
         this.cacheTemplate = cacheTemplate;
     }
