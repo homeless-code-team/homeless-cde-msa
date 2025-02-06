@@ -48,7 +48,7 @@ public class SecurityConfig {
                     );
 
                     // ✅ OAuth2 로그인 관련 엔드포인트 인증 없이 허용
-                    auth.requestMatchers("/api/v1/oauth2/**").permitAll();
+                    auth.requestMatchers("/api/v1/oauth2/**","/oauth2/callback/**","/oauth/callback").permitAll();
 
                     auth.anyRequest().authenticated();
                 })
@@ -57,11 +57,8 @@ public class SecurityConfig {
                     exception.authenticationEntryPoint(errorEntryPoint);
                 })
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(endpoint ->
-                                endpoint.baseUri("/api/v1/oauth2/authorization/**") // ✅ OAuth2 로그인 엔드포인트 명확하게 설정
-                        )
                         .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                        .successHandler(oAuth2SuccessHandler) // ✅ 로그인 성공 후 JWT 발급
+                        .successHandler(oAuth2SuccessHandler)
                 );
 
         return http.build();
