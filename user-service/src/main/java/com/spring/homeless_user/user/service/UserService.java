@@ -67,13 +67,6 @@ public class UserService {
         log.info(String.valueOf(dto));
 
         try {
-            
-            if (!checkingUtil.isValidPassword(dto.getPassword())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "비밀번호가 유효하지 않습니다.", null, links);
-            }
-            if (!checkingUtil.isValidEmail(dto.getEmail())) {
-                return new CommonResDto(HttpStatus.BAD_REQUEST, 400, "이메일이 유효하지 않습니다.", null, links);
-            }
 
             User user = new User();
             user.setEmail(dto.getEmail());
@@ -87,7 +80,6 @@ public class UserService {
             return new CommonResDto(HttpStatus.OK, 200, "회원가입을 환영합니다.", null, links);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 오류: " + e.getMessage(), null, links);
         }
     }
@@ -117,6 +109,7 @@ public class UserService {
 
             return new CommonResDto(HttpStatus.OK, 200, "SignIn successfully.", accessToken, links);
         } catch (Exception e) {
+             e.printStackTrace();
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "로그인 처리 중 오류 발생: " + e.getMessage(), null, links);
         }
     }
