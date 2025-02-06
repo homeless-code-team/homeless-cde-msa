@@ -58,7 +58,7 @@ public class SecurityConfig {
                 })
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint ->
-                                endpoint.baseUri("/api/v1/oauth2/authorization") // ✅ OAuth2 로그인 엔드포인트 명확하게 설정
+                                endpoint.baseUri("/api/v1/oauth2/authorization/**") // ✅ OAuth2 로그인 엔드포인트 명확하게 설정
                         )
                         .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler) // ✅ 로그인 성공 후 JWT 발급
