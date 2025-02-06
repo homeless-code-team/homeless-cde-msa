@@ -139,6 +139,14 @@ public class UserController {
         CommonResDto response = infomationService.getData(nickname);
         return ResponseEntity.status(response.getCode()).body(response);
     }
+
+    // ✅ 비밀번호 재설정
+    @PatchMapping("/change")
+    public ResponseEntity<CommonResDto> changePassword(@RequestBody UserLoginReqDto dto) {
+        CommonResDto response = infomationService.changePassword(dto);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {

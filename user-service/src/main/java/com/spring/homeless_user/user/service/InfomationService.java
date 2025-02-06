@@ -124,4 +124,17 @@ public class InfomationService {
         }
     }
 
+    public CommonResDto changePassword(UserLoginReqDto dto) {
+
+        try{
+            User user = cacheComponent.getUserEntity(dto.getEmail());
+
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            userRepository.save(user);
+            return new CommonResDto(HttpStatus.OK, 200, "비밀번호 재설정성공", null, null);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "비밀번호 재설정 실패: " + e.getMessage(), null, null);
+        }
+    }
 }
