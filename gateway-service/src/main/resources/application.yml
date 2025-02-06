@@ -130,8 +130,8 @@ security:
     - /ws/**
     - /oauth2/authorization/**
     - /login/oauth2/code/**
-    - /user-service/oauth2/**
-    - /user-service/oauth2/authorization/**
-    - /user-service/api/v1/oauth2/authorization/**
+    - /oauth2/**
+    - /oauth2/authorization/**
+    - /api/v1/oauth2/authorization/**
 
 # log level setting
