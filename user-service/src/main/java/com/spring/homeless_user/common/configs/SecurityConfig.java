@@ -40,25 +40,32 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults()) // YAML 설정과 통합
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    // ✅ YAML에서 설정된 경로를 검증 없이 통과하도록 허용
+                    // ✅ YAML에서 설정된 경로를 인증 없이 허용
                     securityPropertiesUtil.getExcludedPaths().forEach(path ->
                             auth.requestMatchers(path).permitAll()
                     );
 
-                    auth.anyRequest().authenticated(); // 그 외 모든 요청은 인증 필요
+                    // ✅ OAuth2 로그인 관련 엔드포인트 인증 없이 허용
+                    auth.requestMatchers("/api/v1/oauth2/**").permitAll();
+
+                    auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> {
                     exception.authenticationEntryPoint(errorEntryPoint);
                 })
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService)) // ✅ OAuth2UserServiceImpl 사용
+                        .authorizationEndpoint(endpoint ->
+                                endpoint.baseUri("/api/v1/oauth2/authorization") // ✅ OAuth2 로그인 엔드포인트 명확하게 설정
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler) // ✅ 로그인 성공 후 JWT 발급
                 );
 
         return http.build();
     }
+
 }
