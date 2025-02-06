@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false, length = 255) // 비밀번호는 보통 해싱되므로 255자로 설정
     private String password;
 
-    @Column(nullable = false, length = 50) // 닉네임 길이 제한 (50자)
+    @Column(nullable = false, length = 8) // 닉네임 길이 제한 (8자)
     private String nickname;
 
     @Column(length = 255) // 프로필 이미지 URL (최대 길이 255)
@@ -41,7 +41,7 @@ public class User {
     @Column(length = 1500) // 소개글 (500자까지 가능)
     private String contents;
 
-    @Column(length = 255) // 성취 항목 (255자까지 가능)
+    @Column(length = 10) // 성취 항목 (10자까지 가능)
     private String achievement;
 
     @Column(nullable = false, updatable = false) // 생성 시점 수정 불가
