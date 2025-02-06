@@ -37,6 +37,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults()) // YAML 설정과 통합
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     // ✅ YAML에서 설정된 경로를 검증 없이 통과하도록 허용
                     securityPropertiesUtil.getExcludedPaths().forEach(path ->
