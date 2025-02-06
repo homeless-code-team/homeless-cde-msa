@@ -27,6 +27,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // 현재 요청 URI 가져오기
         String requestURI = request.getRequestURI();
+        log.info("request uri: {}", requestURI);
 
         // OAuth2 경로는 필터를 건너뜀
         if (requestURI.startsWith("/oauth2/") || requestURI.startsWith("/login/oauth2/")) {
@@ -39,6 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String userEmail = request.getHeader("X-User-Email");
         String userId = request.getHeader("X-User-Id");
         String nickname = request.getHeader("X-User-Nickname");
+
+        log.info("userEmail: {}, userId: {}, nickname: {}", userEmail, userId, nickname);
 
         if (userEmail != null) {
             List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
