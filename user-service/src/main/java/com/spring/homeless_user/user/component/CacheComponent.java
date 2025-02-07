@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class CacheComponent {
 
     private final UserRepository userRepository;
-
     //캐싱 메서드
     @Cacheable(value = "userCache", key = "#email")
     public User getUserEntity(String email) {

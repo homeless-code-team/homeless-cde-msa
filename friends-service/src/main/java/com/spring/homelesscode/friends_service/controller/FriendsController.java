@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class FriendsController {
 
     private final FriendsService friendsService;
-
     // 친구 요청
     @PostMapping("")
     public CommonResDto addFriend(@RequestBody FriendsDto dto) {
