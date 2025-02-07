@@ -128,7 +128,7 @@ security:
     - /api/v1/users/callback
     - /ws/info
     - /ws/**
-    - api/v1/users/password
+    - /api/v1/users/password
     - /oauth2/authorization/**
     - /login/oauth2/code/**
     - /oauth2/**
