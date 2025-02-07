@@ -147,7 +147,6 @@ public class UserController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-
     ////////////////////////////////////////////////feign통신//////////////////////////////////////////////////////////
     @PostMapping("/details-by-email")
     public ResponseEntity<List> existsByNicknameAndRefreshToken(@RequestBody List<String> result) {
