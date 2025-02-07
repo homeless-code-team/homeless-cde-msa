@@ -72,49 +72,74 @@ public class FriendsService {
 
 
     public CommonResDto getFriends() {
-        // REST API 링크 설정
+        // REST API 링크 설정 (추가, 조회, 삭제 등)
         List<CommonResDto.Link> links = new ArrayList<>();
         links.add(new CommonResDto.Link("addFriends", "/api/v1/friends", "POST"));
         links.add(new CommonResDto.Link("ListFriends", "/api/v1/friends", "GET"));
         links.add(new CommonResDto.Link("DeleteFriends", "/api/v1/friends", "DELETE"));
 
         try {
-            String email = SecurityContextUtil.getCurrentUser().getEmail();
-            List<UserResponseDto> userResponseDtoList = new ArrayList<>();
+            // Step 1. 양방향 친구 조회
+            String currentUserEmail = SecurityContextUtil.getCurrentUser().getEmail();
+            List<Friends> senderFriends = friendsRepository.findBySenderEmailAndStatus(currentUserEmail, AddStatus.ACCEPT);
+            List<Friends> receiverFriends = friendsRepository.findByReceiverEmailAndStatus(currentUserEmail, AddStatus.ACCEPT);
 
-            // 1. 친구 목록 가져오기
-            List<Friends> senderFriends = friendsRepository.findBySenderEmailAndStatus(email, AddStatus.ACCEPT);
-            List<Friends> receiverFriends = friendsRepository.findByReceiverEmailAndStatus(email, AddStatus.ACCEPT);
-
-            List<String> senderFriendEmails = senderFriends.stream()
-                    .map(Friends::getReceiverEmail)  // 내가 요청한 친구
-                    .toList();
-
-            List<String> receiverFriendEmails = receiverFriends.stream()
-                    .map(Friends::getSenderEmail)  // 내가 요청받은 친구
-                    .toList();
-
-            List<String> allFriendEmails = new ArrayList<>();
-            allFriendEmails.addAll(senderFriendEmails);
-            allFriendEmails.addAll(receiverFriendEmails);
-
-            // 2. 친구가 없는 경우
-            if (allFriendEmails.isEmpty()) {
-                return new CommonResDto(HttpStatus.OK, 200, "친구 목록이 비어 있습니다.", Collections.emptyList(), links);
+            // Step 2. 친구가 없는 경우 예외 처리
+            if (senderFriends.isEmpty() && receiverFriends.isEmpty()) {
+                return new CommonResDto(
+                        HttpStatus.OK,
+                        200,
+                        "친구 목록이 비어 있습니다.",
+                        Collections.emptyList(),
+                        links
+                );
             }
 
-            log.info("프렌즈조회리스트 존재");
+            // Step 3. 친구 정보 받아오기 및 Step 4. Friends 엔티티의 id와 결합하여 DTO 생성
+            List<UserResponseDto> friendInfoList = new ArrayList<>();
 
-            // 3. 친구 정보 조회 (email → friendEmail로 변경)
-            for (String friendEmail : allFriendEmails) {
-                UserResponseDto userResponseDto = userServiceclient.findFriendByEmail(friendEmail); // 친구 이메일로 조회
-                userResponseDtoList.add(userResponseDto);
+            // (1) 내가 친구 요청을 보낸 경우
+            for (Friends friendRelation : senderFriends) {
+                String friendEmail = friendRelation.getReceiverEmail();
+                UserResponseDto friendUserInfo = userServiceclient.findFriendByEmail(friendEmail);
+                UserResponseDto dto = UserResponseDto.builder()
+                        .id(friendRelation.getId())  // Friends 엔티티의 id
+                        .email(friendUserInfo.getEmail())
+                        .nickname(friendUserInfo.getNickname())
+                        .profileImage(friendUserInfo.getProfileImage())
+                        .build();
+                friendInfoList.add(dto);
             }
 
-            return new CommonResDto(HttpStatus.OK, 200, "친구목록 조회 성공", userResponseDtoList, links);
+            // (2) 내가 친구 요청을 받은 경우
+            for (Friends friendRelation : receiverFriends) {
+                String friendEmail = friendRelation.getSenderEmail();
+                UserResponseDto friendUserInfo = userServiceclient.findFriendByEmail(friendEmail);
+                UserResponseDto dto = UserResponseDto.builder()
+                        .id(friendRelation.getId())  // Friends 엔티티의 id
+                        .email(friendUserInfo.getEmail())
+                        .nickname(friendUserInfo.getNickname())
+                        .profileImage(friendUserInfo.getProfileImage())
+                        .build();
+                friendInfoList.add(dto);
+            }
 
+            // 최종 친구 목록 반환
+            return new CommonResDto(
+                    HttpStatus.OK,
+                    200,
+                    "친구목록 조회 성공",
+                    friendInfoList,
+                    links
+            );
         } catch (Exception e) {
-            return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러발생: " + e.getMessage(), null, links);
+            return new CommonResDto(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    500,
+                    "에러발생: " + e.getMessage(),
+                    null,
+                    links
+            );
         }
     }
 
