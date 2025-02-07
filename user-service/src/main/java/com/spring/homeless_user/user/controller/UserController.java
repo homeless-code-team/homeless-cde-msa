@@ -141,7 +141,7 @@ public class UserController {
     }
 
     // ✅ 비밀번호 재설정
-    @PatchMapping("/change")
+    @PatchMapping("/password")
     public ResponseEntity<CommonResDto> changePassword(@RequestBody UserLoginReqDto dto) {
         CommonResDto response = infomationService.changePassword(dto);
         return ResponseEntity.status(response.getCode()).body(response);
