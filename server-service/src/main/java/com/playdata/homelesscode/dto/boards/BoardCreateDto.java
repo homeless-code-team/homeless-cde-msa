@@ -12,7 +12,7 @@ import lombok.*;
 public class BoardCreateDto {
 
     private String title;
+    private String nickname;
     private String boardListId;
-
 
 }
