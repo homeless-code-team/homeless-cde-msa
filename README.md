@@ -39,13 +39,15 @@ API 요구사항 정의서: [https://docs.google.com/spreadsheets/d/1qWJBGSlRk5D
 
 
 
-WBS: https://docs.google.com/spreadsheets/d/1qWJBGSlRk5DR0ZJtLqeaqYpuDtvo4vvbbSvr3aLYO_k/edit?gid=0#gid=0
+WBS: 
+https://docs.google.com/spreadsheets/d/1qWJBGSlRk5DR0ZJtLqeaqYpuDtvo4vvbbSvr3aLYO_k/edit?gid=0#gid=0
+
 
 
 시스템 아키텍쳐:
 ![homelessCode drawio](https://github.com/user-attachments/assets/5e2f090e-4035-49be-a4fa-78d057d67c18)
 
-
+<br><br><br>
 
 
 플로우차트: 
