@@ -41,3 +41,8 @@ Homeless-Code는 기존의 정보 검색 중심의 개발자 커뮤니티를 넘
 
 ### 플로우차트
 ![homeless drawio (2)](https://github.com/user-attachments/assets/56e52bff-469c-4cef-9c80-a08a5da84483)
+
+
+### ERD:
+![homeless drawio (2)](https://github.com/user-attachments/assets/827ce0d2-b379-47b5-9603-94681ce16553)
+
