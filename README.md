@@ -2,6 +2,8 @@
 
 ### 갈길 잃은 개발자여, 이리오라.
 
+`개발자 소통 커뮤니티 메신져 어플리케이션`
+
 DownLoad Link: https://s3.ap-northeast-2.amazonaws.com/homelesscode.shop/homeless-code-win32-x64.zip
 
 API 요구사항 정의서: [https://docs.google.com/spreadsheets/d/1qWJBGSlRk5DR0ZJtLqeaqYpuDtvo4vvbbSvr3aLYO_k/edit?gid=0#gid=0](https://docs.google.com/spreadsheets/d/1yinpa_admUBsbwgxIcKAizQyT9TtpiuK22WTCYtIsQI/edit?gid=0#gid=0)
