@@ -171,17 +171,17 @@ public class UserService {
             return new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, 500, "에러발생" + e.getMessage(), null, List.of(Link));
         }
     }
-    public void registerOrLoginOAuthUser(String email, String nickname) {
-        // 이미 가입된 회원인지 확인
-        if (!userRepository.existsByEmail(email)) {
-            // 새로운 회원이면 회원가입 처리
-            User user = User.builder()
-                    .email(email)
-                    .nickname(nickname)
-                    .provider(Provider.SOCIALLOGIN)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            userRepository.save(user);
-        }
-    }
+//    public void registerOrLoginOAuthUser(String email, String nickname) {
+//        // 이미 가입된 회원인지 확인
+//        if (!userRepository.existsByEmail(email)) {
+//            // 새로운 회원이면 회원가입 처리
+//            User user = User.builder()
+//                    .email(email)
+//                    .nickname(nickname)
+//                    .provider(Provider.SOCIALLOGIN)
+//                    .createdAt(LocalDateTime.now())
+//                    .build();
+//            userRepository.save(user);
+//        }
+//    }
 }

@@ -48,7 +48,7 @@ public class SecurityConfig {
                     );
 
                     // ✅ OAuth2 로그인 관련 엔드포인트 인증 없이 허용
-                    auth.requestMatchers("/api/v1/oauth2/**","/oauth2/callback/**","/oauth/callback").permitAll();
+                    auth.requestMatchers("/api/v1/oauth2/code/*").permitAll();
 
                     auth.anyRequest().authenticated();
                 })
@@ -57,6 +57,8 @@ public class SecurityConfig {
                     exception.authenticationEntryPoint(errorEntryPoint);
                 })
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/api/v1/oauth2/authorization"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/v1/oauth2/code/*"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                 );

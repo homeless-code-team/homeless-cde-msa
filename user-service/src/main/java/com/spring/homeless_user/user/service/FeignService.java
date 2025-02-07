@@ -2,7 +2,6 @@ package com.spring.homeless_user.user.service;
 
 import com.spring.homeless_user.user.dto.FeignResDto;
 import com.spring.homeless_user.user.dto.UserResponseDto;
-import com.spring.homeless_user.user.entity.Provider;
 import com.spring.homeless_user.user.entity.User;
 import com.spring.homeless_user.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
