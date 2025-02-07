@@ -52,7 +52,7 @@ public class FeignService {
         List<User> byEmailIn = userRepository.findByEmailIn(userEmails);
 
         return byEmailIn.stream().map(user ->
-                new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
+                new UserResponseDto(user.getEmail(), user.getNickname(), user.getProfileImage())).collect(Collectors.toList());
 
     }
 
@@ -61,7 +61,7 @@ public class FeignService {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            return new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage());
+            return new UserResponseDto(user.getEmail(), user.getNickname(), user.getProfileImage());
         }
         else {
             throw new UsernameNotFoundException("User not found by email: " + email);
