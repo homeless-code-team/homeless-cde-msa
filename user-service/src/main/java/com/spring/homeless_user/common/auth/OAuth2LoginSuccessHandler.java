@@ -77,7 +77,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             );
 
             // 프론트엔드로 리다이렉트 (토큰 포함)
-            String targetUrl = UriComponentsBuilder.fromUriString("https://homelesscode.shop/#/oauth/callback")
+            String targetUrl = UriComponentsBuilder.fromUriString("https://homelesscode.shop/oauth/callback")
                     .queryParam("token", accessToken)
                     .build().toUriString();
             log.info("targetUrl:{}",targetUrl);
