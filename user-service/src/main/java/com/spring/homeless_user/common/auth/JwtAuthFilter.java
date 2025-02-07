@@ -30,8 +30,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         log.info("request uri: {}", requestURI);
 
         // OAuth2 경로는 필터를 건너뜀
-        if (requestURI.startsWith("/oauth2/") || requestURI.startsWith("/login/oauth2/")) {
-            log.debug("Skipping JwtAuthFilter for URI: {}", requestURI);
+        if (requestURI.startsWith("/oauth2/**") || requestURI.startsWith("/login/oauth2/**")) {
+            log.info("Skipping JwtAuthFilter for URI: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
