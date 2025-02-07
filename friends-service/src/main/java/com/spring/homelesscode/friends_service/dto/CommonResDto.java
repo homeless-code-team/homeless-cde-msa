@@ -15,6 +15,7 @@ public class CommonResDto {
     private Object data;
     private List<Link> links;
 
+
     @Data
     @AllArgsConstructor
     public static class Link {
