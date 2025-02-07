@@ -8,6 +8,6 @@ public enum Provider {
             case "GOOGLE" -> GOOGLE;
             case "GITHUB" -> GITHUB;
             default -> throw new IllegalArgumentException("Unknown provider: " + registrationId);
-        }
+        };
     }
 }

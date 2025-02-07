@@ -11,14 +11,12 @@ import lombok.ToString;
 @Builder
 public class UserResponseDto {
 
-    private String id;
     private String email;
     private String nickname;
     private String profileImage;
 
 
-    public UserResponseDto(String id,String email, String nickName, String profileImg) {
-        this.id = id;
+    public UserResponseDto(String email, String nickName, String profileImg) {
         this.email = email;
         this.nickname = nickName;
         this.profileImage = profileImg;

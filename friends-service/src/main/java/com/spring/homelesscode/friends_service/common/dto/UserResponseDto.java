@@ -11,7 +11,6 @@ import lombok.ToString;
 @Builder
 public class UserResponseDto {
 
-    private String id;
     private String email;
     private String nickname;
     private String profileImage;
