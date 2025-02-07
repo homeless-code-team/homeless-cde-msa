@@ -48,7 +48,7 @@ public class SecurityConfig {
                     );
 
                     // ✅ OAuth2 로그인 관련 엔드포인트 인증 없이 허용
-                    auth.requestMatchers("/api/v1/oauth2/code/*").permitAll();
+                    auth.requestMatchers("/api/v1/oauth2/code/*", "/login/oauth2/code/*").permitAll();
 
                     auth.anyRequest().authenticated();
                 })
