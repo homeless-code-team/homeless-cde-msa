@@ -5,6 +5,7 @@ import com.spring.homeless_user.common.auth.OAuth2LoginSuccessHandler;
 import com.spring.homeless_user.common.dto.ErrorEntryPoint;
 import com.spring.homeless_user.user.service.OAuth2UserServiceImpl;
 import com.spring.homeless_user.common.utill.SecurityPropertiesUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -57,10 +59,22 @@ public class SecurityConfig {
                     exception.authenticationEntryPoint(errorEntryPoint);
                 })
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/api/v1/oauth2/authorization"))
-                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/login/oauth2/code/**"))
-                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                        .successHandler(oAuth2SuccessHandler)
+                        .authorizationEndpoint(endpoint -> {
+                            endpoint.baseUri("/api/v1/oauth2/authorization");
+                            log.info("Authorization endpoint configured");
+                        })
+                        .redirectionEndpoint(endpoint -> {
+                            endpoint.baseUri("/login/oauth2/code/*");
+                            log.info("Redirection endpoint configured");
+                        })
+                        .userInfoEndpoint(userInfo -> {
+                            log.info("Setting up user info endpoint");
+                            userInfo.userService(oAuth2UserService);
+                        })
+                        .successHandler((request, response, authentication) -> {
+                            log.info("OAuth2 success handler triggered");
+                            oAuth2SuccessHandler.onAuthenticationSuccess(request, response, authentication);
+                        })
                 );
 
         return http.build();
