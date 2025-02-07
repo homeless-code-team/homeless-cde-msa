@@ -39,28 +39,34 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         try {
+            log.info("hi onAuthenticationSuccess");
             // OAuth2User에서 필요한 정보 추출
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            log.info("oauth2User:{}",oauth2User.toString());
             String email = oauth2User.getAttribute("email");
+            log.info("email:{}",email);
             String registrationId = ((OAuth2AuthenticationToken) authentication)
                     .getAuthorizedClientRegistrationId();
+            log.info("registrationId:{}",registrationId);
             Provider provider = Provider.fromRegistrationId(registrationId);
-
+            log.info("provider:{}",provider);
             // 사용자 조회
             User user = userRepository.findByEmailAndProvider(email, registrationId)
                     .orElseThrow(() -> new IllegalStateException(
                             "Cannot find user with email: " + email + " and provider: " + provider));
-
+            log.info("user:{}",user);
             // JWT 토큰 생성
             String accessToken = jwtTokenProvider.accessToken(
                     user.getEmail(),
                     user.getId(),
                     user.getNickname()
             );
+            log.info("accessToken:{}",accessToken);
             String refreshToken = jwtTokenProvider.refreshToken(
                     user.getEmail(),
                     user.getId()
             );
+            log.info("refreshToken:{}",refreshToken);
 
             // Redis에 refresh token 저장 (14일)
             loginTemplate.opsForValue().set(
@@ -71,10 +77,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             );
 
             // 프론트엔드로 리다이렉트 (토큰 포함)
-            String targetUrl = UriComponentsBuilder.fromUriString("https://homelesscode.shop/oauth/callback")
+            String targetUrl = UriComponentsBuilder.fromUriString("https://homelesscode.shop/#/oauth/callback")
                     .queryParam("token", accessToken)
                     .build().toUriString();
-
+            log.info("targetUrl:{}",targetUrl);
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
         } catch (Exception ex) {
